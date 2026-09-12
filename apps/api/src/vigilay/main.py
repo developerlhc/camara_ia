@@ -1,0 +1,123 @@
+import json
+import logging
+import time
+from uuid import uuid4
+
+from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from redis import Redis
+from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+from vigilay import auth, routes
+from vigilay.config import settings
+from vigilay.db import engine
+
+logger = logging.getLogger("vigilay")
+
+
+def create_app():
+    config = settings()
+    app = FastAPI(
+        title="Vigilay",
+        version="0.1.0",
+        docs_url="/api/docs" if config.app_env != "production" else None,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[config.web_origin],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["content-type", "x-csrf-token"],
+    )
+
+    @app.middleware("http")
+    async def request_security(request: Request, call_next):
+        request_id = str(uuid4())
+        started = time.monotonic()
+        if (
+            request.method not in {"GET", "HEAD", "OPTIONS"}
+            and request.headers.get("origin") != config.web_origin
+        ):
+            return JSONResponse({"detail": "Origen de solicitud no permitido"}, status_code=403)
+        response = await call_next(request)
+        response.headers.update(
+            {
+                "X-Request-ID": request_id,
+                "X-Content-Type-Options": "nosniff",
+                "Cache-Control": "no-store",
+                "X-Frame-Options": "DENY",
+            }
+        )
+        logger.info(
+            json.dumps(
+                {
+                    "service": "api",
+                    "request_id": request_id,
+                    "method": request.method,
+                    "status": response.status_code,
+                    "duration_ms": round((time.monotonic() - started) * 1000),
+                }
+            )
+        )
+        return response
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request, exc):
+        # Pydantic's default error includes input values, potentially containing credentials.
+        return JSONResponse(
+            {
+                "detail": "Datos inválidos",
+                "fields": [
+                    {"loc": list(error["loc"]), "type": error["type"]} for error in exc.errors()
+                ],
+            },
+            status_code=422,
+        )
+
+    @app.exception_handler(IntegrityError)
+    async def conflict(request, exc):
+        return JSONResponse({"detail": "Datos duplicados o referencia inválida"}, status_code=409)
+
+    @app.exception_handler(SQLAlchemyError)
+    async def database_error(request, exc):
+        logger.error(json.dumps({"service": "api", "event_type": "DATABASE_UNAVAILABLE"}))
+        return JSONResponse(
+            {"detail": "Base de datos temporalmente no disponible"}, status_code=503
+        )
+
+    @app.get("/healthz", include_in_schema=False)
+    def healthz():
+        return {"service": "Vigilay API", "status": "ok"}
+
+    @app.get("/readyz", include_in_schema=False)
+    def readyz():
+        try:
+            with engine().connect() as connection:
+                connection.execute(text("SELECT 1"))
+            with Redis.from_url(config.redis_url, socket_timeout=2) as redis:
+                redis.ping()
+        except Exception:
+            return JSONResponse({"status": "unavailable"}, status_code=503)
+        return {"status": "ok"}
+
+    @app.get("/api/v1/system/health")
+    def system_health(actor=Depends(auth.require("system.read"))):
+        ready = readyz()
+        if isinstance(ready, JSONResponse):
+            return ready
+        with Redis.from_url(config.redis_url, socket_timeout=2) as redis:
+            worker = bool(redis.exists("vigilay:worker:heartbeat"))
+        return {
+            "api": "ok",
+            "mysql": "ok",
+            "redis": "ok",
+            "worker": "ok" if worker else "offline",
+            "media": "not_integrated",
+        }
+
+    app.include_router(auth.router)
+    app.include_router(routes.router)
+    return app

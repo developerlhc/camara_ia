@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>IA Vigilancia</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101418;
+      --panel: #171d23;
+      --panel-2: #202832;
+      --text: #edf3f7;
+      --muted: #9aa9b5;
+      --line: #2f3a46;
+      --accent: #28b37f;
+      --warn: #f0a33a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--line);
+      background: #12181e;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      cursor: pointer;
+      font: inherit;
+      padding: 8px 12px;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--warn);
+    }
+
+    .online .dot {
+      background: var(--accent);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .video-wrap {
+      min-height: 360px;
+      background: #080b0f;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .video-wrap img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      object-fit: contain;
+      background: #07090c;
+    }
+
+    .side {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .metric,
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .metric {
+      padding: 16px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 34px;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .metric span,
+    .panel .meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .panel {
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .panel-head h2 {
+      margin: 0;
+    }
+
+    .names {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 34px;
+    }
+
+    .name {
+      padding: 7px 10px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 13px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .visit-photo {
+      width: 54px;
+      height: 54px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0b0f13;
+    }
+
+    th,
+    td {
+      padding: 9px 6px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    @media (max-width: 980px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      main {
+        padding: 12px;
+      }
+
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>IA Vigilancia</h1>
+    <div id="cameraStatus" class="status-pill">
+      <span class="dot"></span>
+      <span>Conectando camara</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="video-wrap">
+      <img src="/video_feed" alt="Video en vivo con deteccion de personas">
+    </section>
+
+    <aside class="side">
+      <section class="metrics">
+        <div class="metric">
+          <strong id="personCount">0</strong>
+          <span>Personas en el local</span>
+        </div>
+        <div class="metric">
+          <strong id="faceCount">0</strong>
+          <span>Rostros detectados</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Reconocidos</h2>
+        <div id="recognizedPeople" class="names"></div>
+        <p id="faceMode" class="meta"></p>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Reporte en tiempo real</h2>
+          <button id="clearHistoryButton" type="button">Limpiar</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Personas</th>
+              <th>Rostros</th>
+            </tr>
+          </thead>
+          <tbody id="eventsBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Visitas registradas</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Persona</th>
+              <th>Foto</th>
+              <th>Tipo</th>
+            </tr>
+          </thead>
+          <tbody id="visitsBody"></tbody>
+        </table>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    const personCount = document.getElementById("personCount");
+    const faceCount = document.getElementById("faceCount");
+    const recognizedPeople = document.getElementById("recognizedPeople");
+    const cameraStatus = document.getElementById("cameraStatus");
+    const faceMode = document.getElementById("faceMode");
+    const eventsBody = document.getElementById("eventsBody");
+    const visitsBody = document.getElementById("visitsBody");
+    const clearHistoryButton = document.getElementById("clearHistoryButton");
+
+    async function refreshStatus() {
+      const response = await fetch("/api/status");
+      const status = await response.json();
+
+      personCount.textContent = status.person_count;
+      faceCount.textContent = status.face_count;
+      cameraStatus.classList.toggle("online", status.camera_online);
+      cameraStatus.querySelector("span:last-child").textContent = status.camera_online
+        ? `Camara online - ${status.last_update || ""}`
+        : "Camara sin conexion";
+
+      recognizedPeople.innerHTML = "";
+      if (status.recognized_people.length === 0) {
+        const empty = document.createElement("span");
+        empty.className = "name";
+        empty.textContent = "Sin personas reconocidas";
+        recognizedPeople.appendChild(empty);
+      } else {
+        status.recognized_people.forEach((name) => {
+          const item = document.createElement("span");
+          item.className = "name";
+          item.textContent = name;
+          recognizedPeople.appendChild(item);
+        });
+      }
+
+      faceMode.textContent = status.face_recognition_enabled
+        ? "Reconocimiento facial activo si hay imagenes en rostros_conocidos."
+        : "Instala face_recognition para identificar personas por nombre.";
+    }
+
+    async function refreshEvents() {
+      const response = await fetch("/api/events");
+      const events = await response.json();
+      eventsBody.innerHTML = "";
+      events.slice(0, 10).forEach((event) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${event.time.slice(11)}</td>
+          <td>${event.person_count}</td>
+          <td>${event.face_count}</td>
+        `;
+        eventsBody.appendChild(row);
+      });
+    }
+
+    async function refreshVisits() {
+      const response = await fetch("/api/visits");
+      const visits = await response.json();
+      visitsBody.innerHTML = "";
+      visits.slice(0, 8).forEach((visit) => {
+        const row = document.createElement("tr");
+        const photo = visit.url
+          ? `<img class="visit-photo" src="${visit.url}" alt="Foto de visita">`
+          : "";
+        row.innerHTML = `
+          <td>${visit.time.slice(11)}</td>
+          <td>${visit.name}</td>
+          <td>${photo}</td>
+          <td>${visit.kind || "rostro"}</td>
+        `;
+        visitsBody.appendChild(row);
+      });
+    }
+
+    async function refreshAll() {
+      try {
+        await Promise.all([refreshStatus(), refreshEvents(), refreshVisits()]);
+      } catch (error) {
+        cameraStatus.classList.remove("online");
+        cameraStatus.querySelector("span:last-child").textContent = "Esperando servidor";
+      }
+    }
+
+    async function clearHistory() {
+      clearHistoryButton.disabled = true;
+      try {
+        await fetch("/api/clear-history", { method: "POST" });
+        eventsBody.innerHTML = "";
+        visitsBody.innerHTML = "";
+      } finally {
+        clearHistoryButton.disabled = false;
+      }
+    }
+
+    clearHistoryButton.addEventListener("click", clearHistory);
+    refreshAll();
+    setInterval(refreshAll, 1500);
+  </script>
+</body>
+</html>

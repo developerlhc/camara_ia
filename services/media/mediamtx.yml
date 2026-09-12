@@ -1,0 +1,7 @@
+logLevel: warn
+api: false
+metrics: false
+rtsp: true
+webrtc: true
+hls: true
+paths: {}

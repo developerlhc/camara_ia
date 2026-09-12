@@ -1,0 +1,16 @@
+.git
+.env*
+.venv*
+**/node_modules
+**/.svelte-kit
+**/__pycache__
+**/build
+**/.pytest_cache
+.local
+reportes
+visitas
+rostros_conocidos
+*.pt
+*.log
+camara-ia.py
+templates

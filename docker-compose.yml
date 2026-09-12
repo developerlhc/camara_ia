@@ -1,0 +1,93 @@
+name: vigilay
+
+x-api-environment: &api-environment
+  APP_ENV: development
+  DATABASE_URL: mysql+pymysql://${MYSQL_USER:-vigilay}:${MYSQL_PASSWORD:?Configura .env}@mysql:3306/${MYSQL_DATABASE:-vigilay}?charset=utf8mb4
+  REDIS_URL: redis://redis:6379/0
+  SESSION_SECRET: ${SESSION_SECRET:?Configura .env}
+  INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
+  CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?Configura .env}
+  WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+  SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+  ENABLE_SIMULATOR: ${ENABLE_SIMULATOR:-false}
+
+services:
+  mysql:
+    image: mysql:8.4
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vigilay}
+      MYSQL_USER: ${MYSQL_USER:-vigilay}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Configura .env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Configura .env}
+    ports: ["127.0.0.1:3306:3306"]
+    volumes: ["mysql_data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_PASSWORD mysql -h127.0.0.1 -u$$MYSQL_USER -D$$MYSQL_DATABASE -e 'SELECT 1' >/dev/null 2>&1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["127.0.0.1:6379:6379"]
+    volumes: ["redis_data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    image: vigilay-api:local
+    build: {context: ., dockerfile: infra/docker/api.Dockerfile}
+    environment: *api-environment
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      mysql: {condition: service_healthy}
+  api:
+    image: vigilay-api:local
+    build: {context: ., dockerfile: infra/docker/api.Dockerfile}
+    environment: *api-environment
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    restart: unless-stopped
+  worker:
+    build: {context: ., dockerfile: infra/docker/api.Dockerfile}
+    environment: *api-environment
+    command: ["vigilay-worker"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,redis; assert redis.Redis.from_url(os.environ['REDIS_URL']).exists('vigilay:worker:heartbeat')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+    restart: unless-stopped
+  web:
+    build: {context: apps/web, dockerfile: Dockerfile}
+    environment:
+      ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      HOST: 0.0.0.0
+      PORT: 3000
+      API_INTERNAL_URL: http://api:8000
+      INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      api: {condition: service_healthy}
+    restart: unless-stopped
+  mediamtx:
+    image: bluenviron/mediamtx:1.15.6
+    profiles: ["media"]
+    # Kept private until live-session authorization is implemented.
+    volumes: ["./services/media/mediamtx.yml:/mediamtx.yml:ro"]
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+  media_data:
