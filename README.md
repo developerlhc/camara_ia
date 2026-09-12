@@ -99,3 +99,4 @@ También funciona Chromium instalado con `npx playwright install chromium`, omit
 - [Prototipo original](docs/LEGACY.md)
 
 El prototipo se conserva en `camara-ia.py`, `templates/` e `iniciar.ps1`. Sus credenciales locales se trasladaron a `.local/legacy-config.json`; las variables de entorno siguen teniendo prioridad. CSV, fotos y modelo YOLO originales permanecen en sus ubicaciones.
+# camara_ia
