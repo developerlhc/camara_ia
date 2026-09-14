@@ -2,9 +2,9 @@
 
 Login por correo o usuario, contraseñas Argon2id y sesión aleatoria de 48 bytes. Solo el hash SHA-256 del token se guarda en MySQL. Cookie HttpOnly, SameSite=Lax, vencimiento de ocho horas por defecto. Secure es obligatorio al seleccionar APP_ENV=production y WEB_ORIGIN debe ser HTTPS. Los tokens no se guardan en localStorage.
 
-El navegador envía Origin y un token CSRF derivado con HMAC de la sesión; las escrituras verifican ambos. Login y recuperación verifican Origin y límites Redis. Rotar sesión al autenticar revoca el token previo. Logout, cambio/reset de contraseña y cambios de usuario revocan sesiones. Cada petición verifica estado del usuario, tenant y rol vigente; suspender un cliente corta el acceso inmediatamente.
+El navegador envía Origin y un token CSRF derivado con HMAC de la sesión; las escrituras verifican ambos. Login y recuperación verifican Origin y límites persistentes en MySQL. Rotar sesión al autenticar revoca el token previo. Logout, cambio/reset de contraseña y cambios de usuario revocan sesiones. Cada petición verifica estado del usuario, tenant y rol vigente; suspender un cliente corta el acceso inmediatamente.
 
-Límite compartido Redis: 30 solicitudes de login por IP en 15 minutos; después de cinco intentos fallidos se bloquea la cuenta durante 15 minutos. El proxy SvelteKit pasa la IP del navegador solo con un secreto interno; la API ignora headers de IP sin esa autenticación. Si Redis no responde, login falla de forma cerrada con 503. La sesión existente puede seguir verificándose en MySQL.
+Límite compartido MySQL: 30 solicitudes de login por IP en 15 minutos; después de cinco intentos fallidos se bloquea la cuenta durante 15 minutos. El proxy SvelteKit pasa la IP del navegador solo con un secreto interno; la API ignora headers de IP sin esa autenticación. La sesión existente también se verifica en MySQL.
 
 Crear administrador:
 

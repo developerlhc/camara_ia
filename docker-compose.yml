@@ -4,7 +4,6 @@ x-api-environment: &api-environment
   APP_ENV: development
   DATABASE_URL: mysql+pymysql://${MYSQL_USER:-vigilay}:${MYSQL_PASSWORD:-vigilay-local-development}@mysql:3306/${MYSQL_DATABASE:-vigilay}?charset=utf8mb4
   BDMYSQL: ${BDMYSQL:-}
-  REDIS_URL: redis://redis:6379/0
   SESSION_SECRET: ${SESSION_SECRET:?Configura .env}
   INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
   CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?Configura .env}
@@ -36,17 +35,6 @@ services:
       timeout: 5s
       retries: 30
     restart: unless-stopped
-  redis:
-    image: redis:7.4-alpine
-    command: ["redis-server", "--appendonly", "yes"]
-    ports: ["127.0.0.1:${REDIS_HOST_PORT:-6380}:6379"]
-    volumes: ["redis_data:/data"]
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-    restart: unless-stopped
   migrate:
     image: vigilay-api:local
     build: {context: ., dockerfile: infra/docker/api.Dockerfile}
@@ -61,20 +49,18 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       migrate: {condition: service_completed_successfully}
-      redis: {condition: service_healthy}
     restart: unless-stopped
   worker:
     build: {context: ., dockerfile: infra/docker/api.Dockerfile}
     environment: *api-environment
     command: ["vigilay-worker"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import os,redis; assert redis.Redis.from_url(os.environ['REDIS_URL']).exists('vigilay:worker:heartbeat')"]
+      test: ["CMD", "python", "-c", "from datetime import timedelta; from vigilay.db import system_session; from vigilay.models import ServiceHeartbeat,utcnow; c=system_session(); db=c.__enter__(); h=db.get(ServiceHeartbeat,'worker'); assert h and h.last_seen_at >= utcnow()-timedelta(seconds=30); c.__exit__(None,None,None)"]
       interval: 15s
       timeout: 5s
       retries: 3
     depends_on:
       migrate: {condition: service_completed_successfully}
-      redis: {condition: service_healthy}
     restart: unless-stopped
   web:
     build: {context: apps/web, dockerfile: Dockerfile}
@@ -97,5 +83,4 @@ services:
 
 volumes:
   mysql_data:
-  redis_data:
   media_data:

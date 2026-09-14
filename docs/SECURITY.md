@@ -1,6 +1,6 @@
 # Vigilay — controles y límites de esta entrega
 
-Controles implementados: filtros por tenant en ORM, rechazo de escrituras cruzadas, referencias MySQL compuestas, RBAC, permisos por cámara, contraseñas Argon2id, sesiones revocables, CSRF/Origin, rate limits Redis, bloqueo temporal, auditoría y cifrado AES-256-GCM. Cada credencial queda ligada criptográficamente al tenant y la cámara mediante AAD. Las respuestas de validación no incluyen valores de entrada para evitar filtrar contraseñas o URLs RTSP.
+Controles implementados: filtros por tenant en ORM, rechazo de escrituras cruzadas, referencias MySQL compuestas, RBAC, permisos por cámara, contraseñas Argon2id, sesiones revocables, CSRF/Origin, rate limits persistentes en MySQL, bloqueo temporal, auditoría y cifrado AES-256-GCM. Cada credencial queda ligada criptográficamente al tenant y la cámara mediante AAD. Las respuestas de validación no incluyen valores de entrada para evitar filtrar contraseñas o URLs RTSP.
 
 El esquema API solo acepta campos declarados. Las operaciones de cámara no abren URLs arbitrarias desde el control plane. RTSP únicamente registra parámetros cifrados; conexiones reales pasarán por un agente autorizado. La interfaz usa interpolación escapada de Svelte, no HTML construido con nombres de usuarios.
 

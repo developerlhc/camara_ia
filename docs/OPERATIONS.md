@@ -4,15 +4,15 @@ Iniciar: `docker compose up -d --build`. Ver estado: `docker compose ps`. Logs: 
 
 En esta instalación es preferible `.\scripts\iniciar-vigilay.ps1`: además de Compose, conecta el contenedor externo `frigate` a la red privada `vigilay_default` con el alias `frigate` e inicia un único agente dedicado de video en vivo.
 
-MySQL y Redis usan volúmenes persistentes. No ejecutar `docker compose down -v` para una parada normal, porque elimina esos volúmenes. Las migraciones corren en un contenedor de ejecución única; la API espera su éxito antes de iniciar.
+MySQL usa un volumen persistente. No ejecutar `docker compose down -v` para una parada normal, porque elimina ese volumen. Las migraciones corren en un contenedor de ejecución única; la API espera su éxito antes de iniciar.
 
-El worker del simulador ejecuta `vigilay-worker`, procesa la cola MySQL y publica heartbeat en Redis. La web consulta resultados de cámaras cada tres segundos. Si el worker está detenido, los comandos quedan pendientes en la base. La cola solo admite un comando pendiente por cámara.
+El worker del simulador ejecuta `vigilay-worker`, procesa la cola y publica su heartbeat en MySQL. La web consulta resultados de cámaras cada tres segundos. Si el worker está detenido, los comandos quedan pendientes en la base. La cola solo admite un comando pendiente por cámara.
 
 ## Agente local de streaming
 
 Ejecutar `.\scripts\iniciar-agente-stream.ps1` en el equipo Windows conectado a la LAN de cámaras. Debe permanecer como proceso supervisado; al recibir SIGINT/SIGTERM detiene todos los FFmpeg propios. El estado aparece como `media=ok` mientras renueva su heartbeat.
 
-En producción `REDIS_URL` debe usar `rediss://` y `DATABASE_URL` debe configurar `ssl_ca` o `ssl_verify_cert=true`. El agente realiza únicamente conexiones salientes. No se debe publicar Flask 5000, Redis, MySQL, RTSP ni V380Decoder hacia Internet.
+En producción `DATABASE_URL` debe configurar `ssl_ca` o `ssl_verify_cert=true`. El agente realiza únicamente conexiones salientes. No se debe publicar Flask 5000, MySQL, RTSP ni V380Decoder hacia Internet.
 
 `START_STREAM_AGENT_WITH_LOCAL=false` evita que `iniciar.ps1` cree otro agente cuando ya se usa `scripts/iniciar-agente-stream.ps1` o el iniciador completo. Cloudflare sólo transporta el vivo; no es el almacén de grabaciones.
 
@@ -30,7 +30,7 @@ Frigate es la fuente de detecciones, eventos y grabaciones. El API de Vigilay ac
 
 Agregar una conexión en Vigilay no modifica automáticamente el archivo externo de Frigate. Primero se incorpora la fuente en la configuración validada de Frigate y luego se selecciona su alias en Vigilay. Esto evita sobrescribir una configuración externa o guardar nuevamente secretos RTSP en texto plano.
 
-El simulador conserva su estado de dispositivo en Redis con persistencia AOF. Modificaciones directas de ese estado se detectan al volver a probar la cámara y producen DRIFTED cuando difieren del valor deseado.
+El simulador conserva su estado de dispositivo en MySQL. Modificaciones directas de ese estado se detectan al volver a probar la cámara y producen DRIFTED cuando difieren del valor deseado.
 
 ## Copias de seguridad
 

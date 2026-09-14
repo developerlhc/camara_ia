@@ -1,14 +1,13 @@
 class SimulatorAdapter:
-    """Development-only device; state is kept separately from desired/reported settings."""
+    """Development-only device backed by a caller-owned persistent state mapping."""
 
-    def __init__(self, cache, camera_id):
-        self.cache = cache
-        self.key = f"vigilay:simulator:{camera_id}"
+    def __init__(self, state):
+        self.state = state
 
     def probe(self):
-        if self.cache.hget(self.key, "offline") == b"1":
+        if self.state.get("offline", False):
             raise ConnectionError("Simulador desconectado")
-        self.cache.hsetnx(self.key, "motion_sensitivity", "50")
+        self.state.setdefault("motion_sensitivity", 50)
         return {"model": "Vigilay Simulator", "firmware": "1", "simulated": True}
 
     def get_capabilities(self):
@@ -24,7 +23,7 @@ class SimulatorAdapter:
 
     def get_current_settings(self):
         self.probe()
-        return {"motion_sensitivity": int(self.cache.hget(self.key, "motion_sensitivity"))}
+        return {"motion_sensitivity": int(self.state["motion_sensitivity"])}
 
     def apply_settings(self, values):
         self.probe()
@@ -33,4 +32,4 @@ class SimulatorAdapter:
         value = values["motion_sensitivity"]
         if type(value) is not int or not 0 <= value <= 100:
             raise ValueError("Sensibilidad inválida")
-        self.cache.hset(self.key, "motion_sensitivity", str(value))
+        self.state["motion_sensitivity"] = value

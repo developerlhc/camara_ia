@@ -11,7 +11,6 @@ from vigilay.models import (
     CameraCapability,
     CameraCredential,
     CameraStreamProvider,
-    CameraStreamSession,
     DeviceCommand,
     IntegrationSetting,
 )
@@ -192,11 +191,10 @@ def test_stream_agent_rejects_plaintext_transport_in_production(monkeypatch):
         "settings",
         lambda: SimpleNamespace(
             app_env="production",
-            redis_url="redis://example:6379/0",
             database_url="mysql+pymysql://example/db",
         ),
     )
-    with pytest.raises(RuntimeError, match="rediss"):
+    with pytest.raises(RuntimeError, match="MySQL TLS"):
         LocalStreamAgent._validate_transport()
 
 
@@ -263,14 +261,9 @@ def test_live_start_never_returns_publish_url(monkeypatch, clients, cameras):
 
     monkeypatch.setattr(live_routes, "CloudflareStreamService", FakeService)
 
-    def dispatch(action, camera_id, session_id):
-        if action == "start":
-            with system_session() as db:
-                session = db.get(CameraStreamSession, session_id)
-                session.status = "live"
-                db.commit()
-
-    monkeypatch.setattr(live_routes, "_dispatch", dispatch)
+    monkeypatch.setattr(
+        live_routes, "settings", lambda: SimpleNamespace(stream_start_timeout_seconds=0)
+    )
     response = clients["a"].post(f"/api/v1/cameras/{camera_id}/live/start")
     assert response.status_code == 200, response.text
     body = response.json()

@@ -1,19 +1,20 @@
 import json
 import logging
 import time
+from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from redis import Redis
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from vigilay import auth, frigate_routes, live_routes, routes
 from vigilay.config import settings
-from vigilay.db import engine
+from vigilay.db import engine, system_session
+from vigilay.models import ServiceHeartbeat, utcnow
 
 logger = logging.getLogger("vigilay")
 
@@ -97,8 +98,6 @@ def create_app():
         try:
             with engine().connect() as connection:
                 connection.execute(text("SELECT 1"))
-            with Redis.from_url(config.redis_url, socket_timeout=2) as redis:
-                redis.ping()
         except Exception:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return {"status": "ok"}
@@ -108,14 +107,16 @@ def create_app():
         ready = readyz()
         if isinstance(ready, JSONResponse):
             return ready
-        with Redis.from_url(config.redis_url, socket_timeout=2) as redis:
-            worker = bool(redis.exists("vigilay:worker:heartbeat"))
+        cutoff = utcnow() - timedelta(seconds=30)
+        with system_session() as db:
+            worker = db.get(ServiceHeartbeat, "worker")
+            media = db.get(ServiceHeartbeat, "stream-agent")
         return {
             "api": "ok",
             "mysql": "ok",
-            "redis": "ok",
-            "worker": "ok" if worker else "offline",
-            "media": "ok" if redis.exists("vigilay:stream-agent:heartbeat") else "offline",
+            "coordination": "mysql",
+            "worker": "ok" if worker and worker.last_seen_at >= cutoff else "offline",
+            "media": "ok" if media and media.last_seen_at >= cutoff else "offline",
         }
 
     app.include_router(auth.router)

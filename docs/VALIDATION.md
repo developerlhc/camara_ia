@@ -1,6 +1,6 @@
 # Vigilay — verificación de la primera entrega
 
-Fecha: 2026-09-11. Entorno: Windows, Python 3.13.5, Node 20.19.3 para herramientas locales; contenedores Python 3.13, Node 22, MySQL 8.4 y Redis 7.4. Prueba de navegador ejecutada con Microsoft Edge mediante Playwright.
+Fecha: 2026-09-14. Entorno: Windows, Python 3.13.5, Node 20.19.3 para herramientas locales; contenedores Python 3.13, Node 22 y MySQL 8.4. Prueba de navegador ejecutada con Microsoft Edge mediante Playwright.
 
 ## Resultados observados
 
@@ -19,7 +19,7 @@ Fecha: 2026-09-11. Entorno: Windows, Python 3.13.5, Node 20.19.3 para herramient
 | Responsive | Comprobado a 1440 px y 390 px; sin desbordamiento horizontal del documento. |
 | Dependencias | npm audit y pip-audit sin vulnerabilidades conocidas en sus ejecuciones finales; pip check sin incompatibilidades. |
 | Contenedores | API, web y worker construidos; cinco servicios principales reportan healthy. |
-| Persistencia | Reiniciados MySQL, Redis, API, worker y web. Se conservaron los mismos IDs de clientes, usuarios y cámaras, y sensibilidad deseada/reportada 70 con estado SYNCED. |
+| Persistencia | Reiniciados MySQL, API, worker y web. Se conservaron los mismos IDs de clientes, usuarios y cámaras. Cola, rate limits, heartbeats y estado del simulador persisten en MySQL. |
 | Prototipo | Compilación sintáctica de camara-ia.py verificada; no se abrió la cámara ni se enviaron notificaciones reales. |
 | Exclusiones | git check-ignore confirmó exclusión de .env, accesos locales, configuración privada, entorno Python y CSV. |
 

@@ -2,7 +2,7 @@
 
 ## Decisiones
 
-Monorepo en la raíz existente. FastAPI y SQLAlchemy 2 para el control plane; MySQL 8.4 UTF8MB4 como persistencia y Alembic para versiones. Se usa SQLAlchemy síncrono y PyMySQL: los endpoints de trabajo bloqueante ejecutan en el threadpool de FastAPI, simplificando transacciones y pruebas en Windows. Redis para coordinación/heartbeat de workers. SvelteKit, TypeScript y adapter-node para web. Python para adaptadores y futuro Edge Agent, manteniendo la reutilización de OpenCV/YOLO.
+Monorepo en la raíz existente. FastAPI y SQLAlchemy 2 para el control plane; MySQL 8.4 UTF8MB4 como persistencia, coordinación duradera y Alembic para versiones. Se usa SQLAlchemy síncrono y PyMySQL: los endpoints de trabajo bloqueante ejecutan en el threadpool de FastAPI, simplificando transacciones y pruebas en Windows. SvelteKit, TypeScript y adapter-node para web. Python para adaptadores y Edge Agent, manteniendo la reutilización de OpenCV/YOLO.
 
 Sesiones opacas revocables con hash en base de datos y cookies HttpOnly; Argon2id para contraseñas. CSRF ligado criptográficamente a la sesión más comprobación de Origin en escrituras del navegador. No hay credenciales predeterminadas. El primer superadministrador se crea mediante CLI interactiva. AES-256-GCM para secretos de cámara, usando tenant e identificador de cámara como datos autenticados.
 
@@ -15,10 +15,8 @@ flowchart TD
   Browser[Navegador] --> Web[SvelteKit]
   Web --> API[FastAPI /api/v1]
   API --> DB[(MySQL)]
-  API --> Redis[(Redis)]
   Worker[Worker] --> DB
-  Worker --> Redis
-  Agent[Agente local] -->|HTTPS saliente / Redis en desarrollo| API
+  Agent[Agente local] -->|Polling MySQL con TLS| DB
   Agent --> Adapters[Adaptadores ONVIF / RTSP / fabricante]
   Adapters --> Camera[Cámara]
 ```

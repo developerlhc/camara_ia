@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = ""
     bdmysql: str = ""
-    redis_url: str = "redis://localhost:6379/0"
     session_secret: str
     internal_proxy_secret: str = ""
     credential_encryption_key: str

@@ -1,12 +1,9 @@
 """Authorized on-demand live-view endpoints."""
 
-import json
 import secrets
 import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from redis import Redis
-from redis.exceptions import RedisError
 from sqlalchemy import select
 
 from vigilay.auth import Principal, audit, database, rate_limit, require
@@ -21,7 +18,6 @@ from vigilay.models import (
 from vigilay.routes import authorized_camera
 from vigilay.schemas import CloudflareIntegrationInput, LiveSessionInput
 from vigilay.security import encrypt_credentials, hash_token
-from vigilay.stream_agent import COMMAND_QUEUE
 from vigilay.streaming import CloudflareStreamService, StreamProviderError
 
 router = APIRouter(prefix="/api/v1", tags=["Video en vivo"])
@@ -83,17 +79,6 @@ def configure_cloudflare_integration(
     return {"configured": True, "source": "vigilay", "tokenStored": True}
 
 
-def _dispatch(action: str, camera_id: str, session_id: str):
-    try:
-        with Redis.from_url(settings().redis_url, socket_timeout=2) as cache:
-            cache.rpush(
-                COMMAND_QUEUE,
-                json.dumps({"action": action, "camera_id": camera_id, "session_id": session_id}),
-            )
-    except RedisError as exc:
-        raise HTTPException(503, "El agente de video no está disponible") from exc
-
-
 def _session(db, actor, camera_id, data: LiveSessionInput):
     row = db.scalar(
         select(CameraStreamSession).where(
@@ -151,16 +136,6 @@ def start_live(
     db.flush()
     audit(db, actor, "CAMERA_LIVE_STARTED", "camera_stream_session", session.id, camera.tenant_id)
     db.commit()
-    try:
-        _dispatch("start", camera.id, session.id)
-    except HTTPException:
-        session.status = "error"
-        session.stopped_at = utcnow()
-        session.stop_reason = "agent_unavailable"
-        session.sanitized_error = "El agente de video no está disponible"
-        db.commit()
-        raise
-
     deadline = time.monotonic() + settings().stream_start_timeout_seconds
     while session.status == "starting" and time.monotonic() < deadline:
         time.sleep(0.25)
@@ -187,7 +162,6 @@ def stop_live(
             db, actor, "CAMERA_LIVE_STOPPED", "camera_stream_session", session.id, camera.tenant_id
         )
         db.commit()
-        _dispatch("stop", camera.id, session.id)
     provider = db.scalar(
         select(CameraStreamProvider).where(CameraStreamProvider.camera_id == camera.id)
     )

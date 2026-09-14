@@ -36,7 +36,7 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Registro de cámaras RTSP con URL cifrada AES-256-GCM, sin devolverla al navegador.
 - Permisos de visualización/configuración por cámara para operadores y observadores.
 - Simulador explícito: prueba de conexión, descubrimiento de capacidades, comandos persistidos, worker y lectura de confirmación desired/reported.
-- Dashboard con datos reales de la base, auditoría y estado de API/MySQL/Redis/worker.
+- Dashboard con datos reales de la base, auditoría y estado de API/MySQL/worker/agente.
 - Cuadrícula de cámaras con filtros, paginación y acceso directo a **Ver en vivo**.
 - Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
 - Eventos de IA y grabaciones obtenidos de Frigate y filtrados por empresa, sede y permisos de cámara.
@@ -61,7 +61,7 @@ Cloudflare se usa exclusivamente para transportar el video en vivo. Frigate es e
 ```powershell
 python -m venv .venv-vigilay
 .\.venv-vigilay\Scripts\python.exe -m pip install -e ".[dev]"
-docker compose up -d mysql redis
+docker compose up -d mysql
 .\.venv-vigilay\Scripts\alembic.exe upgrade head
 .\.venv-vigilay\Scripts\uvicorn.exe vigilay.main:create_app --factory --host 127.0.0.1 --port 8000
 ```
@@ -74,7 +74,7 @@ En el equipo Windows que comparte la red local con las cámaras, inicia el publi
 .\scripts\iniciar-agente-stream.ps1
 ```
 
-El agente no abre puertos públicos ni inicia cámaras por sí solo. Mantiene un único FFmpeg por cámara mientras existan sesiones con heartbeat. En producción rechaza Redis sin TLS y MySQL sin verificación TLS.
+El agente no abre puertos públicos ni inicia cámaras por sí solo. Mantiene un único FFmpeg por cámara mientras existan sesiones con heartbeat almacenadas en MySQL. En producción rechaza MySQL sin verificación TLS.
 
 Pruebas MySQL con esquema separado:
 

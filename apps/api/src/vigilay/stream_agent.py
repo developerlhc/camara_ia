@@ -15,7 +15,6 @@ from urllib import request
 from urllib.error import URLError
 from urllib.parse import urlsplit
 
-from redis import Redis
 from sqlalchemy import select
 
 from vigilay.config import settings
@@ -28,6 +27,7 @@ from vigilay.models import (
     CameraStreamProvider,
     CameraStreamSession,
     DeviceCommand,
+    ServiceHeartbeat,
     utcnow,
 )
 from vigilay.security import decrypt_credentials
@@ -38,7 +38,6 @@ except ImportError:  # pragma: no cover - reported as a safe command failure
     ONVIFCamera = None
 
 logger = logging.getLogger("vigilay.stream_agent")
-COMMAND_QUEUE = "vigilay:stream:commands"
 
 
 class StreamAgentError(RuntimeError):
@@ -388,6 +387,11 @@ class LocalStreamAgent:
     def reconcile(self):
         now = time.monotonic()
         with system_session() as db:
+            heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+            if heartbeat is None:
+                db.add(ServiceHeartbeat(service_name="stream-agent", last_seen_at=utcnow()))
+            else:
+                heartbeat.last_seen_at = utcnow()
             self._process_probe(db)
             self._process_ptz(db)
             active = self._active_sessions(db)
@@ -568,16 +572,12 @@ class LocalStreamAgent:
     def run(self):
         self._validate_transport()
         self.recover()
-        with Redis.from_url(settings().redis_url, socket_timeout=3) as cache:
-            cache.set("vigilay:stream-agent:heartbeat", "ok", ex=30)
-            while not self.stop_event.is_set():
-                try:
-                    cache.set("vigilay:stream-agent:heartbeat", "ok", ex=30)
-                    cache.lpop(COMMAND_QUEUE)
-                    self.reconcile()
-                except Exception:
-                    logger.warning("Local stream agent reconciliation failed")
-                self.stop_event.wait(self.poll_seconds)
+        while not self.stop_event.is_set():
+            try:
+                self.reconcile()
+            except Exception:
+                logger.warning("Local stream agent reconciliation failed")
+            self.stop_event.wait(self.poll_seconds)
         self.manager.stop_all()
 
     def start(self):
@@ -594,8 +594,6 @@ class LocalStreamAgent:
         config = settings()
         if config.app_env != "production":
             return
-        if not config.redis_url.startswith("rediss://"):
-            raise RuntimeError("El agente requiere REDIS_URL con TLS (rediss://) en producción")
         database = config.database_url.lower()
         if "ssl_ca=" not in database and "ssl_verify_cert=true" not in database:
             raise RuntimeError("El agente requiere MySQL TLS verificado en producción")

@@ -25,10 +25,6 @@ jobs:
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1"
           --health-interval=5s --health-timeout=5s --health-retries=30
-      redis:
-        image: redis:7.4-alpine
-        ports: [6379:6379]
-        options: --health-cmd="redis-cli ping" --health-interval=5s --health-retries=20
     env:
       TEST_DATABASE_URL: mysql+pymysql://vigilay:ci_only_test_password@127.0.0.1:3306/vigilay_test?charset=utf8mb4
       CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
@@ -88,10 +84,16 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-  deploy-web-magic-container:
+  deploy-magic-containers:
     needs: images
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 1
+      matrix:
+        include:
+          - {container: api, image: developerlhc/vigilay-api}
+          - {container: vigilay-web, image: developerlhc/vigilay-web}
     steps:
       - name: Validate Bunny deployment configuration
         env:
@@ -106,21 +108,23 @@ jobs:
             echo "::error::BUNNYNET_API_KEY no está disponible como secreto del repositorio."
             exit 1
           fi
-      - name: Update Vigilay Web in Magic Containers
+      - name: Update ${{ matrix.container }} in Magic Containers
         id: bunny_update
         continue-on-error: true
         uses: BunnyWay/actions/container-update-image@main
         with:
           app_id: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
           api_key: ${{ secrets.BUNNYNET_API_KEY }}
-          container: vigilay-web
-          image_name: developerlhc/vigilay-web
+          container: ${{ matrix.container }}
+          image_name: ${{ matrix.image }}
           image_tag: v${{ env.VIGILAY_VERSION }}-build-${{ github.run_number }}
       - name: Retry Bunny update after transient API failure
         if: steps.bunny_update.outcome == 'failure'
         env:
           BUNNY_APP_ID: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
           BUNNY_API_KEY: ${{ secrets.BUNNYNET_API_KEY }}
+          CONTAINER_NAME: ${{ matrix.container }}
+          IMAGE_NAME: ${{ matrix.image }}
           IMAGE_TAG: v${{ env.VIGILAY_VERSION }}-build-${{ github.run_number }}
         run: |
           set -euo pipefail
@@ -129,14 +133,15 @@ jobs:
             --header "AccessKey: $BUNNY_API_KEY" \
             "https://api.bunny.net/mc/apps/$BUNNY_APP_ID")"
           container_id="$(printf '%s' "$app_json" | jq -r \
-            '.containerTemplates[] | select(.name == "vigilay-web") | .id' | head -n 1)"
+            --arg name "$CONTAINER_NAME" \
+            '.containerTemplates[] | select(.name == $name) | .id' | head -n 1)"
           if [ -z "$container_id" ] || [ "$container_id" = "null" ]; then
-            echo '::error::Bunny no devolvió el contenedor vigilay-web.'
+            echo "::error::Bunny no devolvió el contenedor $CONTAINER_NAME."
             exit 1
           fi
 
           payload="$(jq -cn --arg id "$container_id" --arg tag "$IMAGE_TAG" \
-            --arg name 'developerlhc/vigilay-web' \
+            --arg name "$IMAGE_NAME" \
             '{id: $id, imageTag: $tag, imageName: $name}')"
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT

@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from redis import Redis
-from redis.exceptions import RedisError
 from sqlalchemy import or_, select
 
 from vigilay.config import settings
@@ -16,6 +14,7 @@ from vigilay.models import (
     LoginAttempt,
     LoginSession,
     PasswordReset,
+    RateLimitBucket,
     RolePermission,
     Tenant,
     User,
@@ -56,20 +55,30 @@ def client_ip(request: Request):
 
 
 def rate_limit(request: Request, bucket: str, limit: int, seconds: int):
-    # Atomic and shared across API replicas. Never trust arbitrary X-Forwarded-For.
+    # Durable and shared across API replicas. Never trust arbitrary X-Forwarded-For.
     ip = client_ip(request)
-    key = f"vigilay:ratelimit:{bucket}:{hash_token(ip)}"
-    try:
-        with Redis.from_url(settings().redis_url, socket_timeout=2) as cache:
-            count = cache.eval(
-                "local n=redis.call('INCR',KEYS[1]); "
-                "if n==1 then redis.call('EXPIRE',KEYS[1],ARGV[1]) end; return n",
-                1,
-                key,
-                seconds,
+    key = hash_token(f"{bucket}:{ip}")
+    now = utcnow()
+    with system_session() as db:
+        row = db.scalar(
+            select(RateLimitBucket).where(RateLimitBucket.bucket_key == key).with_for_update()
+        )
+        if row is None:
+            row = RateLimitBucket(
+                bucket_key=key,
+                request_count=1,
+                expires_at=now + timedelta(seconds=seconds),
             )
-    except RedisError as exc:
-        raise HTTPException(503, "Servicio de acceso temporalmente no disponible") from exc
+            db.add(row)
+            count = 1
+        elif row.expires_at <= now:
+            row.request_count = 1
+            row.expires_at = now + timedelta(seconds=seconds)
+            count = 1
+        else:
+            row.request_count += 1
+            count = row.request_count
+        db.commit()
     if count > limit:
         raise HTTPException(
             429, "Demasiados intentos. Inténtalo más tarde.", headers={"Retry-After": str(seconds)}

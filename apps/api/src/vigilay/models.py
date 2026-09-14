@@ -131,6 +131,36 @@ class LoginAttempt(Identity, Base):
     successful: Mapped[bool] = mapped_column(Boolean)
 
 
+class RateLimitBucket(Base):
+    __tablename__ = "rate_limit_buckets"
+    bucket_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    request_count: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class ServiceHeartbeat(Base):
+    __tablename__ = "service_heartbeats"
+    service_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    last_seen_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+
+
+class SimulatorState(TenantScoped, Base):
+    __tablename__ = "simulator_states"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["camera_id", "tenant_id"],
+            ["cameras.id", "cameras.tenant_id"],
+            name="fk_simulator_state_camera_tenant",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
+    camera_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    motion_sensitivity: Mapped[int] = mapped_column(Integer, default=50)
+    offline: Mapped[bool] = mapped_column(Boolean, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
 class PasswordReset(Identity, Base):
     __tablename__ = "password_reset_tokens"
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)

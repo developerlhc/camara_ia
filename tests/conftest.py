@@ -10,7 +10,7 @@ from dotenv import dotenv_values
 from fastapi.testclient import TestClient
 from sqlalchemy.engine import make_url
 
-# Tests always use a separate, explicitly named MySQL schema and Redis database.
+# Tests always use a separate, explicitly named MySQL schema.
 local = dotenv_values(".env")
 test_url = os.getenv("TEST_DATABASE_URL") or local.get("TEST_DATABASE_URL")
 if not test_url:
@@ -38,7 +38,6 @@ os.environ["DATABASE_URL"] = test_url
 # BDMYSQL has priority in application settings. Clear it explicitly so pytest
 # cannot reconnect to the development database after deriving vigilay_test.
 os.environ["BDMYSQL"] = ""
-os.environ["REDIS_URL"] = os.getenv("TEST_REDIS_URL", "redis://localhost:6379/1")
 os.environ["SESSION_SECRET"] = secrets.token_hex(32)
 os.environ["CREDENTIAL_ENCRYPTION_KEY"] = (
     local.get("CREDENTIAL_ENCRYPTION_KEY") or os.environ["CREDENTIAL_ENCRYPTION_KEY"]

@@ -778,9 +778,9 @@ Database:
 
 MySQL 8.x
 
-Cache / queues:
+Coordination / queues:
 
-Redis
+MySQL durable tables
 
 Background workers:
 
@@ -1915,7 +1915,7 @@ B) dedicated single-region, single-instance persistent MySQL deployment with pro
 
 For development use Docker Compose.
 
-Redis should similarly be deployed in a safe persistence/availability configuration.
+Coordination queues and heartbeats should use indexed, durable MySQL tables.
 
 Verify actual Bunny networking/storage/runtime limitations before finalizing the production media topology.
 
@@ -2009,7 +2009,6 @@ web
 api
 worker
 mysql
-redis
 mediamtx
 ```
 
@@ -2018,8 +2017,6 @@ Edge Agent may run separately.
 Create persistent development volumes for:
 
 MySQL
-
-Redis if configured
 
 media development storage
 
@@ -2062,8 +2059,6 @@ MYSQL_PASSWORD=change_me
 MYSQL_ROOT_PASSWORD=change_me_root
 
 DATABASE_URL=mysql+asyncmy://vigilay:change_me@mysql:3306/vigilay
-
-REDIS_URL=redis://redis:6379/0
 
 SESSION_SECRET=CHANGE_ME
 CREDENTIAL_ENCRYPTION_KEY=CHANGE_ME_BASE64_32_BYTE_KEY
@@ -2477,7 +2472,7 @@ API
 
 MySQL
 
-Redis
+MySQL coordination tables
 
 workers
 
@@ -2825,7 +2820,7 @@ Vigilay Web
   ↓
 Vigilay API
   ↓
-MySQL / Redis
+MySQL
   ↓
 Command/Event System
   ↓

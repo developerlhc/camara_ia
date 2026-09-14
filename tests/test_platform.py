@@ -5,10 +5,8 @@ from uuid import uuid4
 import pytest
 from cryptography.exceptions import InvalidTag
 from fastapi.testclient import TestClient
-from redis import Redis
 from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, OperationalError
-from vigilay.config import settings
 from vigilay.db import ScopedSession, engine, system_session, tenant_session
 from vigilay.main import create_app
 from vigilay.models import (
@@ -18,6 +16,8 @@ from vigilay.models import (
     CameraPermission,
     LoginSession,
     PasswordReset,
+    RateLimitBucket,
+    SimulatorState,
     Site,
     Tenant,
     User,
@@ -300,8 +300,9 @@ def test_simulated_device_commands_verify_actual_readback(clients, cameras):
         .status_code
         == 422
     )
-    with Redis.from_url(settings().redis_url) as redis:
-        redis.hset("vigilay:simulator:" + cameras["a"]["id"], "motion_sensitivity", "15")
+    with system_session() as db:
+        db.get(SimulatorState, cameras["a"]["id"]).motion_sensitivity = 15
+        db.commit()
     assert clients["a"].post(path + "/probe").status_code == 202
     drain_queue()
     assert clients["a"].get(path + "/settings").json()[0]["status"] == "DRIFTED"
@@ -309,8 +310,14 @@ def test_simulated_device_commands_verify_actual_readback(clients, cameras):
 
 def test_simulated_offline_failure(clients, cameras):
     path = "/api/v1/cameras/" + cameras["a"]["id"]
-    with Redis.from_url(settings().redis_url) as cache:
-        cache.hset("vigilay:simulator:" + cameras["a"]["id"], "offline", "1")
+    with system_session() as db:
+        state = db.get(SimulatorState, cameras["a"]["id"])
+        if state is None:
+            camera = db.get(Camera, cameras["a"]["id"])
+            state = SimulatorState(tenant_id=camera.tenant_id, camera_id=camera.id)
+            db.add(state)
+        state.offline = True
+        db.commit()
     response = clients["a"].post(path + "/probe")
     assert response.status_code == 202
     drain_queue()
@@ -373,8 +380,15 @@ def test_account_lock_and_sql_injection(identities):
 
 def test_shared_login_rate_limit(identities):
     ip = uuid4().hex
-    with Redis.from_url(settings().redis_url) as redis:
-        redis.set("vigilay:ratelimit:login:" + hash_token(ip), 30, ex=60)
+    with system_session() as db:
+        db.add(
+            RateLimitBucket(
+                bucket_key=hash_token(f"login:{ip}"),
+                request_count=30,
+                expires_at=utcnow() + timedelta(seconds=60),
+            )
+        )
+        db.commit()
     client = TestClient(create_app(), client=(ip, 5000))
     response = client.post(
         "/api/v1/auth/login",
