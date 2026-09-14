@@ -69,6 +69,7 @@
     error = '';
     if (cameraId) {
       camera = await api<Row>(`/cameras/${cameraId}`);
+      if (can('cameras.configure')) await loadFrigateCatalog(display(camera.site_id));
       frigateName = display(camera.frigate_camera_name || '');
       capabilities = await api(`/cameras/${cameraId}/capabilities`);
       if (can('cameras.configure')) {
@@ -103,7 +104,6 @@
       try {
         user = await api<Me>('/me'); setCsrf(user.csrf_token);
         [tenants, sites] = await Promise.all([api('/tenants'), api('/sites')]);
-        if (can('cameras.configure')) frigateCameras = await api('/frigate/cameras').catch(() => []);
         tenantId = user.tenant_id || tenants[0]?.id || '';
         await refresh();
         if (cameraId) timer = setInterval(() => { void refresh().catch(e => error = e.message); }, 3000);
@@ -111,6 +111,12 @@
     })();
     return () => { clearInterval(timer); clearTimeout(searchTimer); window.removeEventListener('pagehide', stopOnExit); stopOnExit(); };
   });
+
+  async function loadFrigateCatalog(targetSite: string) {
+    frigateCameras = targetSite
+      ? await api<Row[]>(`/frigate/cameras?site_id=${encodeURIComponent(targetSite)}`).catch(() => [])
+      : [];
+  }
 
   async function action(work: () => Promise<unknown>, message: string) {
     busy = true; error = ''; notice = '';
@@ -218,7 +224,7 @@
     firstName = display(row?.first_name || ''); lastName = display(row?.last_name || '');
     role = display(row?.role || 'VIEWER'); status = display(row?.status || 'ACTIVE');
     tenantId = display(row?.tenant_id || user?.tenant_id || tenants[0]?.id || '');
-    siteId = ''; rtspUrl = ''; integration = 'RTSP'; cameraBrand = 'EZVIZ';
+    siteId = ''; rtspUrl = ''; integration = 'RTSP'; cameraBrand = 'EZVIZ'; frigateCameras = [];
     cameraModel = ''; cameraHost = ''; cameraUsername = ''; cameraPassword = '';
     cameraDeviceId = ''; frigateName = ''; showForm = true;
   }
@@ -379,7 +385,7 @@
       {#if editing && (section === 'admin/customers' || section === 'admin/users')}<label>Estado<select bind:value={status}><option value="ACTIVE">Activo</option><option value={section === 'admin/users' ? 'DISABLED' : 'SUSPENDED'}>{section === 'admin/users' ? 'Deshabilitado' : 'Suspendido'}</option></select></label>{/if}
       {#if section === 'admin/sites'}<label>Dirección<input bind:value={address} maxlength="300" /></label>{/if}
       {#if section === 'cameras'}
-        <label>Sede<select bind:value={siteId} required><option value="">Selecciona una sede</option>{#each sites.filter(s => s.tenant_id === tenantId) as s}<option value={s.id}>{display(s.name)}</option>{/each}</select></label>
+        <label>Sede<select bind:value={siteId} required onchange={() => loadFrigateCatalog(siteId)}><option value="">Selecciona una sede</option>{#each sites.filter(s => s.tenant_id === tenantId) as s}<option value={s.id}>{display(s.name)}</option>{/each}</select></label>
         <div class="form-grid"><label>Marca<select bind:value={cameraBrand} onchange={() => integration = cameraBrand === 'V380' ? 'V380' : 'RTSP'}><option value="EZVIZ">EZVIZ</option><option value="IMOU">Imou</option><option value="V380">V380 Pro</option><option value="GENERIC">RTSP genérica</option></select></label><label>Modelo<input bind:value={cameraModel} maxlength="120" placeholder="Modelo exacto" /></label></div>
         <label>Método de integración<select bind:value={integration}><option value="RTSP">RTSP</option><option value="V380">Puente local V380</option><option value="SIMULATOR">Simulador de desarrollo</option></select></label>
         <label>Cámara de Frigate (opcional)<select bind:value={frigateName}><option value="">Vincular después</option>{#each frigateCameras as item}<option value={item.name}>{display(item.name)}</option>{/each}</select></label>

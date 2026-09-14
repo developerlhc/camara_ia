@@ -24,6 +24,7 @@ dev = ["pytest>=8.3,<10", "ruff>=0.11,<1", "pip-audit>=2.8,<3"]
 vigilay = "vigilay.cli:main"
 vigilay-worker = "vigilay.worker:main"
 vigilay-stream-agent = "vigilay.stream_agent:main"
+vigilay-frigate-gateway = "vigilay.frigate_gateway:main"
 
 [tool.setuptools.packages.find]
 where = ["apps/api/src", "services/camera-adapters/src"]

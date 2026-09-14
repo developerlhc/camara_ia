@@ -31,6 +31,16 @@ def csrf_token(session_token: str):
     ).hexdigest()
 
 
+def frigate_gateway_token(tenant_id: str, site_id: str) -> str:
+    """Derive a per-site credential without persisting its clear text in MySQL."""
+    digest = hmac.new(
+        settings().internal_proxy_secret.encode(),
+        f"frigate-gateway:{tenant_id}:{site_id}".encode(),
+        "sha256",
+    ).digest()
+    return base64.urlsafe_b64encode(digest).decode().rstrip("=")
+
+
 def encrypt_credentials(data: dict, tenant_id: str, camera_id: str):
     nonce = os.urandom(12)
     key = base64.b64decode(settings().credential_encryption_key)

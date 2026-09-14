@@ -1,10 +1,14 @@
-"""Private Frigate API client. Internal URLs never reach the browser."""
+"""Private Frigate API client. Gateway URLs and credentials never reach the browser."""
 
+from datetime import timedelta
 from urllib.parse import urlsplit
 
 import httpx
+from sqlalchemy import select
 
 from vigilay.config import settings
+from vigilay.models import FrigateConnection, utcnow
+from vigilay.security import frigate_gateway_token
 
 
 class FrigateError(RuntimeError):
@@ -12,20 +16,52 @@ class FrigateError(RuntimeError):
 
 
 class FrigateService:
-    def __init__(self, *, client=None):
+    def __init__(self, *, base_url=None, gateway_token="", client=None):
         config = settings()
-        self.base_url = config.frigate_api_url.rstrip("/")
+        self.base_url = (base_url or config.frigate_api_url).rstrip("/")
         parsed = urlsplit(self.base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise FrigateError("La dirección interna de Frigate no es válida")
+        if (
+            base_url
+            and config.app_env == "production"
+            and (parsed.scheme != "https" or not parsed.hostname.endswith(".trycloudflare.com"))
+        ):
+            raise FrigateError("El endpoint publicado por Vigilay Local no es válido")
         self.timeout = config.frigate_timeout_seconds
+        self.headers = {"Authorization": f"Bearer {gateway_token}"} if gateway_token else {}
         self._client = client
+
+    @classmethod
+    def for_site(cls, db, tenant_id: str, site_id: str, *, client=None):
+        connection = db.scalar(
+            select(FrigateConnection).where(
+                FrigateConnection.tenant_id == tenant_id,
+                FrigateConnection.site_id == site_id,
+            )
+        )
+        if connection is None:
+            if settings().app_env != "production":
+                return cls(client=client)
+            raise FrigateError("Vigilay Local no ha publicado Frigate para esta sede")
+        if (
+            connection.status != "ONLINE"
+            or not connection.endpoint_url
+            or connection.last_seen_at is None
+            or connection.last_seen_at < utcnow() - timedelta(seconds=45)
+        ):
+            raise FrigateError("El enlace de Vigilay Local con Frigate está desconectado")
+        return cls(
+            base_url=connection.endpoint_url,
+            gateway_token=frigate_gateway_token(tenant_id, site_id),
+            client=client,
+        )
 
     def request(self, path: str, *, params=None):
         owns_client = self._client is None
         client = self._client or httpx.Client(timeout=self.timeout)
         try:
-            response = client.get(f"{self.base_url}/api{path}", params=params)
+            response = client.get(f"{self.base_url}/api{path}", params=params, headers=self.headers)
             if response.status_code == 404:
                 raise FrigateError("El recurso ya no existe en Frigate")
             if response.status_code >= 400:
@@ -68,7 +104,9 @@ class FrigateService:
         """Return a bounded-memory iterator and keep its private client alive."""
         client = httpx.Client(timeout=self.timeout)
         try:
-            request = client.build_request("GET", f"{self.base_url}/api{path}")
+            request = client.build_request(
+                "GET", f"{self.base_url}/api{path}", headers=self.headers
+            )
             response = client.send(request, stream=True)
             if response.status_code == 404:
                 response.close()

@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     v380_decoder_path: str = ".local/v380-bridge/V380Decoder.exe"
     frigate_api_url: str = "http://frigate:5000"
     frigate_timeout_seconds: int = 10
+    frigate_gateway_port: int = 8788
+    cloudflared_path: str = "cloudflared"
     stream_idle_timeout_seconds: int = 60
     stream_start_timeout_seconds: int = 15
 
@@ -66,6 +68,8 @@ class Settings(BaseSettings):
             not self.session_cookie_secure or not self.web_origin.startswith("https://")
         ):
             raise ValueError("Producción requiere HTTPS y cookies Secure")
+        if self.app_env == "production" and len(self.internal_proxy_secret) < 32:
+            raise ValueError("Producción requiere INTERNAL_PROXY_SECRET aleatorio")
         if not self.database_url.startswith("mysql+pymysql://"):
             raise ValueError("Vigilay requiere MySQL mediante mysql+pymysql")
         if bool(self.cloudflare_account_id) != bool(self.cloudflare_stream_api_token):
@@ -78,6 +82,8 @@ class Settings(BaseSettings):
             raise ValueError("STREAM_START_TIMEOUT_SECONDS debe estar entre 3 y 60")
         if not 2 <= self.frigate_timeout_seconds <= 60:
             raise ValueError("FRIGATE_TIMEOUT_SECONDS debe estar entre 2 y 60")
+        if not 1024 <= self.frigate_gateway_port <= 65535:
+            raise ValueError("FRIGATE_GATEWAY_PORT debe ser un puerto no privilegiado")
         return self
 
 

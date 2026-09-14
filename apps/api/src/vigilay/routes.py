@@ -502,7 +502,7 @@ def create_camera(
             raise HTTPException(422, "Completa IP, puerto, ID, usuario y contraseña V380")
     if data.frigate_camera_name:
         try:
-            frigate_names = FrigateService().camera_names()
+            frigate_names = FrigateService.for_site(db, data.tenant_id, data.site_id).camera_names()
         except FrigateError as exc:
             raise HTTPException(502, str(exc)) from exc
         if data.frigate_camera_name not in frigate_names:

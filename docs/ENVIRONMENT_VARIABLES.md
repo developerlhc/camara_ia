@@ -30,6 +30,8 @@
 | V380_DECODER_PATH | Ruta local de V380Decoder en el equipo del agente. |
 | FRIGATE_API_URL | API interna de Frigate; debe ser accesible sólo desde el API de Vigilay, nunca desde Internet ni desde el navegador. |
 | FRIGATE_TIMEOUT_SECONDS | Tiempo máximo de consulta a Frigate. |
+| FRIGATE_GATEWAY_PORT | Puerto loopback del proxy autenticado local; valor normal `8788`. |
+| CLOUDFLARED_PATH | Ejecutable de Cloudflare Tunnel; el contenedor local ya lo incorpora. |
 | STREAM_IDLE_TIMEOUT_SECONDS | Gracia sin espectadores antes de detener FFmpeg. |
 | STREAM_START_TIMEOUT_SECONDS | Espera máxima de confirmación al abrir el visor. |
 

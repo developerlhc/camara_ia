@@ -8,7 +8,7 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
     headers.set('x-vigilay-proxy-key', env.INTERNAL_PROXY_SECRET);
     headers.set('x-vigilay-client-ip', getClientAddress());
   }
-  for (const key of ['content-type', 'cookie', 'x-csrf-token', 'user-agent']) {
+  for (const key of ['content-type', 'cookie', 'x-csrf-token', 'user-agent', 'range']) {
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }
@@ -21,7 +21,7 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
       headers,
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
       redirect: 'manual',
-      signal: AbortSignal.timeout(30000)
+      signal: AbortSignal.timeout(params.path.includes('/frigate/') ? 3600000 : 30000)
     });
     const responseHeaders = new Headers(upstream.headers);
     responseHeaders.delete('content-encoding');

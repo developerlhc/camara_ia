@@ -40,6 +40,7 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Cuadrícula de cámaras con filtros, paginación y acceso directo a **Ver en vivo**.
 - Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
 - Eventos de IA y grabaciones obtenidos de Frigate y filtrados por empresa, sede y permisos de cámara.
+- Gateway Frigate autenticado por sede; sin dominio usa un Quick Tunnel saliente que se registra automáticamente.
 - Vigilay Local permite seleccionar, crear o modificar su empresa y sede; valida que ambas existan y que la sede pertenezca a la empresa antes de cargar cámaras.
 - Recuperación de contraseña mediante token de un solo uso emitido por CLI; cambio de contraseña desde Mi perfil.
 - Contenedores web/API/worker, migraciones y volúmenes persistentes; checks y publicación GHCR preparados.
@@ -54,7 +55,7 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 6. Pulsa **Ver en vivo** directamente desde la cuadrícula.
 7. Consulta **Eventos de IA** y **Grabaciones**. Estas vistas nunca leen Cloudflare: el API obtiene los datos y medios de Frigate y sólo entrega cámaras autorizadas.
 
-Cloudflare se usa exclusivamente para transportar el video en vivo. Frigate es el motor de detección, eventos y grabación. Una cámara puede funcionar en vivo y, aun así, no aparecer en Eventos/Grabaciones hasta que exista en Frigate y su alias se vincule en Vigilay.
+Cloudflare Stream se usa exclusivamente para el video en vivo. Frigate sigue siendo el motor y almacén de detecciones, eventos y grabaciones. Cloudflare Tunnel sólo crea el canal privado entre la sede y Vigilay Cloud; no almacena esos medios. Una cámara puede funcionar en vivo y, aun así, no aparecer en Eventos/Grabaciones hasta que exista en Frigate, su alias se vincule y `frigate-gateway` esté conectado.
 
 ## Desarrollo y pruebas
 

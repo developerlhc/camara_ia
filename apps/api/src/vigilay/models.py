@@ -211,6 +211,26 @@ class Camera(TenantScoped, Identity, Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
+class FrigateConnection(TenantScoped, Identity, Base):
+    """Ephemeral, authenticated route from cloud to one site's local Frigate."""
+
+    __tablename__ = "frigate_connections"
+    __table_args__ = (
+        UniqueConstraint("site_id", name="uq_frigate_connection_site"),
+        ForeignKeyConstraint(
+            ["site_id", "tenant_id"],
+            ["sites.id", "sites.tenant_id"],
+            name="fk_frigate_connection_site_tenant",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    site_id: Mapped[str] = mapped_column(String(36), index=True)
+    endpoint_url: Mapped[str] = mapped_column(String(2048), default="")
+    status: Mapped[str] = mapped_column(String(20), default="OFFLINE")
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
 class CameraCredential(TenantScoped, Identity, Base):
     __tablename__ = "camera_credentials"
     __table_args__ = (

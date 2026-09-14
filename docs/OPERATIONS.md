@@ -26,7 +26,18 @@ Si se cambia la identidad con Vigilay Local abierto, reiniciar `iniciar.ps1` par
 
 ## Frigate
 
-Frigate es la fuente de detecciones, eventos y grabaciones. El API de Vigilay accede al puerto interno 5000 por la red Docker y actúa como proxy con permisos por empresa/cámara; el navegador nunca recibe esa dirección interna. El alias Frigate se asigna al crear la cámara o desde su detalle y debe existir realmente en Frigate.
+Frigate es la fuente de detecciones, eventos y grabaciones. El contenedor local `frigate-gateway` accede al puerto interno 5000 por la red Docker y abre una conexión saliente autenticada; el navegador nunca recibe la dirección de Frigate, el endpoint del túnel ni su credencial. Cada conexión se registra contra una empresa y sede validadas.
+
+Sin dominio propio, `docker compose up -d frigate-gateway` crea automáticamente un Quick Tunnel aleatorio `*.trycloudflare.com`. El endpoint cambia si reinicia el túnel y el gateway actualiza MySQL sin intervención. `INTERNAL_PROXY_SECRET` debe coincidir en Vigilay Cloud y Vigilay Local porque de él se deriva una credencial distinta por sede. Quick Tunnel es válido para la prueba actual; para producción con SLA se debe migrar a un túnel administrado y dominio propio.
+
+Comprobación:
+
+```powershell
+docker compose ps frigate-gateway
+docker compose logs --tail 50 frigate-gateway
+```
+
+Debe aparecer `Frigate gateway connected for site ...`. No se debe publicar el puerto 5000 de Frigate.
 
 Agregar una conexión en Vigilay no modifica automáticamente el archivo externo de Frigate. Primero se incorpora la fuente en la configuración validada de Frigate y luego se selecciona su alias en Vigilay. Esto evita sobrescribir una configuración externa o guardar nuevamente secretos RTSP en texto plano.
 

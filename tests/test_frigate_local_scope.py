@@ -1,18 +1,26 @@
 import sys
+from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
+import httpx
+import pytest
 import vigilay.frigate_routes as frigate_routes
 from sqlalchemy import select
 from vigilay.db import system_session
-from vigilay.frigate import recording_windows
-from vigilay.models import Camera, Site
+from vigilay.frigate import FrigateError, FrigateService, recording_windows
+from vigilay.models import Camera, FrigateConnection, Site, utcnow
+from vigilay.security import frigate_gateway_token
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import camera_store  # noqa: E402
 
 
 class FakeFrigate:
+    @classmethod
+    def for_site(cls, db, tenant_id, site_id, *, client=None):
+        return cls()
+
     def camera_names(self):
         return {"camera_a", "camera_b"}
 
@@ -38,12 +46,12 @@ def test_frigate_events_are_filtered_by_tenant(monkeypatch, clients, cameras):
     assert response.json()[0]["camera_id"] == cameras["a"]["id"]
 
 
-def test_vigilay_local_frigate_catalog_requires_private_key(monkeypatch, clients):
+def test_vigilay_local_frigate_catalog_requires_private_key(monkeypatch, clients, cameras):
     monkeypatch.setattr(frigate_routes, "FrigateService", FakeFrigate)
     monkeypatch.setattr(
         frigate_routes, "settings", lambda: SimpleNamespace(internal_proxy_secret="local-key")
     )
-    path = "/api/v1/frigate/internal/cameras"
+    path = f"/api/v1/frigate/internal/cameras?site_id={cameras['a']['site_id']}"
     assert clients["root"].get(path).status_code == 404
     response = clients["root"].get(path, headers={"x-vigilay-local-key": "local-key"})
     assert response.status_code == 200
@@ -115,6 +123,50 @@ def test_recording_segments_are_grouped_into_playable_windows():
         {"start": 200.0, "end": 220.0, "motion": 5, "objects": 6, "duration": 20.0},
         {"start": 100.0, "end": 140.0, "motion": 4, "objects": 6, "duration": 40.0},
     ]
+
+
+def test_site_frigate_connection_is_authenticated(cameras):
+    camera = cameras["a"]
+
+    def respond(request):
+        assert request.headers["authorization"] == (
+            "Bearer " + frigate_gateway_token(camera["tenant_id"], camera["site_id"])
+        )
+        return httpx.Response(200, json={"cameras": {"imou": {}}})
+
+    client = httpx.Client(transport=httpx.MockTransport(respond))
+    with system_session() as db:
+        db.add(
+            FrigateConnection(
+                tenant_id=camera["tenant_id"],
+                site_id=camera["site_id"],
+                endpoint_url="https://site.trycloudflare.com",
+                status="ONLINE",
+                last_seen_at=utcnow(),
+            )
+        )
+        db.commit()
+        assert FrigateService.for_site(
+            db, camera["tenant_id"], camera["site_id"], client=client
+        ).camera_names() == {"imou"}
+    client.close()
+
+
+def test_stale_site_frigate_connection_is_rejected(cameras):
+    camera = cameras["b"]
+    with system_session() as db:
+        db.add(
+            FrigateConnection(
+                tenant_id=camera["tenant_id"],
+                site_id=camera["site_id"],
+                endpoint_url="https://stale.trycloudflare.com",
+                status="ONLINE",
+                last_seen_at=utcnow() - timedelta(minutes=2),
+            )
+        )
+        db.commit()
+        with pytest.raises(FrigateError, match="desconectado"):
+            FrigateService.for_site(db, camera["tenant_id"], camera["site_id"])
 
 
 def test_local_scope_rejects_site_from_another_company(monkeypatch, tmp_path, clients, identities):
