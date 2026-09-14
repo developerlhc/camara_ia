@@ -10,6 +10,8 @@
   let cancelled = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
   let reconnectAttempts = 0;
+  let audioAvailable = false;
+  let muted = true;
 
   async function releaseCurrent() {
     peer?.close();
@@ -21,9 +23,9 @@
 
   function scheduleReconnect() {
     if (cancelled || reconnectTimer) return;
-    if (reconnectAttempts >= 3) { onState('error'); return; }
+    if (reconnectAttempts >= 7) { onState('error'); return; }
     onState('reconnecting');
-    const delay = [2000, 5000, 10000][reconnectAttempts++];
+    const delay = [500, 1000, 2000, 3000, 5000, 8000, 10000][reconnectAttempts++];
     reconnectTimer = setTimeout(() => {
       reconnectTimer = undefined;
       void releaseCurrent().then(connect).catch(scheduleReconnect);
@@ -40,6 +42,8 @@
     current.ontrack = ({ track }) => {
       media.addTrack(track);
       video.srcObject = media;
+      if (track.kind === 'audio') audioAvailable = true;
+      void video.play().catch(() => {});
     };
     current.onconnectionstatechange = () => {
       if (current.connectionState === 'connected') { reconnectAttempts = 0; onState('live'); }
@@ -65,10 +69,29 @@
     await releaseCurrent();
   }
 
+  async function toggleAudio() {
+    muted = !muted;
+    video.muted = muted;
+    await video.play().catch(() => {});
+  }
+
   onMount(() => {
     void connect().catch(scheduleReconnect);
     return () => { void disconnect(); };
   });
 </script>
 
-<video bind:this={video} autoplay playsinline controls aria-label="Video en vivo"></video>
+<video bind:this={video} autoplay playsinline controls {muted} aria-label="Video en vivo"></video>
+<div class="audio-toolbar">
+  {#if audioAvailable}
+    <button type="button" onclick={toggleAudio}>{muted ? '🔊 Activar sonido' : '🔇 Silenciar'}</button>
+  {:else}
+    <span>Esperando audio de la cámara…</span>
+  {/if}
+  <span>Hablar requiere altavoz y canal de retorno compatible.</span>
+</div>
+
+<style>
+  .audio-toolbar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; background: #14222d; color: #a9bbc6; font-size: 12px; }
+  .audio-toolbar button { margin: 0; background: #203642; color: white; border-color: #36505e; }
+</style>

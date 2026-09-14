@@ -162,7 +162,7 @@
         const state = await api<Record<string, string>>(`/cameras/${liveCameraId}/live/heartbeat`, 'POST', {session_id: liveSessionId, viewer_key: liveViewerKey});
         liveStatus = state.status; scheduleLiveHeartbeat();
       } catch (e) { liveStatus = 'error'; error = (e as Error).message; }
-    }, liveStatus === 'starting' ? 2000 : 15000);
+    }, liveStatus === 'live' ? 15000 : 1000);
   }
   async function closeLive() {
     const sessionId = liveSessionId; const viewerKey = liveViewerKey; const targetId = liveCameraId;
@@ -402,7 +402,7 @@
   <dialog class="live-modal" aria-labelledby="live-title" use:mountDialog onclose={closeLive}>
     <div class="panel-heading"><div><h2 id="live-title">{liveCameraName}</h2><span class="live-state"><i class:active={liveStatus === 'live'}></i>{liveStatus === 'starting' || liveStatus === 'connecting' ? 'Conectando…' : liveStatus === 'live' ? 'En vivo' : liveStatus === 'reconnecting' ? 'Reconectando…' : liveStatus === 'error' ? 'Error' : 'Cámara sin conexión'}</span></div><button class="text-button" onclick={closeLive} aria-label="Cerrar video">✕</button></div>
     <div class="live-stage">
-      {#if ['live', 'reconnecting'].includes(liveStatus) && liveUrl}<WhepPlayer playbackUrl={liveUrl} onState={(state) => { if (state !== 'connecting') liveStatus = state; }} />
+      {#if liveUrl && !['error', 'stopped'].includes(liveStatus)}<WhepPlayer playbackUrl={liveUrl} onState={(state) => { if (state !== 'connecting') liveStatus = state; }} />
       {:else if liveStatus === 'error'}<p>No se pudo iniciar la transmisión. Revisa el estado del agente y de la cámara.</p>
       {:else}<span class="pulse"></span><p>Preparando transmisión segura…</p>{/if}
     </div>

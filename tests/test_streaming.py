@@ -1,4 +1,5 @@
 import subprocess
+import time
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -93,6 +94,7 @@ class FakeProcess:
         self.dies = dies
         self.running = True
         self.terminated = False
+        self.arguments = []
 
     def wait(self, timeout=None):
         if self.dies:
@@ -122,6 +124,7 @@ def test_stream_manager_prevents_duplicate_and_stops(tmp_path):
         assert isinstance(arguments, list)
         assert kwargs["shell"] is False
         process = FakeProcess()
+        process.arguments = arguments
         processes.append(process)
         return process
 
@@ -129,6 +132,11 @@ def test_stream_manager_prevents_duplicate_and_stops(tmp_path):
     assert manager.start_stream("camera", "rtsp://source/live", PUBLISH_URL) is True
     assert manager.start_stream("camera", "rtsp://source/live", PUBLISH_URL) is False
     assert len(processes) == 1
+    arguments = processes[0].arguments
+    assert "anullsrc=channel_layout=stereo:sample_rate=48000" not in arguments
+    assert arguments[arguments.index("-map") + 1] == "0:v:0"
+    assert "0:a:0?" in arguments
+    assert arguments.index("-fflags") < arguments.index("-i")
     assert manager.is_streaming("camera") is True
     assert manager.stop_stream("camera") is True
     assert processes[0].terminated is True
@@ -262,9 +270,11 @@ def test_live_start_never_returns_publish_url(monkeypatch, clients, cameras):
     monkeypatch.setattr(live_routes, "CloudflareStreamService", FakeService)
 
     monkeypatch.setattr(
-        live_routes, "settings", lambda: SimpleNamespace(stream_start_timeout_seconds=0)
+        live_routes, "settings", lambda: SimpleNamespace(stream_start_timeout_seconds=15)
     )
+    started = time.monotonic()
     response = clients["a"].post(f"/api/v1/cameras/{camera_id}/live/start")
+    assert time.monotonic() - started < 1
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["playbackUrl"] == PLAYBACK_URL

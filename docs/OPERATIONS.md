@@ -16,6 +16,8 @@ En producción `DATABASE_URL` debe configurar `ssl_ca` o `ssl_verify_cert=true`.
 
 `START_STREAM_AGENT_WITH_LOCAL=false` evita que `iniciar.ps1` cree otro agente cuando ya se usa `scripts/iniciar-agente-stream.ps1` o el iniciador completo. Cloudflare sólo transporta el vivo; no es el almacén de grabaciones.
 
+El agente publica la primera pista de audio del RTSP junto con el video y la convierte a Opus para WebRTC. El reproductor inicia silenciado para cumplir las reglas de reproducción automática del navegador; el usuario debe pulsar **Activar sonido**. Una cámara con micrófono permite escuchar. Enviar voz exige además un altavoz y un canal de retorno específico del fabricante/ONVIF; no se ofrece como control funcional mientras esa capacidad no haya sido detectada e implementada por el adaptador.
+
 ## Identidad de Vigilay Local
 
 El botón **Configurar empresa y sede** permite seleccionar registros existentes, crear una empresa/sede o modificar sus datos. La aplicación rechaza empresas suspendidas, sedes inexistentes y cualquier sede que pertenezca a otra empresa. La selección queda en `.local/vigilay-local.json` y todas las consultas y altas de cámara del visor se limitan a ese par empresa-sede.

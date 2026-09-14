@@ -1,7 +1,6 @@
 """Authorized on-demand live-view endpoints."""
 
 import secrets
-import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
@@ -136,10 +135,6 @@ def start_live(
     db.flush()
     audit(db, actor, "CAMERA_LIVE_STARTED", "camera_stream_session", session.id, camera.tenant_id)
     db.commit()
-    deadline = time.monotonic() + settings().stream_start_timeout_seconds
-    while session.status == "starting" and time.monotonic() < deadline:
-        time.sleep(0.25)
-        db.expire(session)
     return _safe_response(session, live_input, viewer_key=viewer_key)
 
 

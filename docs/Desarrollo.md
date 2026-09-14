@@ -374,10 +374,8 @@ Comando equivalente al que ya fue probado:
 ffmpeg
 -rtsp_transport tcp
 -i SOURCE_RTSP
--f lavfi
--i anullsrc=channel_layout=stereo:sample_rate=48000
 -map 0:v:0
--map 1:a:0
+-map 0:a:0?
 -c:v libx264
 -profile:v baseline
 -level:v 3.1
@@ -396,6 +394,8 @@ ffmpeg
 -ts_buffer_size 16777216
 -f whip
 WHIP_URL
+
+La pista `0:a:0?` conserva el audio real cuando la fuente RTSP lo ofrece. No sustituirla por `anullsrc`, porque eso hace que Vigilay publique silencio incluso en cámaras con micrófono.
 
 No imprimir el comando completo porque contiene WHIP_URL.
 
