@@ -154,7 +154,9 @@ def _rtsp_stream_available(url: str, timeout=1.0):
     if parsed.scheme != "rtsp" or not parsed.hostname:
         return False
     try:
-        with socket.create_connection((parsed.hostname, parsed.port or 554), timeout=timeout) as sock:
+        with socket.create_connection(
+            (parsed.hostname, parsed.port or 554), timeout=timeout
+        ) as sock:
             sock.settimeout(timeout)
             request_bytes = (
                 f"DESCRIBE {url} RTSP/1.0\r\n"
@@ -469,7 +471,10 @@ class LocalStreamAgent:
                         "Publisher ready camera_id=%s elapsed_ms=%s request_age_ms=%s",
                         camera.id,
                         round((time.monotonic() - started) * 1000),
-                        round((utcnow() - min(row.started_at for row in sessions)).total_seconds() * 1000),
+                        round(
+                            (utcnow() - min(row.started_at for row in sessions)).total_seconds()
+                            * 1000
+                        ),
                     )
                     self.failures.pop(camera_id, None)
                     self.next_retry_at.pop(camera_id, None)
