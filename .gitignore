@@ -3,6 +3,7 @@
 !.env.example
 !.env.*.example
 .venv/
+.ultralytics/
 .venv-vigilay/
 __pycache__/
 *.py[cod]

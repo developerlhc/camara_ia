@@ -71,8 +71,20 @@ class CameraInput(Input):
     tenant_id: str = Field(min_length=36, max_length=36)
     site_id: str = Field(min_length=36, max_length=36)
     name: str = Field(min_length=1, max_length=160)
-    integration_type: Literal["RTSP", "SIMULATOR"]
+    integration_type: Literal["RTSP", "V380", "SIMULATOR"]
+    brand: Literal["EZVIZ", "IMOU", "V380", "GENERIC"] = "GENERIC"
+    model: str = Field(default="", max_length=120)
+    frigate_camera_name: str | None = Field(
+        default=None, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$"
+    )
+    target_fps: int = Field(default=10, ge=1, le=30, strict=True)
+    grayscale: bool = False
     rtsp_url: SecretStr | None = Field(default=None, max_length=2048)
+    host: str | None = Field(default=None, max_length=253)
+    port: int | None = Field(default=None, ge=1, le=65535)
+    username: str | None = Field(default=None, max_length=160)
+    password: SecretStr | None = Field(default=None, max_length=256)
+    device_id: str | None = Field(default=None, max_length=32)
 
 
 class SettingsInput(Input):
@@ -83,3 +95,35 @@ class PermissionInput(Input):
     user_id: str = Field(min_length=36, max_length=36)
     can_view: bool
     can_configure: bool
+
+
+class PtzInput(Input):
+    action: Literal[
+        "up",
+        "down",
+        "left",
+        "right",
+        "up-left",
+        "up-right",
+        "down-left",
+        "down-right",
+        "zoom-in",
+        "zoom-out",
+    ]
+    speed: float = Field(default=0.5, ge=0.1, le=1.0)
+
+
+class LiveSessionInput(Input):
+    session_id: str = Field(min_length=36, max_length=36)
+    viewer_key: SecretStr = Field(min_length=32, max_length=256)
+
+
+class CloudflareIntegrationInput(Input):
+    account_id: str = Field(min_length=1, max_length=64)
+    api_token: SecretStr = Field(min_length=20, max_length=256)
+
+
+class FrigateCameraInput(Input):
+    frigate_camera_name: str = Field(
+        min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$"
+    )

@@ -82,3 +82,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+  deploy-web-magic-container:
+    needs: images
+    if: github.event_name == 'push' && vars.BUNNYNET_APP_ID != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update Vigilay Web in Magic Containers
+        uses: BunnyWay/actions/container-update-image@main
+        with:
+          app_id: ${{ vars.BUNNYNET_APP_ID }}
+          api_key: ${{ secrets.BUNNYNET_API_KEY }}
+          container: web
+          image_tag: ${{ github.sha }}

@@ -2,7 +2,8 @@ name: vigilay
 
 x-api-environment: &api-environment
   APP_ENV: development
-  DATABASE_URL: mysql+pymysql://${MYSQL_USER:-vigilay}:${MYSQL_PASSWORD:?Configura .env}@mysql:3306/${MYSQL_DATABASE:-vigilay}?charset=utf8mb4
+  DATABASE_URL: mysql+pymysql://${MYSQL_USER:-vigilay}:${MYSQL_PASSWORD:-vigilay-local-development}@mysql:3306/${MYSQL_DATABASE:-vigilay}?charset=utf8mb4
+  BDMYSQL: ${BDMYSQL:-}
   REDIS_URL: redis://redis:6379/0
   SESSION_SECRET: ${SESSION_SECRET:?Configura .env}
   INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
@@ -10,6 +11,13 @@ x-api-environment: &api-environment
   WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
   SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
   ENABLE_SIMULATOR: ${ENABLE_SIMULATOR:-false}
+  CLOUDFLARE_ACCOUNT_ID: ${CLOUDFLARE_ACCOUNT_ID:-}
+  CLOUDFLARE_STREAM_API_TOKEN: ${CLOUDFLARE_STREAM_API_TOKEN:-}
+  FFMPEG_PATH: ${FFMPEG_PATH:-ffmpeg}
+  FRIGATE_API_URL: ${FRIGATE_API_URL:-http://frigate:5000}
+  FRIGATE_TIMEOUT_SECONDS: ${FRIGATE_TIMEOUT_SECONDS:-10}
+  STREAM_IDLE_TIMEOUT_SECONDS: ${STREAM_IDLE_TIMEOUT_SECONDS:-60}
+  STREAM_START_TIMEOUT_SECONDS: ${STREAM_START_TIMEOUT_SECONDS:-15}
 
 services:
   mysql:
@@ -18,8 +26,8 @@ services:
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-vigilay}
       MYSQL_USER: ${MYSQL_USER:-vigilay}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Configura .env}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Configura .env}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-vigilay-local-development}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-vigilay-root-local-development}
     ports: ["127.0.0.1:3306:3306"]
     volumes: ["mysql_data:/var/lib/mysql"]
     healthcheck:
@@ -31,7 +39,7 @@ services:
   redis:
     image: redis:7.4-alpine
     command: ["redis-server", "--appendonly", "yes"]
-    ports: ["127.0.0.1:6379:6379"]
+    ports: ["127.0.0.1:${REDIS_HOST_PORT:-6380}:6379"]
     volumes: ["redis_data:/data"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]

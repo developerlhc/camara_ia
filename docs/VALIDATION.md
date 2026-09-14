@@ -27,10 +27,12 @@ Las dos pruebas E2E tardaron 17,1 segundos en la ejecución correcta. El primer 
 
 Capturas locales generadas: `apps/web/test-results/dashboard.png`, `camera-settings.png` y `mobile-dashboard.png` (excluidas de Git). El esquema de pruebas contiene datos sintéticos. El entorno de desarrollo quedó con dos clientes de demostración, una sede, una cámara simulada y un usuario administrador de cliente, además del superadministrador local; uno de los clientes corresponde al primer intento E2E.
 
-## Pendiente de verificación e implementación
+## Estado posterior de la integración
 
-Esta entrega inicia el producto y no cumple todavía la definición de MVP completo del Master Prompt. No se verificaron cámaras físicas, ONVIF, RTSP operativo, PTZ, video WebRTC/HLS, Edge Agent, YOLO dentro de la nueva plataforma, eventos, medios, reconocimiento facial multiempresa, notificaciones, Imou, EZVIZ, V380 ni Bunny. El código antiguo conserva la IA y la cámara para su extracción posterior.
+Al 14 de septiembre de 2026, el entorno real quedó limitado a Cenfelec, una sede y tres cámaras. Frigate recibe `calle` (V380), `cuarto` (EZVIZ) e `imou`; se verificó imagen y procesamiento de Imou. Frigate es la fuente exclusiva de IA, eventos y grabaciones. Cloudflare se usa sólo para transportar el vivo, mediante sesiones autorizadas creadas por Vigilay.
 
-El gateway MediaMTX está configurado en un perfil privado opcional; su imagen se comprobó disponible, pero no se inició ni se verificó una sesión de medios. GitHub Actions y GHCR quedaron preparados en archivos; no se ejecutaron en GitHub ni se publicaron imágenes. Se inicializó Git local sin commits ni remotos.
+Vigilay Local administra y valida la identidad empresa/sede, las conexiones LAN y la asignación única de alias Frigate. La web permite asignar varios usuarios a una cámara, controlar PTZ cuando el dispositivo lo soporta, filtrar grabaciones por empresa/sede/cámara, paginarlas y reproducir consecutivamente sus fragmentos.
+
+La publicación remota sigue dependiendo de infraestructura externa: GitHub Actions construye y publica `vigilay-web` en GHCR y puede actualizar Bunny Magic Containers cuando se configuran `BUNNYNET_APP_ID` y `BUNNYNET_API_KEY`. No se afirma un despliegue remoto mientras esas credenciales y un `push` a `main` no existan.
 
 Quedan dos advertencias de deprecación provenientes del cliente de pruebas Starlette/httpx/AnyIO; no causan fallos de las pruebas. La dependencia tzdata se incorporó para que la validación America/Lima también funcione en Windows.

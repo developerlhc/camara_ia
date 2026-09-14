@@ -91,6 +91,30 @@ def test_cross_tenant_lists_sites_users_and_audit(clients, identities, cameras):
     assert clients["a"].get("/api/v1/tenants/" + identities["tenants"][1]).status_code == 404
 
 
+def test_server_pagination_search_and_tenant_filter(clients, identities, cameras):
+    response = clients["root"].get(
+        "/api/v1/cameras",
+        params={"paged": "true", "page": 1, "page_size": 5, "q": "Cámara a"},
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["page"] == 1 and body["pageSize"] == 5
+    assert body["total"] >= 1 and body["pages"] >= 1
+    assert all("cámara a" in row["name"].lower() for row in body["items"])
+
+    own = clients["a"].get(
+        "/api/v1/cameras",
+        params={"paged": "true", "tenant_id": identities["tenants"][0]},
+    )
+    assert own.status_code == 200
+    assert {row["id"] for row in own.json()["items"]} == {cameras["a"]["id"]}
+    denied = clients["a"].get(
+        "/api/v1/cameras",
+        params={"paged": "true", "tenant_id": identities["tenants"][1]},
+    )
+    assert denied.status_code == 404
+
+
 def test_cross_tenant_writes_and_escalation_denied(clients, identities, cameras):
     a, b = identities["tenants"]
     assert clients["a"].post("/api/v1/tenants", json={"name": "Escalation"}).status_code == 403
@@ -151,6 +175,21 @@ def test_camera_grants_required_even_for_same_tenant(clients, identities, camera
     assert response.status_code == 200
     assert clients["operator"].get(path).status_code == 200
     assert clients["operator"].post(path + "/probe").status_code == 403
+    response = clients["a"].put(
+        path + "/permissions",
+        json={
+            "user_id": identities["users"]["viewer"].id,
+            "can_view": False,
+            "can_configure": True,
+        },
+    )
+    assert response.status_code == 200
+    grants = clients["a"].get(path + "/permissions")
+    assert grants.status_code == 200
+    by_user = {grant["user_id"]: grant for grant in grants.json()}
+    assert by_user[identities["users"]["operator"].id]["can_view"] is True
+    assert by_user[identities["users"]["viewer"].id]["can_view"] is True
+    assert by_user[identities["users"]["viewer"].id]["can_configure"] is True
     assert (
         clients["a"]
         .put(

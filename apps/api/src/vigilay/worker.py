@@ -16,7 +16,11 @@ def process_one():
     with system_session() as db:
         command = db.scalar(
             select(DeviceCommand)
-            .where(DeviceCommand.status == "PENDING")
+            .join(Camera, Camera.id == DeviceCommand.camera_id)
+            .where(
+                DeviceCommand.status == "PENDING",
+                Camera.integration_type == "SIMULATOR",
+            )
             .order_by(DeviceCommand.created_at)
             .with_for_update(skip_locked=True)
             .limit(1)

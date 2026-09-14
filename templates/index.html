@@ -3,399 +3,903 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IA Vigilancia</title>
+  <title>Vigilay · Monitor</title>
   <style>
     :root {
       color-scheme: dark;
-      --bg: #101418;
-      --panel: #171d23;
-      --panel-2: #202832;
-      --text: #edf3f7;
-      --muted: #9aa9b5;
-      --line: #2f3a46;
-      --accent: #28b37f;
-      --warn: #f0a33a;
+      --bg: #070b11;
+      --surface: rgba(17, 24, 34, .92);
+      --surface-2: #151e2a;
+      --surface-3: #1b2735;
+      --line: rgba(148, 163, 184, .17);
+      --text: #f4f7fb;
+      --muted: #8f9eae;
+      --accent: #32d29a;
+      --accent-soft: rgba(50, 210, 154, .13);
+      --warning: #f4b44b;
+      --radius: 18px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--bg);
       color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+      background: radial-gradient(circle at 12% -10%, rgba(38,123,108,.18), transparent 34rem),
+                  radial-gradient(circle at 100% 10%, rgba(36,79,135,.15), transparent 32rem), var(--bg);
     }
-
-    header {
+    button { font: inherit; }
+    .topbar {
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 20px;
-      padding: 18px 24px;
+      padding: 0 28px;
       border-bottom: 1px solid var(--line);
-      background: #12181e;
+      background: rgba(7,11,17,.78);
+      backdrop-filter: blur(18px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
     }
-
-    h1 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 0;
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      background: linear-gradient(145deg, #46e2ab, #178d6d);
+      color: #06100d;
+      font-weight: 900;
+      box-shadow: 0 8px 26px rgba(50,210,154,.2);
     }
-
+    .brand strong { display: block; font-size: 17px; letter-spacing: .02em; }
+    .brand span { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; }
     .status-pill {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
+      gap: 9px;
+      min-height: 38px;
+      padding: 0 14px;
       border: 1px solid var(--line);
       border-radius: 999px;
+      background: rgba(15,22,31,.8);
       color: var(--muted);
-      white-space: nowrap;
+      font-size: 13px;
     }
-
-    button {
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: var(--panel-2);
-      color: var(--text);
-      cursor: pointer;
-      font: inherit;
-      padding: 8px 12px;
-    }
-
-    button:hover {
-      border-color: var(--accent);
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--warn);
-    }
-
-    .online .dot {
-      background: var(--accent);
-    }
-
-    main {
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); box-shadow: 0 0 0 4px rgba(244,180,75,.1); }
+    .status-pill.online { color: #dffcf2; border-color: rgba(50,210,154,.3); background: var(--accent-soft); }
+    .status-pill.online .dot { background: var(--accent); box-shadow: 0 0 0 4px rgba(50,210,154,.12); }
+    .topbar-actions { display: flex; align-items: center; gap: 9px; }
+    .scope-button { max-width: 330px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .layout {
+      width: min(1680px, 100%);
+      margin: 0 auto;
+      padding: 22px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 360px;
+      grid-template-columns: minmax(0, 1fr) 340px;
       gap: 18px;
-      padding: 18px;
     }
-
-    .video-wrap {
-      min-height: 360px;
-      background: #080b0f;
+    .card {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 18px 55px rgba(0,0,0,.18);
+    }
+    .viewer { overflow: hidden; }
+    .viewer-head { min-height: 66px; padding: 13px 18px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .camera-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .camera-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: var(--surface-3); color: var(--accent); }
+    .camera-heading h1 { margin: 0; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .camera-heading p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .live-label { padding: 6px 9px; border-radius: 8px; background: rgba(251,113,133,.11); color: #fda4af; font-size: 11px; font-weight: 750; letter-spacing: .08em; }
+    .screen {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      min-height: 360px;
+      display: grid;
+      place-items: center;
       overflow: hidden;
+      background: #020406;
+      border-block: 1px solid var(--line);
     }
-
-    .video-wrap img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      min-height: 360px;
-      object-fit: contain;
-      background: #07090c;
-    }
-
-    .side {
-      display: grid;
-      align-content: start;
-      gap: 14px;
-    }
-
-    .metrics {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    .metric,
-    .panel {
-      background: var(--panel);
+    .screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; background: linear-gradient(180deg, rgba(0,0,0,.16), transparent 18%, transparent 80%, rgba(0,0,0,.24)); }
+    .screen img { width: 100%; height: 100%; object-fit: contain; display: block; position: absolute; inset: 0; z-index: 1; transform: translate(0, 0) scale(1); transform-origin: center; transition: transform .16s ease; user-select: none; -webkit-user-drag: none; }
+    .screen.zoomed { cursor: grab; touch-action: none; }
+    .screen.dragging { cursor: grabbing; }
+    .viewer-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 18px; border-bottom: 1px solid var(--line); background: #0d141d; }
+    .view-options { display: none; align-items: center; gap: 7px; }
+    .view-options.visible { display: flex; }
+    .view-options button.active { color: #06110d; border-color: var(--accent); background: var(--accent); }
+    .digital-zoom { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; }
+    .digital-zoom input { width: 120px; accent-color: var(--accent); }
+    .screen-message { color: var(--muted); text-align: center; font-size: 13px; }
+    .screen-message strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 16px; }
+    .camera-strip { padding: 17px 18px 18px; }
+    .section-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 13px; }
+    .section-head h2 { margin: 0; font-size: 14px; }
+    .ghost-button {
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 8px 11px;
+      color: #c7d1dc;
+      background: var(--surface-2);
+      cursor: pointer;
     }
-
-    .metric {
-      padding: 16px;
-    }
-
-    .metric strong {
-      display: block;
-      font-size: 34px;
-      line-height: 1;
-      margin-bottom: 8px;
-    }
-
-    .metric span,
-    .panel .meta {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .panel {
-      padding: 16px;
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      font-size: 16px;
-    }
-
-    .panel-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .panel-head h2 {
-      margin: 0;
-    }
-
-    .names {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      min-height: 34px;
-    }
-
-    .name {
-      padding: 7px 10px;
-      background: var(--panel-2);
+    .ghost-button:hover { border-color: rgba(50,210,154,.55); color: #fff; }
+    .ghost-button:disabled { opacity: .55; cursor: wait; }
+    .camera-filters { display: flex; gap: 7px; margin-bottom: 12px; }
+    .camera-filters button.active { color: #06110d; border-color: var(--accent); background: var(--accent); }
+    .camera-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+    .camera-item {
       border: 1px solid var(--line);
-      border-radius: 999px;
-      font-size: 13px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .visit-photo {
-      width: 54px;
-      height: 54px;
-      object-fit: cover;
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      background: #0b0f13;
-    }
-
-    th,
-    td {
-      padding: 9px 6px;
-      border-bottom: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 12px;
+      background: #111923;
+      color: var(--text);
       text-align: left;
-      vertical-align: top;
+      cursor: pointer;
+      transition: .18s ease;
     }
-
-    th {
-      color: var(--muted);
-      font-weight: 600;
+    .camera-item:hover { transform: translateY(-1px); border-color: rgba(50,210,154,.42); }
+    .camera-item.active { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px rgba(50,210,154,.08); }
+    .camera-item.setup { opacity: .8; }
+    .camera-item.filtered-out { display: none; }
+    .camera-preview-box { position: relative; width: 100%; aspect-ratio: 16 / 9; margin-bottom: 10px; overflow: hidden; border-radius: 9px; background: #020406; }
+    .camera-preview-feed { width: 100%; height: 100%; display: block; object-fit: contain; }
+    .camera-preview-status { position: absolute; inset: 0; display: grid; place-items: center; color: #fca5a5; background: rgba(2,4,6,.72); font-size: 12px; font-weight: 700; }
+    .camera-preview-status.online { display: none; }
+    .camera-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .camera-item strong { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .camera-item small { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .camera-state { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: #526171; }
+    .camera-state.online { background: var(--accent); box-shadow: 0 0 0 4px rgba(50,210,154,.1); }
+    .camera-state.detected { background: var(--warning); }
+    .sidebar { display: grid; align-content: start; gap: 14px; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric { padding: 17px; }
+    .metric strong { display: block; font-size: 32px; line-height: 1; letter-spacing: -.04em; }
+    .metric span { display: block; margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .panel { padding: 18px; }
+    .panel h2 { margin: 0 0 5px; font-size: 15px; }
+    .panel-subtitle { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .ptz-grid { width: 210px; margin: 2px auto 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+    .ptz-button {
+      aspect-ratio: 1;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--surface-2);
+      color: #dce5ec;
+      cursor: pointer;
+      font-size: 20px;
+      transition: .14s ease;
     }
-
-    @media (max-width: 980px) {
-      main {
-        grid-template-columns: 1fr;
-      }
-
-      .side {
-        grid-template-columns: 1fr;
-      }
+    .ptz-button:hover:not(:disabled) { color: var(--accent); border-color: rgba(50,210,154,.55); background: var(--accent-soft); }
+    .ptz-button:active:not(:disabled) { transform: scale(.94); }
+    .ptz-button:disabled { opacity: .28; cursor: not-allowed; }
+    .ptz-center { border-radius: 50%; color: var(--muted); font-size: 11px; }
+    .zoom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .zoom-row button { min-height: 42px; aspect-ratio: auto; font-size: 13px; font-weight: 650; }
+    .speed-row { display: flex; align-items: center; gap: 10px; margin-top: 13px; color: var(--muted); font-size: 11px; }
+    .speed-row input { width: 100%; accent-color: var(--accent); }
+    .names { min-height: 34px; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 13px; }
+    .name { padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: #d6e0e9; font-size: 12px; }
+    .notice { display: none; margin-top: 12px; padding: 10px 11px; border-radius: 10px; color: #ffdca4; background: rgba(244,180,75,.09); font-size: 11px; line-height: 1.45; }
+    .notice.visible { display: block; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 60; display: none; place-items: center; padding: 18px; background: rgba(1,5,9,.76); backdrop-filter: blur(8px); }
+    .modal-backdrop.visible { display: grid; }
+    .modal { width: min(460px, 100%); padding: 22px; border: 1px solid var(--line); border-radius: 18px; background: #111923; box-shadow: 0 30px 90px rgba(0,0,0,.55); }
+    .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .modal h2 { margin: 0; font-size: 18px; }
+    .modal p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .close-button { border: 0; border-radius: 8px; padding: 4px 8px; color: var(--muted); background: transparent; cursor: pointer; font-size: 20px; }
+    .form-grid { display: grid; gap: 13px; }
+    .field { display: grid; gap: 6px; color: #c7d1dc; font-size: 12px; }
+    .field input, .field select { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; outline: none; background: #0b1119; color: var(--text); font: inherit; }
+    .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(50,210,154,.08); }
+    .field input:read-only { color: var(--muted); }
+    .check-field { display: flex; align-items: center; gap: 9px; color: #c7d1dc; font-size: 12px; }
+    .check-field input { width: 17px; height: 17px; accent-color: var(--accent); }
+    .primary-button { min-height: 44px; margin-top: 5px; border: 0; border-radius: 11px; background: var(--accent); color: #06110d; font-weight: 750; cursor: pointer; }
+    .primary-button:disabled { opacity: .55; cursor: wait; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 50; max-width: 330px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 12px; background: #17212d; color: var(--text); box-shadow: 0 18px 55px rgba(0,0,0,.4); font-size: 13px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .2s ease; }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    .toast.error { border-color: rgba(251,113,133,.45); color: #fecdd3; }
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metrics { grid-column: 1 / -1; }
     }
-
-    @media (max-width: 560px) {
-      header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
-      main {
-        padding: 12px;
-      }
-
-      .metrics {
-        grid-template-columns: 1fr;
-      }
+    @media (max-width: 650px) {
+      .topbar { height: auto; min-height: 68px; padding: 12px 16px; }
+      .brand span { display: none; }
+      .layout { padding: 12px; }
+      .screen { min-height: 230px; }
+      .sidebar { grid-template-columns: 1fr; }
+      .metrics { grid-column: auto; }
+      .status-pill { max-width: 48%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>IA Vigilancia</h1>
-    <div id="cameraStatus" class="status-pill">
-      <span class="dot"></span>
-      <span>Conectando camara</span>
-    </div>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">V</div><div><strong>Vigilay Local</strong><span>Conexiones del sitio</span></div></div>
+    <div class="topbar-actions"><button id="scopeButton" class="ghost-button scope-button" type="button">Configurar empresa y sede</button><div id="cameraStatus" class="status-pill"><span class="dot"></span><span>Conectando</span></div></div>
   </header>
 
-  <main>
-    <section class="video-wrap">
-      <img src="/video_feed" alt="Video en vivo con deteccion de personas">
+  <main class="layout">
+    <section class="card viewer">
+      <div class="viewer-head">
+        <div class="camera-heading">
+          <div class="camera-icon">◉</div>
+          <div><h1 id="activeCameraName">Cámara principal</h1><p id="activeCameraMeta">Preparando transmisión segura</p></div>
+        </div>
+        <span class="live-label">EN VIVO</span>
+      </div>
+      <div class="screen">
+        <div class="screen-message"><strong>Conectando con la cámara</strong>La imagen aparecerá automáticamente.</div>
+        <img id="videoFeed" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Video en vivo de la cámara seleccionada">
+      </div>
+      <div class="viewer-tools">
+        <div id="viewOptions" class="view-options" aria-label="Lente V380">
+          <span class="panel-subtitle" style="margin:0">Vista:</span>
+          <button class="ghost-button" type="button" data-view="full">Todas</button>
+          <button class="ghost-button" type="button" data-view="upper">Superior</button>
+          <button class="ghost-button" type="button" data-view="lower">Inferior</button>
+        </div>
+        <label class="digital-zoom">Zoom digital <input id="digitalZoom" type="range" min="1" max="3" value="1" step="0.1"><span id="digitalZoomValue">1.0×</span><span id="dragHint">Amplía y arrastra la imagen</span><button id="resetZoom" class="ghost-button" type="button">Restablecer</button></label>
+      </div>
+      <div class="camera-strip">
+        <div class="section-head"><h2>Cámaras</h2><div><button id="editCameraButton" class="ghost-button" type="button" disabled>Editar cámara activa</button> <button id="addCameraButton" class="ghost-button" type="button">Agregar cámara</button> <button id="discoverButton" class="ghost-button" type="button">Buscar en la red</button></div></div>
+        <div id="cameraFilters" class="camera-filters" aria-label="Filtrar cámaras">
+          <button class="ghost-button active" type="button" data-filter="all">Todas <span id="allCount">0</span></button>
+          <button class="ghost-button" type="button" data-filter="online">Activas <span id="onlineCount">0</span></button>
+          <button class="ghost-button" type="button" data-filter="offline">Inactivas <span id="offlineCount">0</span></button>
+        </div>
+        <div id="cameraList" class="camera-list"></div>
+        <div id="cameraNotice" class="notice"></div>
+      </div>
     </section>
 
-    <aside class="side">
-      <section class="metrics">
-        <div class="metric">
-          <strong id="personCount">0</strong>
-          <span>Personas en el local</span>
-        </div>
-        <div class="metric">
-          <strong id="faceCount">0</strong>
-          <span>Rostros detectados</span>
-        </div>
+    <aside class="sidebar">
+      <section id="localAiMetrics" class="metrics">
+        <div class="card metric"><strong id="personCount">0</strong><span>Personas visibles</span></div>
+        <div class="card metric"><strong id="faceCount">0</strong><span>Rostros detectados</span></div>
       </section>
-
-      <section class="panel">
-        <h2>Reconocidos</h2>
+      <section id="localAiPanel" class="card panel">
+        <h2>Control PTZ</h2>
+        <p id="ptzMessage" class="panel-subtitle">Comprobando movimiento de cámara…</p>
+        <div class="ptz-grid">
+          <button class="ptz-button" data-action="up-left" aria-label="Arriba izquierda">↖</button>
+          <button class="ptz-button" data-action="up" aria-label="Arriba">↑</button>
+          <button class="ptz-button" data-action="up-right" aria-label="Arriba derecha">↗</button>
+          <button class="ptz-button" data-action="left" aria-label="Izquierda">←</button>
+          <button class="ptz-button ptz-center" disabled>PTZ</button>
+          <button class="ptz-button" data-action="right" aria-label="Derecha">→</button>
+          <button class="ptz-button" data-action="down-left" aria-label="Abajo izquierda">↙</button>
+          <button class="ptz-button" data-action="down" aria-label="Abajo">↓</button>
+          <button class="ptz-button" data-action="down-right" aria-label="Abajo derecha">↘</button>
+        </div>
+        <div class="zoom-row"><button class="ptz-button" data-action="zoom-out">− Alejar</button><button class="ptz-button" data-action="zoom-in">+ Acercar</button></div>
+        <label class="speed-row"><span>Suave</span><input id="ptzSpeed" type="range" min="0.15" max="1" value="0.5" step="0.05"><span>Rápido</span></label>
+      </section>
+      <section class="card panel">
+        <h2>Identificación</h2>
+        <p id="faceMode" class="panel-subtitle">Revisando módulo facial…</p>
+        <p id="notificationState" class="panel-subtitle">Revisando avisos de WhatsApp…</p>
         <div id="recognizedPeople" class="names"></div>
-        <p id="faceMode" class="meta"></p>
       </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <h2>Reporte en tiempo real</h2>
-          <button id="clearHistoryButton" type="button">Limpiar</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Hora</th>
-              <th>Personas</th>
-              <th>Rostros</th>
-            </tr>
-          </thead>
-          <tbody id="eventsBody"></tbody>
-        </table>
-      </section>
-
-      <section class="panel">
-        <h2>Visitas registradas</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Hora</th>
-              <th>Persona</th>
-              <th>Foto</th>
-              <th>Tipo</th>
-            </tr>
-          </thead>
-          <tbody id="visitsBody"></tbody>
-        </table>
+      <section id="frigatePanel" class="card panel" hidden>
+        <h2>IA centralizada en Frigate</h2>
+        <p class="panel-subtitle">Vigilay Local administra la identidad del cliente, la sede y las conexiones. Los eventos, detecciones, grabaciones y notificaciones se consultan en Vigilay Web.</p>
       </section>
     </aside>
   </main>
+  <div id="cameraModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
+    <form id="cameraForm" class="modal">
+      <div class="modal-head">
+        <div><h2 id="cameraModalTitle">Agregar cámara</h2><p id="cameraModalHint">Las credenciales se cifran antes de guardarse en MySQL.</p></div>
+        <button id="closeModalButton" class="close-button" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field">Marca<select id="cameraBrand" name="brand"><option value="EZVIZ">EZVIZ</option><option value="IMOU">Imou</option><option value="V380">V380 Pro</option><option value="GENERIC">RTSP genérica</option></select></label>
+        <label class="field">Modelo<input id="cameraModel" name="model" placeholder="Modelo de la cámara"></label>
+        <label class="field">Alias<input id="cameraName" name="name" required placeholder="Ej. Entrada principal"></label>
+        <label class="field">Asignación Frigate<select id="cameraFrigateName" name="frigate_camera_name"><option value="">Sin asignar</option></select></label>
+        <label class="field">Fotogramas por segundo: <output id="cameraFpsValue">10 FPS</output><input id="cameraTargetFps" name="target_fps" type="range" min="1" max="30" value="10" step="1"></label>
+        <label class="check-field"><input id="cameraGrayscale" name="grayscale" type="checkbox"> Mostrar esta cámara en blanco y negro</label>
+        <label class="field">Dirección IP<input id="cameraHost" name="host" inputmode="decimal" required></label>
+        <label class="field">Usuario<input id="cameraUsername" name="username" value="admin" autocomplete="username" required></label>
+        <label class="field">Contraseña<input id="cameraPassword" name="password" type="password" autocomplete="current-password" required></label>
+        <label id="cameraDeviceIdField" class="field" hidden>ID V380<input id="cameraDeviceId" name="device_id"></label>
+        <label id="cameraPathField" class="field">Ruta RTSP<input id="cameraPath" name="path" required></label>
+        <input id="cameraConnectionMode" name="connection_mode" type="hidden" value="rtsp">
+        <button id="saveCameraButton" class="primary-button" type="submit">Probar y agregar cámara</button>
+      </div>
+    </form>
+  </div>
+  <div id="scopeModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="scopeModalTitle">
+    <form id="scopeForm" class="modal">
+      <div class="modal-head">
+        <div><h2 id="scopeModalTitle">Identidad de Vigilay Local</h2><p>Esta instalación sólo cargará cámaras de la empresa y sede seleccionadas.</p></div>
+        <button id="closeScopeButton" class="close-button" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="form-grid">
+        <label class="field">Empresa existente<select id="scopeTenantId" name="tenant_id"><option value="">Crear una empresa</option></select></label>
+        <label class="field">Nombre de la empresa<input id="scopeTenantName" name="tenant_name" required maxlength="160" placeholder="Ej. Cenfelec"></label>
+        <label class="field">Sede existente<select id="scopeSiteId" name="site_id"><option value="">Crear una sede</option></select></label>
+        <label class="field">Nombre de la sede<input id="scopeSiteName" name="site_name" required maxlength="160" placeholder="Ej. Sede principal"></label>
+        <label class="field">Dirección<input id="scopeAddress" name="address" maxlength="300"></label>
+        <p>Si eliges registros existentes, Vigilay valida que estén activos y que la sede pertenezca a la empresa. Cambiar de sede requiere reiniciar el visor local.</p>
+        <button id="saveScopeButton" class="primary-button" type="submit">Guardar identidad local</button>
+      </div>
+    </form>
+  </div>
+  <div id="toast" class="toast"></div>
 
   <script>
-    const personCount = document.getElementById("personCount");
-    const faceCount = document.getElementById("faceCount");
-    const recognizedPeople = document.getElementById("recognizedPeople");
-    const cameraStatus = document.getElementById("cameraStatus");
-    const faceMode = document.getElementById("faceMode");
-    const eventsBody = document.getElementById("eventsBody");
-    const visitsBody = document.getElementById("visitsBody");
-    const clearHistoryButton = document.getElementById("clearHistoryButton");
+    const $ = (selector) => document.querySelector(selector);
+    const cameraStatus = $("#cameraStatus");
+    const cameraList = $("#cameraList");
+    const cameraNotice = $("#cameraNotice");
+    const editCameraButton = $("#editCameraButton");
+    const addCameraButton = $("#addCameraButton");
+    const discoverButton = $("#discoverButton");
+    const videoFeed = $("#videoFeed");
+    const videoScreen = videoFeed.closest(".screen");
+    const cameraModal = $("#cameraModal");
+    const cameraForm = $("#cameraForm");
+    const scopeModal = $("#scopeModal");
+    const scopeForm = $("#scopeForm");
+    let scopeCatalog = { configured: null, tenants: [], sites: [] };
+    let frigateAliases = [];
+    const ptzButtons = [...document.querySelectorAll("[data-action]")];
+    let ptzCapabilities = { pan_tilt: false, zoom: false };
+    let activeCameraId = null;
+    let configuredCameras = [];
+    let editingCameraId = null;
+    let digitalZoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let dragStart = null;
+    let cameraFilter = "all";
+    let ptzCapabilitiesCameraId = null;
+    let ptzCapabilitiesLoading = false;
+    let mainStreamRetryTimer = null;
+    let toastTimer;
+
+    function showToast(message, error = false) {
+      const toast = $("#toast");
+      toast.textContent = message;
+      toast.className = `toast visible${error ? " error" : ""}`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { toast.className = "toast"; }, 2600);
+    }
+
+    function fillScopeSites(selectedSiteId = "") {
+      const tenantId = $("#scopeTenantId").value;
+      const select = $("#scopeSiteId");
+      select.replaceChildren(new Option("Crear una sede", ""));
+      scopeCatalog.sites.filter((site) => site.tenant_id === tenantId).forEach((site) => {
+        select.add(new Option(site.name, site.id));
+      });
+      select.value = selectedSiteId;
+      const site = scopeCatalog.sites.find((item) => item.id === select.value);
+      $("#scopeSiteName").value = site?.name || "";
+      $("#scopeAddress").value = site?.address || "";
+    }
+
+    function openScopeModal() {
+      const tenantSelect = $("#scopeTenantId");
+      tenantSelect.replaceChildren(new Option("Crear una empresa", ""));
+      scopeCatalog.tenants.forEach((tenant) => {
+        const label = tenant.status === "ACTIVE" ? tenant.name : `${tenant.name} (suspendida)`;
+        tenantSelect.add(new Option(label, tenant.id, false, tenant.id === scopeCatalog.configured?.tenant_id));
+      });
+      const tenant = scopeCatalog.tenants.find((item) => item.id === tenantSelect.value);
+      $("#scopeTenantName").value = tenant?.name || "";
+      fillScopeSites(scopeCatalog.configured?.site_id || "");
+      scopeModal.classList.add("visible");
+      $("#scopeTenantName").focus();
+    }
+
+    function closeScopeModal() { scopeModal.classList.remove("visible"); }
+
+    async function loadFrigateCameras() {
+      const response = await fetch("/api/frigate/cameras");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No se pudo consultar Frigate");
+      frigateAliases = data;
+      const select = $("#cameraFrigateName");
+      const selected = select.value;
+      select.replaceChildren(new Option("Sin asignar", ""));
+      frigateAliases.forEach((item) => select.add(new Option(item.name, item.name)));
+      select.value = selected;
+    }
+
+    async function loadLocalScope(openWhenMissing = false) {
+      const response = await fetch("/api/local-scope");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "No se pudo cargar la identidad local");
+      scopeCatalog = data;
+      $("#scopeButton").textContent = data.configured
+        ? `${data.configured.tenant_name} · ${data.configured.site_name}`
+        : "Configurar empresa y sede";
+      if (!data.configured && openWhenMissing) openScopeModal();
+    }
+
+    async function saveLocalScope(event) {
+      event.preventDefault();
+      const button = $("#saveScopeButton");
+      button.disabled = true;
+      const payload = Object.fromEntries(new FormData(scopeForm).entries());
+      try {
+        const response = await fetch("/api/local-scope", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo guardar la identidad local");
+        closeScopeModal();
+        await loadLocalScope();
+        showToast(data.restart_required
+          ? "Empresa y sede guardadas. Reinicia Vigilay Local para cargar sus cámaras."
+          : "Empresa y sede validadas y guardadas.");
+      } catch (error) {
+        showToast(error.message, true);
+      } finally { button.disabled = false; }
+    }
+
+    function setPtzEnabled(capabilities) {
+      ptzCapabilities = capabilities;
+      ptzButtons.forEach((button) => {
+        const isZoom = button.dataset.action?.startsWith("zoom");
+        button.disabled = isZoom ? !capabilities.zoom : !capabilities.pan_tilt;
+      });
+      $("#ptzMessage").textContent = capabilities.pan_tilt
+        ? capabilities.zoom ? "Mueve la cámara activa o ajusta su zoom óptico." : "Movimiento activo. La conexión actual no expone zoom."
+        : "Esta cámara no ofrece PTZ mediante la conexión local.";
+    }
+
+    async function refreshPtzCapabilities(cameraId) {
+      if (!cameraId || ptzCapabilitiesLoading) return;
+      ptzCapabilitiesLoading = true;
+      try {
+        const response = await fetch("/api/ptz/capabilities");
+        const capabilities = await response.json();
+        if (!response.ok) throw new Error();
+        if (cameraId === activeCameraId) {
+          ptzCapabilitiesCameraId = cameraId;
+          setPtzEnabled(capabilities);
+        }
+      } catch {
+        if (cameraId === activeCameraId) setPtzEnabled({ pan_tilt: false, zoom: false });
+      } finally {
+        ptzCapabilitiesLoading = false;
+      }
+    }
 
     async function refreshStatus() {
-      const response = await fetch("/api/status");
-      const status = await response.json();
-
-      personCount.textContent = status.person_count;
-      faceCount.textContent = status.face_count;
-      cameraStatus.classList.toggle("online", status.camera_online);
-      cameraStatus.querySelector("span:last-child").textContent = status.camera_online
-        ? `Camara online - ${status.last_update || ""}`
-        : "Camara sin conexion";
-
-      recognizedPeople.innerHTML = "";
-      if (status.recognized_people.length === 0) {
-        const empty = document.createElement("span");
-        empty.className = "name";
-        empty.textContent = "Sin personas reconocidas";
-        recognizedPeople.appendChild(empty);
-      } else {
-        status.recognized_people.forEach((name) => {
+      try {
+        const response = await fetch("/api/status");
+        const status = await response.json();
+        const usesFrigate = status.ai_engine === "frigate";
+        $("#localAiMetrics").hidden = usesFrigate;
+        $("#localAiPanel").hidden = usesFrigate;
+        $("#frigatePanel").hidden = !usesFrigate;
+        $("#personCount").textContent = status.person_count;
+        $("#faceCount").textContent = status.face_count;
+        $("#activeCameraName").textContent = status.active_camera_name || "Cámara";
+        $("#activeCameraMeta").textContent = status.last_update ? `Última imagen · ${status.last_update}${status.display_fps ? ` · ${status.display_fps} FPS` : ""}` : "Esperando primera imagen";
+        cameraStatus.classList.toggle("online", status.camera_online);
+        cameraStatus.querySelector("span:last-child").textContent = status.camera_online ? "Cámara online" : "Cámara sin conexión";
+        if (status.camera_online && status.active_camera_id && ptzCapabilitiesCameraId !== status.active_camera_id) {
+          void refreshPtzCapabilities(status.active_camera_id);
+        } else if (!status.camera_online) {
+          setPtzEnabled({ pan_tilt: false, zoom: false });
+        }
+        const names = $("#recognizedPeople");
+        names.replaceChildren();
+        const people = status.recognized_people.length ? status.recognized_people : ["Sin personas reconocidas"];
+        people.forEach((person) => {
           const item = document.createElement("span");
           item.className = "name";
-          item.textContent = name;
-          recognizedPeople.appendChild(item);
+          item.textContent = person;
+          names.appendChild(item);
+        });
+        $("#faceMode").textContent = status.face_recognition_enabled
+          ? "Reconocimiento facial disponible para rostros autorizados."
+          : "Detección facial activa; identificación por nombre no instalada.";
+        const notificationMessages = {
+          pending: "WhatsApp listo; se enviará un aviso al detectar una persona.",
+          sent: `Último aviso de WhatsApp enviado${status.last_notification_at ? ` · ${status.last_notification_at}` : ""}.`,
+          error: "El último aviso de WhatsApp no pudo enviarse.",
+          disabled: "Los avisos por WhatsApp están deshabilitados.",
+          not_configured: "WhatsApp todavía no está configurado.",
+        };
+        $("#notificationState").textContent = notificationMessages[status.last_notification_status] || "Revisando avisos de WhatsApp…";
+        if (!usesFrigate && status.last_notification_status === "not_configured") {
+          cameraNotice.classList.add("visible");
+          cameraNotice.textContent = "WhatsApp pendiente: configura NOTIFY_PHONE para enviar avisos al detectar una persona.";
+        }
+      } catch {
+        cameraStatus.classList.remove("online");
+        cameraStatus.querySelector("span:last-child").textContent = "Servidor no disponible";
+      }
+    }
+
+    function cameraCard(camera, discovered = false) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `camera-item${camera.active ? " active" : ""}${discovered && !camera.configured ? " setup" : ""}`;
+      if (!discovered || camera.configured) {
+        button.dataset.cameraId = camera.id;
+        button.dataset.online = camera.online ? "true" : "false";
+        const previewBox = document.createElement("div");
+        previewBox.className = "camera-preview-box";
+        const preview = document.createElement("img");
+        preview.className = "camera-preview-feed";
+        preview.src = `/camera_feed/${encodeURIComponent(camera.id)}`;
+        preview.alt = `Vista simultánea de ${camera.name}`;
+        const previewStatus = document.createElement("span");
+        previewStatus.className = `camera-preview-status${camera.online ? " online" : ""}`;
+        previewStatus.textContent = "Sin señal";
+        previewBox.append(preview, previewStatus);
+        button.appendChild(previewBox);
+      }
+      const top = document.createElement("div");
+      top.className = "camera-item-top";
+      const title = document.createElement("strong");
+      title.textContent = camera.name;
+      const state = document.createElement("span");
+      state.className = `camera-state ${camera.online ? "online" : discovered ? "detected" : ""}`;
+      top.append(title, state);
+      const meta = document.createElement("small");
+      meta.textContent = discovered && !camera.configured
+        ? `${camera.host} · ${camera.onvif_available ? "ONVIF" : camera.rtsp_available ? "RTSP" : camera.v380_native_candidate ? "V380" : "sin video compatible"} · pulsa para configurar`
+        : `${camera.brand} · ${camera.host}`;
+      button.append(top, meta);
+      if (!discovered || camera.configured) {
+        button.addEventListener("click", () => selectCamera(camera.id));
+      } else {
+        button.addEventListener("click", () => {
+          if (!camera.rtsp_available && !camera.onvif_available && !camera.v380_native_candidate) {
+            showToast(camera.v380_native_candidate
+              ? "Esta V380 no expone ONVIF/RTSP. Activa ONVIF en Configuración avanzada de V380 Pro."
+              : "El dispositivo no expone un stream compatible.", true);
+            return;
+          }
+          openCameraModal(camera);
         });
       }
-
-      faceMode.textContent = status.face_recognition_enabled
-        ? "Reconocimiento facial activo si hay imagenes en rostros_conocidos."
-        : "Instala face_recognition para identificar personas por nombre.";
+      return button;
     }
 
-    async function refreshEvents() {
-      const response = await fetch("/api/events");
-      const events = await response.json();
-      eventsBody.innerHTML = "";
-      events.slice(0, 10).forEach((event) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${event.time.slice(11)}</td>
-          <td>${event.person_count}</td>
-          <td>${event.face_count}</td>
-        `;
-        eventsBody.appendChild(row);
+    function applyCameraFilter() {
+      let online = 0;
+      let offline = 0;
+      cameraList.querySelectorAll("[data-camera-id]").forEach((card) => {
+        const isOnline = card.dataset.online === "true";
+        if (isOnline) online += 1; else offline += 1;
+        card.classList.toggle("filtered-out", cameraFilter === "online" ? !isOnline : cameraFilter === "offline" ? isOnline : false);
       });
+      $("#allCount").textContent = online + offline;
+      $("#onlineCount").textContent = online;
+      $("#offlineCount").textContent = offline;
     }
 
-    async function refreshVisits() {
-      const response = await fetch("/api/visits");
-      const visits = await response.json();
-      visitsBody.innerHTML = "";
-      visits.slice(0, 8).forEach((visit) => {
-        const row = document.createElement("tr");
-        const photo = visit.url
-          ? `<img class="visit-photo" src="${visit.url}" alt="Foto de visita">`
-          : "";
-        row.innerHTML = `
-          <td>${visit.time.slice(11)}</td>
-          <td>${visit.name}</td>
-          <td>${photo}</td>
-          <td>${visit.kind || "rostro"}</td>
-        `;
-        visitsBody.appendChild(row);
-      });
-    }
-
-    async function refreshAll() {
+    async function refreshCameraStates() {
       try {
-        await Promise.all([refreshStatus(), refreshEvents(), refreshVisits()]);
+        const response = await fetch("/api/cameras/status");
+        const states = await response.json();
+        cameraList.querySelectorAll("[data-camera-id]").forEach((card) => {
+          const state = states[card.dataset.cameraId];
+          if (!state) return;
+          card.dataset.online = state.online ? "true" : "false";
+          const dot = card.querySelector(".camera-state");
+          dot?.classList.toggle("online", state.online);
+          card.querySelector(".camera-preview-status")?.classList.toggle("online", state.online);
+        });
+        applyCameraFilter();
+      } catch {
+        // El estado general ya mostrará si el servidor dejó de responder.
+      }
+    }
+
+    function applyBrandDefaults(resetValues = false) {
+      const brand = $("#cameraBrand").value;
+      const isV380 = brand === "V380";
+      $("#cameraDeviceIdField").hidden = !isV380;
+      $("#cameraDeviceId").required = isV380;
+      $("#cameraPathField").hidden = isV380;
+      $("#cameraPath").required = !isV380;
+      $("#cameraConnectionMode").value = isV380 ? "v380" : "rtsp";
+      if (resetValues) {
+        $("#cameraName").value = brand === "GENERIC" ? "Cámara IP" : brand === "V380" ? "V380 Pro" : brand;
+        $("#cameraUsername").value = brand === "V380" ? "" : "admin";
+        $("#cameraPath").value = brand === "IMOU" ? "/cam/realmonitor?channel=1&subtype=0" : "/ch1/main";
+      }
+      $("#cameraModalHint").textContent = isV380
+        ? "Usa el ID del dispositivo como usuario. La clave se cifra en MySQL; no uses el QR temporal."
+        : "La URL y sus credenciales se cifran antes de guardarse en MySQL.";
+    }
+
+    function openCameraModal(camera = { brand: "EZVIZ", host: "" }, editing = false) {
+      editingCameraId = editing ? camera.id : null;
+      const brandText = camera.brand || "EZVIZ";
+      const brand = brandText.includes("V380") ? "V380" : brandText.toUpperCase().includes("IMOU") ? "IMOU" : brandText.toUpperCase().includes("EZVIZ") ? "EZVIZ" : "GENERIC";
+      $("#cameraBrand").value = brand;
+      applyBrandDefaults(true);
+      $("#cameraHost").value = camera.host || "";
+      $("#cameraName").value = camera.name || $("#cameraName").value;
+      $("#cameraModel").value = camera.model || "";
+      $("#cameraTargetFps").value = String(camera.target_fps || 10);
+      $("#cameraFpsValue").textContent = `${$("#cameraTargetFps").value} FPS`;
+      $("#cameraGrayscale").checked = Boolean(camera.grayscale);
+      $("#cameraUsername").value = camera.username ?? $("#cameraUsername").value;
+      $("#cameraPath").value = camera.path || $("#cameraPath").value;
+      $("#cameraDeviceId").value = camera.device_id || "";
+      $("#cameraFrigateName").value = camera.frigate_camera_name || "";
+      $("#cameraPassword").value = "";
+      $("#cameraPassword").required = !editing;
+      $("#cameraPassword").placeholder = editing ? "Déjala vacía para conservarla" : "";
+      $("#cameraBrand").disabled = editing;
+      $("#cameraModalTitle").textContent = editing ? "Editar cámara" : "Agregar cámara";
+      $("#saveCameraButton").textContent = editing ? "Guardar cambios" : "Probar y agregar cámara";
+      cameraModal.classList.add("visible");
+      $(editing ? "#cameraName" : camera.host ? "#cameraUsername" : "#cameraHost").focus();
+    }
+
+    function closeCameraModal() {
+      cameraModal.classList.remove("visible");
+      $("#cameraBrand").disabled = false;
+      editingCameraId = null;
+    }
+
+    async function editActiveCamera() {
+      if (!activeCameraId) return;
+      try {
+        const response = await fetch(`/api/cameras/${encodeURIComponent(activeCameraId)}/configuration`);
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo leer la configuración");
+        openCameraModal(data, true);
       } catch (error) {
-        cameraStatus.classList.remove("online");
-        cameraStatus.querySelector("span:last-child").textContent = "Esperando servidor";
+        showToast(error.message, true);
       }
     }
 
-    async function clearHistory() {
-      clearHistoryButton.disabled = true;
+    async function configureCamera(event) {
+      event.preventDefault();
+      const saveButton = $("#saveCameraButton");
+      saveButton.disabled = true;
+      saveButton.textContent = "Probando conexión…";
+      const payload = Object.fromEntries(new FormData(cameraForm).entries());
+      payload.target_fps = Number($("#cameraTargetFps").value);
+      payload.grayscale = $("#cameraGrayscale").checked;
       try {
-        await fetch("/api/clear-history", { method: "POST" });
-        eventsBody.innerHTML = "";
-        visitsBody.innerHTML = "";
+        const cameraId = editingCameraId;
+        const response = await fetch(cameraId ? `/api/cameras/${encodeURIComponent(cameraId)}` : "/api/cameras/configure", {
+          method: cameraId ? "PUT" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo agregar la cámara");
+        closeCameraModal();
+        videoFeed.src = `/video_feed?t=${Date.now()}`;
+        await Promise.all([refreshStatus(), loadCameras()]);
+        showToast(data.restart_required ? `${data.name} guardada; reinicia la aplicación para aplicar la conexión V380` : `${data.name} guardada`);
+      } catch (error) {
+        showToast(error.message, true);
       } finally {
-        clearHistoryButton.disabled = false;
+        saveButton.disabled = false;
+        saveButton.textContent = editingCameraId ? "Guardar cambios" : "Probar y agregar cámara";
       }
     }
 
-    clearHistoryButton.addEventListener("click", clearHistory);
-    refreshAll();
-    setInterval(refreshAll, 1500);
+    async function loadCameras() {
+      const response = await fetch("/api/cameras");
+      const data = await response.json();
+      configuredCameras = data.configured;
+      const active = configuredCameras.find((camera) => camera.active);
+      activeCameraId = active?.id || null;
+      editCameraButton.disabled = !activeCameraId;
+      cameraList.replaceChildren();
+      data.configured.forEach((camera) => cameraList.appendChild(cameraCard(camera)));
+      const configuredHosts = new Set(data.configured.map((camera) => camera.host));
+      const pending = data.discovered.filter((camera) => !configuredHosts.has(camera.host));
+      pending.forEach((camera) => cameraList.appendChild(cameraCard(camera, true)));
+      applyCameraFilter();
+      setPtzEnabled(data.ptz_capabilities || { pan_tilt: false, zoom: false });
+      if (data.ptz_capabilities?.pan_tilt || data.ptz_capabilities?.zoom) {
+        ptzCapabilitiesCameraId = activeCameraId;
+      }
+      renderViewOptions(active);
+      cameraNotice.classList.toggle("visible", pending.length > 0);
+      cameraNotice.textContent = pending.length
+        ? `${pending.length} cámara adicional detectada. Selecciónala para ingresar sus credenciales y visualizarla.`
+        : "";
+    }
+
+    async function discoverCameras() {
+      discoverButton.disabled = true;
+      discoverButton.textContent = "Buscando…";
+      try {
+        const response = await fetch("/api/cameras/discover", { method: "POST" });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "No se pudo explorar la red");
+        await loadCameras();
+        showToast(`${data.cameras.length} dispositivo(s) de cámara detectado(s)`);
+      } catch (error) {
+        showToast(error.message, true);
+      } finally {
+        discoverButton.disabled = false;
+        discoverButton.textContent = "Buscar en la red";
+      }
+    }
+
+    async function selectCamera(cameraId) {
+      // La última miniatura permanece visible durante la negociación RTSP.
+      clearTimeout(mainStreamRetryTimer);
+      videoFeed.src = `/camera_feed/${encodeURIComponent(cameraId)}?primary=${Date.now()}`;
+      cameraStatus.classList.remove("online");
+      cameraStatus.querySelector("span:last-child").textContent = "Cambiando cámara…";
+      setPtzEnabled({ pan_tilt: false, zoom: false });
+      ptzCapabilitiesCameraId = null;
+      const response = await fetch(`/api/cameras/${encodeURIComponent(cameraId)}/select`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        videoFeed.src = `/video_feed?t=${Date.now()}`;
+        return showToast(data.error || "No se pudo cambiar de cámara", true);
+      }
+      activeCameraId = cameraId;
+      configuredCameras.forEach((camera) => { camera.active = camera.id === cameraId; });
+      cameraList.querySelectorAll("[data-camera-id]").forEach((card) => {
+        card.classList.toggle("active", card.dataset.cameraId === cameraId);
+      });
+      renderViewOptions(configuredCameras.find((camera) => camera.id === cameraId));
+      await Promise.all([refreshStatus(), refreshCameraStates()]);
+      showToast(`Mostrando ${data.name}`);
+    }
+
+    function renderViewOptions(camera) {
+      const holder = $("#viewOptions");
+      const multiple = camera?.views?.length > 1;
+      holder.classList.toggle("visible", Boolean(multiple));
+      holder.querySelectorAll("[data-view]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.view === (camera?.view_mode || "full"));
+      });
+    }
+
+    async function selectCameraView(view) {
+      if (!activeCameraId) return;
+      const response = await fetch(`/api/cameras/${encodeURIComponent(activeCameraId)}/view`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ view }),
+      });
+      const data = await response.json();
+      if (!response.ok) return showToast(data.error || "No se pudo cambiar la vista", true);
+      videoFeed.src = `/video_feed?t=${Date.now()}`;
+      const camera = configuredCameras.find((item) => item.id === activeCameraId);
+      if (camera) camera.view_mode = view;
+      renderViewOptions(camera);
+    }
+
+    function clampPan() {
+      const maxX = videoScreen.clientWidth * (digitalZoom - 1) / 2;
+      const maxY = videoScreen.clientHeight * (digitalZoom - 1) / 2;
+      panX = Math.max(-maxX, Math.min(maxX, panX));
+      panY = Math.max(-maxY, Math.min(maxY, panY));
+    }
+
+    function applyDigitalTransform() {
+      clampPan();
+      videoFeed.style.transform = `translate(${panX}px, ${panY}px) scale(${digitalZoom})`;
+      $("#digitalZoomValue").textContent = `${digitalZoom.toFixed(1)}×`;
+      videoScreen.classList.toggle("zoomed", digitalZoom > 1);
+    }
+
+    function applyDigitalZoom(value) {
+      digitalZoom = Number(value);
+      if (digitalZoom === 1) panX = panY = 0;
+      applyDigitalTransform();
+    }
+
+    async function movePtz(action) {
+      const isZoom = action.startsWith("zoom");
+      if (isZoom ? !ptzCapabilities.zoom : !ptzCapabilities.pan_tilt) return;
+      ptzButtons.forEach((button) => { button.disabled = true; });
+      try {
+        const response = await fetch("/api/ptz", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, speed: Number($("#ptzSpeed").value) }),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Movimiento PTZ rechazado");
+      } catch (error) {
+        showToast(error.message, true);
+      } finally {
+        setPtzEnabled(ptzCapabilities);
+      }
+    }
+
+    ptzButtons.forEach((button) => button.addEventListener("click", () => movePtz(button.dataset.action)));
+    addCameraButton.addEventListener("click", () => openCameraModal());
+    editCameraButton.addEventListener("click", editActiveCamera);
+    $("#viewOptions").querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => selectCameraView(button.dataset.view)));
+    $("#digitalZoom").addEventListener("input", (event) => applyDigitalZoom(event.target.value));
+    $("#resetZoom").addEventListener("click", () => { $("#digitalZoom").value = "1"; panX = panY = 0; applyDigitalZoom(1); });
+    videoScreen.addEventListener("pointerdown", (event) => {
+      if (digitalZoom <= 1) return;
+      dragStart = { x: event.clientX, y: event.clientY, panX, panY };
+      videoScreen.setPointerCapture(event.pointerId);
+      videoScreen.classList.add("dragging");
+      videoFeed.style.transition = "none";
+    });
+    videoScreen.addEventListener("pointermove", (event) => {
+      if (!dragStart) return;
+      panX = dragStart.panX + event.clientX - dragStart.x;
+      panY = dragStart.panY + event.clientY - dragStart.y;
+      applyDigitalTransform();
+    });
+    function stopDragging(event) {
+      if (!dragStart) return;
+      dragStart = null;
+      videoScreen.classList.remove("dragging");
+      videoFeed.style.transition = "";
+      if (videoScreen.hasPointerCapture(event.pointerId)) videoScreen.releasePointerCapture(event.pointerId);
+    }
+    videoScreen.addEventListener("pointerup", stopDragging);
+    videoScreen.addEventListener("pointercancel", stopDragging);
+    videoFeed.addEventListener("error", () => {
+      clearTimeout(mainStreamRetryTimer);
+      if (!activeCameraId) return;
+      mainStreamRetryTimer = setTimeout(() => {
+        videoFeed.src = `/camera_feed/${encodeURIComponent(activeCameraId)}?retry=${Date.now()}`;
+      }, 2000);
+    });
+    window.addEventListener("resize", applyDigitalTransform);
+    $("#cameraFilters").querySelectorAll("[data-filter]").forEach((button) => button.addEventListener("click", () => {
+      cameraFilter = button.dataset.filter;
+      $("#cameraFilters").querySelectorAll("[data-filter]").forEach((item) => item.classList.toggle("active", item === button));
+      applyCameraFilter();
+    }));
+    $("#cameraBrand").addEventListener("change", () => applyBrandDefaults(true));
+    $("#cameraTargetFps").addEventListener("input", (event) => { $("#cameraFpsValue").textContent = `${event.target.value} FPS`; });
+    discoverButton.addEventListener("click", discoverCameras);
+    cameraForm.addEventListener("submit", configureCamera);
+    $("#scopeButton").addEventListener("click", openScopeModal);
+    scopeForm.addEventListener("submit", saveLocalScope);
+    $("#closeScopeButton").addEventListener("click", closeScopeModal);
+    scopeModal.addEventListener("click", (event) => { if (event.target === scopeModal) closeScopeModal(); });
+    $("#scopeTenantId").addEventListener("change", (event) => {
+      const tenant = scopeCatalog.tenants.find((item) => item.id === event.target.value);
+      $("#scopeTenantName").value = tenant?.name || "";
+      fillScopeSites();
+    });
+    $("#scopeSiteId").addEventListener("change", (event) => {
+      const site = scopeCatalog.sites.find((item) => item.id === event.target.value);
+      $("#scopeSiteName").value = site?.name || "";
+      $("#scopeAddress").value = site?.address || "";
+    });
+    $("#closeModalButton").addEventListener("click", closeCameraModal);
+    cameraModal.addEventListener("click", (event) => { if (event.target === cameraModal) closeCameraModal(); });
+    window.addEventListener("load", () => {
+      // Las conexiones MJPEG nunca finalizan. Se abren después del evento load
+      // para que el navegador no deje la pestaña en estado de carga permanente.
+      setTimeout(() => {
+        videoFeed.src = `/video_feed?t=${Date.now()}`;
+        Promise.all([refreshStatus(), loadCameras(), loadLocalScope(true), loadFrigateCameras()])
+          .then(discoverCameras)
+          .catch((error) => showToast(error.message, true));
+        setInterval(refreshStatus, 1500);
+        setInterval(refreshCameraStates, 4000);
+      }, 0);
+    });
   </script>
 </body>
 </html>

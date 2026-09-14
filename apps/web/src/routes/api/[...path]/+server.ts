@@ -8,17 +8,20 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
     headers.set('x-vigilay-proxy-key', env.INTERNAL_PROXY_SECRET);
     headers.set('x-vigilay-client-ip', getClientAddress());
   }
-  for (const key of ['content-type', 'cookie', 'origin', 'x-csrf-token', 'user-agent']) {
+  for (const key of ['content-type', 'cookie', 'x-csrf-token', 'user-agent']) {
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }
+  // The browser talks only to this same-origin proxy. Normalize localhost and
+  // 127.0.0.1 to the canonical origin expected by the API's CSRF policy.
+  headers.set('origin', env.ORIGIN || 'http://localhost:3000');
   try {
     const upstream = await fetch(`${env.API_INTERNAL_URL || 'http://127.0.0.1:8000'}/api/${params.path}${url.search}`, {
       method: request.method,
       headers,
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
       redirect: 'manual',
-      signal: AbortSignal.timeout(15000)
+      signal: AbortSignal.timeout(30000)
     });
     const responseHeaders = new Headers(upstream.headers);
     responseHeaders.delete('content-encoding');

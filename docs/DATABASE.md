@@ -8,7 +8,7 @@ Migraciones:
 - `0002`: cuatro roles, catálogo de permisos y asignaciones iniciales.
 - `0003`: referencias compuestas entre usuario/cámara y tenant, más CHECK del ámbito de roles.
 
-Tablas actuales: tenants, sites, users, roles, permissions, role_permissions, user_roles, sessions, password_reset_tokens, login_attempts, audit_logs, cameras, camera_credentials, user_camera_permissions, camera_capabilities, camera_settings y device_commands. Alembic mantiene su tabla de versión. Las entidades de agentes, eventos, rostros, medios, integraciones y notificaciones se incorporarán con sus respectivas fases; no están implementadas aún.
+Tablas actuales: tenants, sites, users, roles, permissions, role_permissions, user_roles, sessions, password_reset_tokens, login_attempts, audit_logs, cameras, camera_credentials, user_camera_permissions, camera_capabilities, camera_settings, device_commands, notification_channels, camera_stream_providers, camera_stream_sessions y global_integration_settings. Alembic mantiene su tabla de versión. Los eventos y medios permanecen en Frigate y se consultan mediante su API; no se duplican en MySQL.
 
 Cada User tiene inicialmente un único rol. El ámbito de la asignación debe coincidir con su tenant; solo SUPER_ADMIN puede tener tenant nulo. OPERATOR y VIEWER requieren permisos específicos de cámara. Los administradores del cliente acceden a sus cámaras. TenantScoped aplica filtros automáticos y verifica escrituras. SQL directo y cambios masivos se rechazan en sesiones de clientes.
 

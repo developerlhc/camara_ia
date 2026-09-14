@@ -11,7 +11,7 @@ from redis import Redis
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from vigilay import auth, routes
+from vigilay import auth, frigate_routes, live_routes, routes
 from vigilay.config import settings
 from vigilay.db import engine
 
@@ -115,9 +115,11 @@ def create_app():
             "mysql": "ok",
             "redis": "ok",
             "worker": "ok" if worker else "offline",
-            "media": "not_integrated",
+            "media": "ok" if redis.exists("vigilay:stream-agent:heartbeat") else "offline",
         }
 
     app.include_router(auth.router)
     app.include_router(routes.router)
+    app.include_router(live_routes.router)
+    app.include_router(frigate_routes.router)
     return app

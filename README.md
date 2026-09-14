@@ -1,6 +1,6 @@
 # Vigilay
 
-Plataforma de videovigilancia multiempresa en construcción, siguiendo [el Master Prompt](<Vigilay — Master Prompt para Astra.md>). Primera entrega: administración central con backend real, MySQL, autenticación, permisos y configuración de cámaras simuladas.
+Plataforma de videovigilancia multiempresa con administración central, agente local, video en vivo y consulta protegida de eventos y grabaciones de Frigate.
 
 ## Iniciar
 
@@ -17,6 +17,7 @@ docker compose up -d --build
 ```
 
 - Web: http://localhost:3000
+- Vigilay Local (ejecutando `.\iniciar.ps1`): http://localhost:5000
 - OpenAPI: http://localhost:8000/api/docs
 - Preparación API: http://localhost:8000/readyz
 
@@ -36,21 +37,24 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Permisos de visualización/configuración por cámara para operadores y observadores.
 - Simulador explícito: prueba de conexión, descubrimiento de capacidades, comandos persistidos, worker y lectura de confirmación desired/reported.
 - Dashboard con datos reales de la base, auditoría y estado de API/MySQL/Redis/worker.
+- Cuadrícula de cámaras con filtros, paginación y acceso directo a **Ver en vivo**.
+- Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
+- Eventos de IA y grabaciones obtenidos de Frigate y filtrados por empresa, sede y permisos de cámara.
+- Vigilay Local permite seleccionar, crear o modificar su empresa y sede; valida que ambas existan y que la sede pertenezca a la empresa antes de cargar cámaras.
 - Recuperación de contraseña mediante token de un solo uso emitido por CLI; cambio de contraseña desde Mi perfil.
 - Contenedores web/API/worker, migraciones y volúmenes persistentes; checks y publicación GHCR preparados.
 
-## Recorrido de prueba
+## Recorrido operativo
 
 1. Entra como administrador.
 2. Crea un cliente en Clientes.
 3. Crea una sede y un usuario de ese cliente.
-4. En Cámaras, agrega una cámara de tipo **Simulador de desarrollo**.
-5. Abre su detalle y pulsa Probar conexión.
-6. Cambia la sensibilidad de movimiento y pulsa Aplicar configuración.
-7. Comprueba el resultado del comando y los valores Deseado/Reportado.
-8. Revisa los registros de Auditoría.
+4. En Cámaras, registra la conexión RTSP/V380 y, si la cámara ya existe en Frigate, selecciona su alias Frigate.
+5. Pulsa **Probar conexión**; una conexión real correcta queda verificada/en línea.
+6. Pulsa **Ver en vivo** directamente desde la cuadrícula.
+7. Consulta **Eventos de IA** y **Grabaciones**. Estas vistas nunca leen Cloudflare: el API obtiene los datos y medios de Frigate y sólo entrega cámaras autorizadas.
 
-El simulador no genera video. Registrar una URL RTSP todavía no activa conexiones reales. Edge Agent, ONVIF, WebRTC, migración de YOLO/rostros, eventos, notificaciones e integraciones de fabricantes corresponden a las siguientes fases. El MVP completo del Master Prompt sigue pendiente.
+Cloudflare se usa exclusivamente para transportar el video en vivo. Frigate es el motor de detección, eventos y grabación. Una cámara puede funcionar en vivo y, aun así, no aparecer en Eventos/Grabaciones hasta que exista en Frigate y su alias se vincule en Vigilay.
 
 ## Desarrollo y pruebas
 
@@ -63,6 +67,14 @@ docker compose up -d mysql redis
 ```
 
 En otra terminal: `.\.venv-vigilay\Scripts\vigilay-worker.exe`. Para la web: `cd apps/web`, `npm ci`, `npm run dev`.
+
+En el equipo Windows que comparte la red local con las cámaras, inicia el publicador bajo demanda:
+
+```powershell
+.\scripts\iniciar-agente-stream.ps1
+```
+
+El agente no abre puertos públicos ni inicia cámaras por sí solo. Mantiene un único FFmpeg por cámara mientras existan sesiones con heartbeat. En producción rechaza Redis sin TLS y MySQL sin verificación TLS.
 
 Pruebas MySQL con esquema separado:
 
@@ -96,7 +108,10 @@ También funciona Chromium instalado con `npx playwright install chromium`, omit
 - [Seguridad y límites actuales](docs/SECURITY.md)
 - [Variables de entorno](docs/ENVIRONMENT_VARIABLES.md)
 - [Operación local y copias de seguridad](docs/OPERATIONS.md)
+- [Despliegue de Vigilay Web en Magic Containers](docs/MAGIC_CONTAINERS.md)
 - [Prototipo original](docs/LEGACY.md)
 
-El prototipo se conserva en `camara-ia.py`, `templates/` e `iniciar.ps1`. Sus credenciales locales se trasladaron a `.local/legacy-config.json`; las variables de entorno siguen teniendo prioridad. CSV, fotos y modelo YOLO originales permanecen en sus ubicaciones.
+`camara-ia.py`, `templates/` e `iniciar.ps1` forman **Vigilay Local**: administran la identidad de la instalación, las conexiones de cámara y la vista LAN. La identidad queda en `.local/vigilay-local.json`; contiene identificadores, no credenciales. El YOLO local queda desactivado por defecto (`LOCAL_AI_ENABLED=false`) porque la IA normal pertenece a Frigate.
+
+En `http://localhost:5000`, **Configurar empresa y sede** permite crear, seleccionar y modificar la identidad de esa instalación. **Agregar/Editar cámara** permite asignar uno de los aliases que existen realmente en Frigate; la lista se valida mediante el canal privado de Vigilay API.
 # camara_ia

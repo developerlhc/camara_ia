@@ -1,7 +1,7 @@
 from urllib.parse import urlsplit
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 
 from vigilay.auth import (
     Principal,
@@ -13,6 +13,7 @@ from vigilay.auth import (
     revoke_user_sessions,
 )
 from vigilay.config import settings
+from vigilay.frigate import FrigateError, FrigateService
 from vigilay.models import (
     AuditLog,
     Camera,
@@ -30,6 +31,7 @@ from vigilay.models import (
 from vigilay.schemas import (
     CameraInput,
     PermissionInput,
+    PtzInput,
     SettingsInput,
     SiteInput,
     TenantInput,
@@ -40,6 +42,20 @@ from vigilay.schemas import (
 from vigilay.security import encrypt_credentials, hasher
 
 router = APIRouter(prefix="/api/v1", tags=["Administración"])
+
+
+def paginated(db, stmt, serializer, *, paged, page, page_size, limit, offset):
+    if not paged:
+        return [serializer(row) for row in db.execute(stmt.limit(limit).offset(offset)).all()]
+    total = db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
+    rows = db.execute(stmt.limit(page_size).offset((page - 1) * page_size)).all()
+    return {
+        "items": [serializer(row) for row in rows],
+        "total": total,
+        "page": page,
+        "pageSize": page_size,
+        "pages": max(1, (total + page_size - 1) // page_size),
+    }
 
 
 def found(db, model, identifier):
@@ -83,6 +99,11 @@ def camera_dict(row):
         "site_id": row.site_id,
         "name": row.name,
         "integration_type": row.integration_type,
+        "brand": row.brand,
+        "model": row.model,
+        "frigate_camera_name": row.frigate_camera_name,
+        "target_fps": row.target_fps,
+        "grayscale": row.grayscale,
         "status": row.status,
         "enabled": row.enabled,
         "ai_enabled": row.ai_enabled,
@@ -120,11 +141,21 @@ def tenants(
     db=Depends(database),
     limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    paged: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=5, le=100),
+    q: str = Query("", max_length=100),
+    status: str | None = Query(None, pattern="^(ACTIVE|SUSPENDED)$"),
 ):
     stmt = select(Tenant).order_by(Tenant.name)
     if not actor.superadmin:
         stmt = stmt.where(Tenant.id == actor.tenant_id)
-    return [tenant_dict(row) for row in db.scalars(stmt.limit(limit).offset(offset))]
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(or_(Tenant.name.like(term), Tenant.legal_name.like(term), Tenant.tax_id.like(term)))
+    if status:
+        stmt = stmt.where(Tenant.status == status)
+    return paginated(db, stmt, lambda row: tenant_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
 
 
 @router.post("/tenants", status_code=201)
@@ -169,11 +200,20 @@ def sites(
     db=Depends(database),
     limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    paged: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=5, le=100),
+    q: str = Query("", max_length=100),
+    tenant_id: str | None = None,
 ):
-    return [
-        site_dict(row)
-        for row in db.scalars(select(Site).order_by(Site.name).limit(limit).offset(offset))
-    ]
+    stmt = select(Site).order_by(Site.name)
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(or_(Site.name.like(term), Site.address.like(term)))
+    if tenant_id:
+        authorize_tenant(actor, tenant_id)
+        stmt = stmt.where(Site.tenant_id == tenant_id)
+    return paginated(db, stmt, lambda row: site_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
 
 
 @router.get("/sites/{site_id}")
@@ -218,15 +258,26 @@ def users(
     db=Depends(database),
     limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    paged: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=5, le=100),
+    q: str = Query("", max_length=100),
+    tenant_id: str | None = None,
+    status: str | None = Query(None, pattern="^(ACTIVE|DISABLED)$"),
+    role: str | None = Query(None, pattern="^(CLIENT_ADMIN|OPERATOR|VIEWER)$"),
 ):
-    rows = db.execute(
-        select(User, UserRole.role_name)
-        .join(UserRole, UserRole.user_id == User.id)
-        .order_by(User.email)
-        .limit(limit)
-        .offset(offset)
-    )
-    return [public_user(user, role) for user, role in rows]
+    stmt = select(User, UserRole.role_name).join(UserRole, UserRole.user_id == User.id).order_by(User.email)
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(or_(User.email.like(term), User.username.like(term), User.first_name.like(term), User.last_name.like(term)))
+    if tenant_id:
+        authorize_tenant(actor, tenant_id)
+        stmt = stmt.where(User.tenant_id == tenant_id)
+    if status:
+        stmt = stmt.where(User.status == status)
+    if role:
+        stmt = stmt.where(UserRole.role_name == role)
+    return paginated(db, stmt, lambda row: public_user(row[0], row[1]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
 
 
 @router.post("/users", status_code=201)
@@ -286,9 +337,22 @@ def audit_logs(
     db=Depends(database),
     limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    paged: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=5, le=100),
+    q: str = Query("", max_length=100),
+    tenant_id: str | None = None,
 ):
-    return [
-        {
+    stmt = select(AuditLog).order_by(AuditLog.created_at.desc())
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(or_(AuditLog.action.like(term), AuditLog.resource_type.like(term), AuditLog.resource_id.like(term)))
+    if tenant_id:
+        authorize_tenant(actor, tenant_id)
+        stmt = stmt.where(AuditLog.tenant_id == tenant_id)
+    def serialize(row):
+        r = row[0]
+        return {
             "id": r.id,
             "tenant_id": r.tenant_id,
             "action": r.action,
@@ -296,10 +360,7 @@ def audit_logs(
             "resource_id": r.resource_id,
             "created_at": r.created_at.isoformat() + "Z",
         }
-        for r in db.scalars(
-            select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit).offset(offset)
-        )
-    ]
+    return paginated(db, stmt, serialize, paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
 
 
 @router.get("/dashboard")
@@ -322,11 +383,29 @@ def cameras(
     db=Depends(database),
     limit: int = Query(100, ge=1, le=200),
     offset: int = Query(0, ge=0),
+    paged: bool = False,
+    page: int = Query(1, ge=1),
+    page_size: int = Query(25, ge=5, le=100),
+    q: str = Query("", max_length=100),
+    tenant_id: str | None = None,
+    site_id: str | None = None,
+    status: str | None = Query(None, pattern="^(ONLINE|OFFLINE|UNVERIFIED)$"),
+    integration_type: str | None = Query(None, pattern="^(RTSP|V380|SIMULATOR)$"),
 ):
-    return [
-        camera_dict(row)
-        for row in db.scalars(camera_query(actor).order_by(Camera.name).limit(limit).offset(offset))
-    ]
+    stmt = camera_query(actor).order_by(Camera.name)
+    if q:
+        term = f"%{q}%"
+        stmt = stmt.where(or_(Camera.name.like(term), Camera.brand.like(term), Camera.model.like(term)))
+    if tenant_id:
+        authorize_tenant(actor, tenant_id)
+        stmt = stmt.where(Camera.tenant_id == tenant_id)
+    if site_id:
+        stmt = stmt.where(Camera.site_id == site_id)
+    if status:
+        stmt = stmt.where(Camera.status == status)
+    if integration_type:
+        stmt = stmt.where(Camera.integration_type == integration_type)
+    return paginated(db, stmt, lambda row: camera_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
 
 
 @router.get("/cameras/{camera_id}")
@@ -355,20 +434,58 @@ def create_camera(
             valid = False
         if not valid:
             raise HTTPException(422, "Introduce una URL RTSP válida")
+    if data.integration_type == "V380":
+        if data.brand != "V380":
+            raise HTTPException(422, "La integración V380 requiere la marca V380")
+        if not all((data.host, data.port, data.username, data.password, data.device_id)):
+            raise HTTPException(422, "Completa IP, puerto, ID, usuario y contraseña V380")
+    if data.frigate_camera_name:
+        try:
+            frigate_names = FrigateService().camera_names()
+        except FrigateError as exc:
+            raise HTTPException(502, str(exc)) from exc
+        if data.frigate_camera_name not in frigate_names:
+            raise HTTPException(404, "La cámara indicada no existe en Frigate")
+        assigned = db.scalar(
+            select(Camera).where(
+                Camera.site_id == data.site_id,
+                Camera.frigate_camera_name == data.frigate_camera_name,
+            )
+        )
+        if assigned is not None:
+            raise HTTPException(409, "Esa cámara de Frigate ya está asignada en esta sede")
     row = Camera(
         tenant_id=data.tenant_id,
         site_id=data.site_id,
         name=data.name,
         integration_type=data.integration_type,
+        brand=data.brand,
+        model=data.model,
+        frigate_camera_name=data.frigate_camera_name,
+        target_fps=data.target_fps,
+        grayscale=data.grayscale,
     )
     db.add(row)
     db.flush()
+    credentials = None
     if uri:
+        credentials = {"rtsp_url": uri}
+    elif data.integration_type == "V380":
+        credentials = {
+            "host": data.host,
+            "port": data.port,
+            "username": data.username,
+            "password": data.password.get_secret_value(),
+            "device_id": data.device_id,
+            "rtsp_port": 8555,
+            "http_port": 8081,
+        }
+    if credentials:
         db.add(
             CameraCredential(
                 tenant_id=row.tenant_id,
                 camera_id=row.id,
-                secret_encrypted=encrypt_credentials({"rtsp_url": uri}, row.tenant_id, row.id),
+                secret_encrypted=encrypt_credentials(credentials, row.tenant_id, row.id),
             )
         )
     audit(db, actor, "CAMERA_CREATED", "camera", row.id, row.tenant_id)
@@ -391,10 +508,61 @@ def assign_camera(
     if grant is None:
         grant = CameraPermission(tenant_id=camera.tenant_id, user_id=user.id, camera_id=camera.id)
         db.add(grant)
-    grant.can_view, grant.can_configure = data.can_view, data.can_configure
+    grant.can_configure = data.can_configure
+    grant.can_view = data.can_view or data.can_configure
     audit(db, actor, "CAMERA_ASSIGNED", "camera", camera.id, camera.tenant_id)
     db.commit()
     return {"ok": True}
+
+
+@router.get("/cameras/{camera_id}/permissions")
+def camera_permissions(
+    camera_id: str,
+    actor: Principal = Depends(require("cameras.manage")),
+    db=Depends(database),
+):
+    camera = authorized_camera(db, actor, camera_id, configure=True)
+    grants = {
+        grant.user_id: grant
+        for grant in db.scalars(
+            select(CameraPermission).where(CameraPermission.camera_id == camera.id)
+        )
+    }
+    return [
+        {
+            "user_id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "can_view": bool(grants.get(user.id) and grants[user.id].can_view),
+            "can_configure": bool(grants.get(user.id) and grants[user.id].can_configure),
+        }
+        for user in db.scalars(
+            select(User)
+            .join(UserRole, UserRole.user_id == User.id)
+            .where(
+                User.tenant_id == camera.tenant_id,
+                User.status == "ACTIVE",
+                UserRole.role_name.in_(["OPERATOR", "VIEWER"]),
+            )
+            .order_by(User.email)
+        )
+    ]
+
+
+@router.post("/cameras/{camera_id}/ptz", status_code=202)
+def camera_ptz(
+    camera_id: str,
+    data: PtzInput,
+    actor: Principal = Depends(require("cameras.configure")),
+    db=Depends(database),
+):
+    camera = authorized_camera(db, actor, camera_id, configure=True)
+    if camera.integration_type == "SIMULATOR":
+        raise HTTPException(409, "El simulador no ofrece control PTZ real")
+    row = enqueue(db, actor, camera, "PTZ", data.model_dump())
+    db.commit()
+    return {"id": row.id, "status": row.status}
 
 
 @router.get("/cameras/{camera_id}/capabilities")
@@ -415,12 +583,12 @@ def capabilities(
 
 
 def enqueue(db, actor, camera, command, payload):
-    if camera.integration_type != "SIMULATOR":
+    if camera.integration_type != "SIMULATOR" and command not in {"PROBE", "PTZ"}:
         raise HTTPException(
             409,
-            "Esta cámara requiere un Edge Agent; la conexión real está pendiente de integración",
+            "Esta configuración todavía no está disponible para cámaras reales",
         )
-    if not settings().enable_simulator:
+    if camera.integration_type == "SIMULATOR" and not settings().enable_simulator:
         raise HTTPException(409, "Simulador deshabilitado")
     # Serialize enqueue operations per camera so a newer desired value cannot be overwritten.
     db.scalar(select(Camera).where(Camera.id == camera.id).with_for_update())

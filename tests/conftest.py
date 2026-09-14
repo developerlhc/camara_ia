@@ -1,5 +1,6 @@
 import os
 import secrets
+from urllib.parse import quote_plus
 from uuid import uuid4
 
 import pytest
@@ -11,16 +12,32 @@ from sqlalchemy.engine import make_url
 
 # Tests always use a separate, explicitly named MySQL schema and Redis database.
 local = dotenv_values(".env")
-test_url = os.getenv("TEST_DATABASE_URL")
+test_url = os.getenv("TEST_DATABASE_URL") or local.get("TEST_DATABASE_URL")
 if not test_url:
-    test_url = (
-        make_url(local["DATABASE_URL"])
-        .set(database="vigilay_test")
-        .render_as_string(hide_password=False)
-    )
+    if local.get("DATABASE_URL"):
+        base_url = make_url(local["DATABASE_URL"])
+    else:
+        legacy = {
+            key.strip().lower(): value.strip()
+            for item in local.get("BDMYSQL", "").split(";")
+            if "=" in item
+            for key, value in [item.split("=", 1)]
+        }
+        base_url = make_url(
+            "mysql+pymysql://{}:{}@{}:{}/vigilay?charset=utf8mb4".format(
+                quote_plus(legacy["uid"]),
+                quote_plus(legacy["pwd"]),
+                legacy["server"],
+                legacy.get("port", "3306"),
+            )
+        )
+    test_url = base_url.set(database="vigilay_test").render_as_string(hide_password=False)
 if not make_url(test_url).database.endswith("_test"):
     raise RuntimeError("Las pruebas requieren una base cuyo nombre termine en _test")
 os.environ["DATABASE_URL"] = test_url
+# BDMYSQL has priority in application settings. Clear it explicitly so pytest
+# cannot reconnect to the development database after deriving vigilay_test.
+os.environ["BDMYSQL"] = ""
 os.environ["REDIS_URL"] = os.getenv("TEST_REDIS_URL", "redis://localhost:6379/1")
 os.environ["SESSION_SECRET"] = secrets.token_hex(32)
 os.environ["CREDENTIAL_ENCRYPTION_KEY"] = (
@@ -32,6 +49,8 @@ os.environ["WEB_ORIGIN"] = "http://localhost:3000"
 from vigilay.config import settings  # noqa: E402
 
 settings.cache_clear()
+if not make_url(settings().database_url).database.endswith("_test"):
+    raise RuntimeError("La configuración efectiva de pytest debe terminar en _test")
 from vigilay.db import system_session  # noqa: E402
 from vigilay.main import create_app  # noqa: E402
 from vigilay.models import Tenant, User, UserRole  # noqa: E402

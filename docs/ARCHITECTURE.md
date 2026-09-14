@@ -18,21 +18,23 @@ flowchart TD
   API --> Redis[(Redis)]
   Worker[Worker] --> DB
   Worker --> Redis
-  Agent[Edge Agent futuro] -->|HTTPS saliente| API
+  Agent[Agente local] -->|HTTPS saliente / Redis en desarrollo| API
   Agent --> Adapters[Adaptadores ONVIF / RTSP / fabricante]
   Adapters --> Camera[Cámara]
 ```
 
-## Topología de medios prevista
+## Topología de medios actual
 
 ```mermaid
 flowchart LR
-  Camera[Cámara] --> Agent[Edge Agent]
-  Agent --> Gateway[MediaMTX]
-  Gateway -->|WebRTC / HLS autorizado| Browser[Navegador]
+  Camera[Cámara] --> Agent[Agente local]
+  Agent --> Cloudflare[Cloudflare Stream Live]
+  Cloudflare -->|WHEP autorizado| Browser[Navegador]
+  Camera --> Frigate[Frigate: IA, eventos y grabaciones]
+  Frigate -->|API privada por Vigilay| Browser
 ```
 
-La web nunca recibirá URLs RTSP ni secretos. El gateway incluido en Compose permanece en red interna hasta implementar autorización de sesiones. El control plane no abre conexiones a direcciones de cámara suministradas por clientes. Las integraciones Imou/EZVIZ, el descubrimiento ONVIF y el despliegue Bunny requieren fases específicas de implementación y verificación; no se inventan endpoints.
+La web nunca recibe URLs RTSP, credenciales de cámara ni el endpoint privado de Frigate. El API autoriza cada cámara y actúa como proxy para eventos y grabaciones. El agente local abre las conexiones LAN, publica el vivo en Cloudflare y ejecuta PTZ; Vigilay Local fija y valida la empresa, la sede y la asignación a Frigate de esa instalación.
 
 ## Referencias técnicas
 

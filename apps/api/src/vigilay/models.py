@@ -139,6 +139,14 @@ class PasswordReset(Identity, Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime)
 
 
+class IntegrationSetting(Identity, Base):
+    __tablename__ = "integration_settings"
+    provider: Mapped[str] = mapped_column(String(32), unique=True)
+    config_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
 class AuditLog(TenantScoped, Identity, Base):
     __tablename__ = "audit_logs"
     tenant_id: Mapped[str | None] = mapped_column(ForeignKey("tenants.id"), index=True)
@@ -155,12 +163,18 @@ class Camera(TenantScoped, Identity, Base):
     __tablename__ = "cameras"
     __table_args__ = (
         UniqueConstraint("id", "tenant_id"),
+        UniqueConstraint("site_id", "frigate_camera_name", name="uq_camera_site_frigate_name"),
         ForeignKeyConstraint(["site_id", "tenant_id"], ["sites.id", "sites.tenant_id"]),
     )
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
     site_id: Mapped[str] = mapped_column(String(36), index=True)
     name: Mapped[str] = mapped_column(String(160))
     integration_type: Mapped[str] = mapped_column(String(32))
+    brand: Mapped[str] = mapped_column(String(32), default="GENERIC")
+    model: Mapped[str] = mapped_column(String(120), default="")
+    frigate_camera_name: Mapped[str | None] = mapped_column(String(80))
+    target_fps: Mapped[int] = mapped_column(Integer, default=10)
+    grayscale: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(20), default="UNVERIFIED")
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     ai_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -176,6 +190,62 @@ class CameraCredential(TenantScoped, Identity, Base):
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"))
     camera_id: Mapped[str] = mapped_column(String(36))
     secret_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class CameraStreamProvider(TenantScoped, Identity, Base):
+    __tablename__ = "camera_stream_providers"
+    __table_args__ = (
+        UniqueConstraint("camera_id"),
+        ForeignKeyConstraint(
+            ["camera_id", "tenant_id"],
+            ["cameras.id", "cameras.tenant_id"],
+            name="fk_stream_provider_camera_tenant",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    camera_id: Mapped[str] = mapped_column(String(36), index=True)
+    provider: Mapped[str] = mapped_column(String(32), default="cloudflare")
+    provider_live_input_uid: Mapped[str] = mapped_column(String(64), unique=True)
+    publish_url_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    playback_url: Mapped[str] = mapped_column(String(2048))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
+
+
+class CameraStreamSession(TenantScoped, Identity, Base):
+    __tablename__ = "camera_stream_sessions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["camera_id", "tenant_id"],
+            ["cameras.id", "cameras.tenant_id"],
+            name="fk_stream_session_camera_tenant",
+        ),
+        Index("ix_stream_session_camera_status", "camera_id", "status"),
+        CheckConstraint(
+            "status IN ('starting','live','stopping','stopped','error')",
+            name="ck_stream_session_status",
+        ),
+    )
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    camera_id: Mapped[str] = mapped_column(String(36), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    viewer_key_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    status: Mapped[str] = mapped_column(String(20), default="starting")
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    last_heartbeat_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    stopped_at: Mapped[datetime | None] = mapped_column(DateTime)
+    stop_reason: Mapped[str | None] = mapped_column(String(64))
+    sanitized_error: Mapped[str | None] = mapped_column(String(300))
+
+
+class NotificationChannel(TenantScoped, Identity, Base):
+    __tablename__ = "notification_channels"
+    __table_args__ = (UniqueConstraint("tenant_id", "channel"),)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
+    channel: Mapped[str] = mapped_column(String(32))
+    config_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
 class CameraPermission(TenantScoped, Base):
