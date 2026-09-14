@@ -56,9 +56,7 @@ class FrigateService:
         return result if isinstance(result, dict) else {}
 
     def recordings(self, camera_name: str, *, after: int, before: int):
-        result = self.json(
-            f"/{camera_name}/recordings", params={"after": after, "before": before}
-        )
+        result = self.json(f"/{camera_name}/recordings", params={"after": after, "before": before})
         return result if isinstance(result, list) else []
 
     def media(self, path: str):

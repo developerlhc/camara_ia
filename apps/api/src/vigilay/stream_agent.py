@@ -127,9 +127,7 @@ class PtzController:
         else:
             fallback = "http://www.onvif.org/ver10/tptz/PanTiltSpaces/VelocityGenericSpace"
             space = pan_spaces[0].URI if pan_spaces else fallback
-            movement.Velocity = {
-                "PanTilt": {"x": pan * speed, "y": tilt * speed, "space": space}
-            }
+            movement.Velocity = {"PanTilt": {"x": pan * speed, "y": tilt * speed, "space": space}}
         try:
             ptz.ContinuousMove(movement)
             time.sleep(0.28)
@@ -192,15 +190,23 @@ class CameraStreamResolver:
         child_environment["V380_CAMERA_PASSWORD"] = str(camera.get("password", ""))
         arguments = [
             str(executable),
-            "--id", str(camera.get("device_id", "")),
-            "--username", str(camera.get("username", "")),
-            "--ip", str(camera.get("host", "")),
-            "--port", str(camera.get("port", 8800)),
-            "--source", "lan",
-            "--quality", str(camera.get("quality", "sd")),
+            "--id",
+            str(camera.get("device_id", "")),
+            "--username",
+            str(camera.get("username", "")),
+            "--ip",
+            str(camera.get("host", "")),
+            "--port",
+            str(camera.get("port", 8800)),
+            "--source",
+            "lan",
+            "--quality",
+            str(camera.get("quality", "sd")),
             "--enable-api",
-            "--http-port", str(http_port),
-            "--rtsp-port", str(rtsp_port),
+            "--http-port",
+            str(http_port),
+            "--rtsp-port",
+            str(rtsp_port),
         ]
         subprocess.Popen(
             arguments,
@@ -474,9 +480,7 @@ class LocalStreamAgent:
             )
             if credential is None:
                 raise StreamAgentError("La cámara no tiene credenciales")
-            secret = decrypt_credentials(
-                credential.secret_encrypted, camera.tenant_id, camera.id
-            )
+            secret = decrypt_credentials(credential.secret_encrypted, camera.tenant_id, camera.id)
             self.resolver.resolve(camera, secret)
             capability = db.get(CameraCapability, (camera.id, "live_video"))
             if capability is None:
@@ -525,9 +529,7 @@ class LocalStreamAgent:
             )
             if credential is None:
                 raise StreamAgentError("La cámara no tiene credenciales")
-            secret = decrypt_credentials(
-                credential.secret_encrypted, camera.tenant_id, camera.id
-            )
+            secret = decrypt_credentials(credential.secret_encrypted, camera.tenant_id, camera.id)
             if camera.integration_type == "V380":
                 self.resolver.resolve(camera, secret)
             self.ptz.move(

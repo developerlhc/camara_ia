@@ -37,15 +37,17 @@ def cloudflare_integration_status(
     actor: Principal = Depends(require("system.read")), db=Depends(database)
 ):
     _superadmin(actor)
-    row = db.scalar(
-        select(IntegrationSetting).where(IntegrationSetting.provider == "cloudflare")
-    )
+    row = db.scalar(select(IntegrationSetting).where(IntegrationSetting.provider == "cloudflare"))
     configured_from_environment = bool(
         settings().cloudflare_account_id and settings().cloudflare_stream_api_token
     )
     return {
         "configured": bool((row and row.enabled) or configured_from_environment),
-        "source": "vigilay" if row and row.enabled else "environment" if configured_from_environment else "none",
+        "source": "vigilay"
+        if row and row.enabled
+        else "environment"
+        if configured_from_environment
+        else "none",
         "tokenStored": bool(row),
     }
 
@@ -62,14 +64,10 @@ def configure_cloudflare_integration(
     account_id = data.account_id.strip()
     api_token = data.api_token.get_secret_value()
     try:
-        CloudflareStreamService(
-            db, account_id=account_id, api_token=api_token
-        ).verify_credentials()
+        CloudflareStreamService(db, account_id=account_id, api_token=api_token).verify_credentials()
     except StreamProviderError as exc:
         raise HTTPException(502, str(exc)) from exc
-    row = db.scalar(
-        select(IntegrationSetting).where(IntegrationSetting.provider == "cloudflare")
-    )
+    row = db.scalar(select(IntegrationSetting).where(IntegrationSetting.provider == "cloudflare"))
     encrypted = encrypt_credentials(
         {"account_id": account_id, "api_token": api_token}, "__system__", "cloudflare"
     )
@@ -77,9 +75,7 @@ def configure_cloudflare_integration(
         row.config_encrypted = encrypted
         row.enabled = True
     else:
-        row = IntegrationSetting(
-            provider="cloudflare", config_encrypted=encrypted, enabled=True
-        )
+        row = IntegrationSetting(provider="cloudflare", config_encrypted=encrypted, enabled=True)
         db.add(row)
     db.flush()
     audit(db, actor, "CLOUDFLARE_CONFIGURED", "integration_setting", row.id, request=request)
@@ -187,7 +183,9 @@ def stop_live(
         session.status = "stopped"
         session.stopped_at = utcnow()
         session.stop_reason = "viewer_closed"
-        audit(db, actor, "CAMERA_LIVE_STOPPED", "camera_stream_session", session.id, camera.tenant_id)
+        audit(
+            db, actor, "CAMERA_LIVE_STOPPED", "camera_stream_session", session.id, camera.tenant_id
+        )
         db.commit()
         _dispatch("stop", camera.id, session.id)
     provider = db.scalar(
@@ -238,4 +236,3 @@ def live_status(
         select(CameraStreamProvider).where(CameraStreamProvider.camera_id == camera_id)
     )
     return _safe_response(session, provider)
-

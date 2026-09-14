@@ -108,7 +108,9 @@ class CloudflareStreamService:
                 try:
                     payload = response.json()
                 except ValueError as exc:
-                    raise StreamProviderError("Cloudflare Stream devolvió una respuesta inválida") from exc
+                    raise StreamProviderError(
+                        "Cloudflare Stream devolvió una respuesta inválida"
+                    ) from exc
                 if payload.get("success") is False:
                     raise StreamProviderError("Cloudflare Stream rechazó la operación")
                 return payload.get("result", payload)

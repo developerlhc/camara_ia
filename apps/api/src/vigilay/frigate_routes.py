@@ -34,9 +34,7 @@ def mapped_camera(db, actor, camera_id):
 
 
 def camera_for_frigate_name(db, actor, name):
-    camera = db.scalar(
-        camera_query(actor).where(Camera.frigate_camera_name == name).limit(1)
-    )
+    camera = db.scalar(camera_query(actor).where(Camera.frigate_camera_name == name).limit(1))
     if camera is None:
         raise HTTPException(404, "Evento no disponible para este usuario")
     return camera
@@ -92,9 +90,7 @@ def events(
         allowed = [mapped_camera(db, actor, camera_id)]
     else:
         allowed = list(
-            db.scalars(
-                camera_query(actor).where(Camera.frigate_camera_name.is_not(None))
-            )
+            db.scalars(camera_query(actor).where(Camera.frigate_camera_name.is_not(None)))
         )
     by_name = {camera.frigate_camera_name: camera for camera in allowed}
     rows = safe_call(lambda: FrigateService().events(limit=200))
@@ -116,7 +112,9 @@ def events(
                 "has_clip": bool(row.get("has_clip")),
                 "has_snapshot": bool(row.get("has_snapshot")),
                 "thumbnail_url": f"/api/v1/frigate/events/{event_id}/thumbnail.jpg",
-                "clip_url": f"/api/v1/frigate/events/{event_id}/clip.mp4" if row.get("has_clip") else None,
+                "clip_url": f"/api/v1/frigate/events/{event_id}/clip.mp4"
+                if row.get("has_clip")
+                else None,
             }
         )
         if len(result) >= limit:
@@ -136,9 +134,7 @@ def recordings(
         raise HTTPException(422, "Selecciona un intervalo válido de hasta 7 días")
     camera = mapped_camera(db, actor, camera_id)
     segments = safe_call(
-        lambda: FrigateService().recordings(
-            camera.frigate_camera_name, after=after, before=before
-        )
+        lambda: FrigateService().recordings(camera.frigate_camera_name, after=after, before=before)
     )
     return [
         {
@@ -164,7 +160,9 @@ def event_thumbnail(
     event = safe_call(lambda: service.event(event_id))
     camera_for_frigate_name(db, actor, event.get("camera"))
     content, media_type = safe_call(lambda: service.media(f"/events/{event_id}/thumbnail.jpg"))
-    return Response(content, media_type=media_type, headers={"Cache-Control": "private, max-age=30"})
+    return Response(
+        content, media_type=media_type, headers={"Cache-Control": "private, max-age=30"}
+    )
 
 
 @router.get("/events/{event_id}/clip.mp4")
@@ -176,9 +174,7 @@ def event_clip(
     service = FrigateService()
     event = safe_call(lambda: service.event(event_id))
     camera_for_frigate_name(db, actor, event.get("camera"))
-    chunks, media_type = safe_call(
-        lambda: service.stream_media(f"/events/{event_id}/clip.mp4")
-    )
+    chunks, media_type = safe_call(lambda: service.stream_media(f"/events/{event_id}/clip.mp4"))
     return StreamingResponse(chunks, media_type=media_type)
 
 

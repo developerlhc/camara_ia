@@ -124,6 +124,4 @@ class CloudflareIntegrationInput(Input):
 
 
 class FrigateCameraInput(Input):
-    frigate_camera_name: str = Field(
-        min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$"
-    )
+    frigate_camera_name: str = Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")

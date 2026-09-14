@@ -152,10 +152,21 @@ def tenants(
         stmt = stmt.where(Tenant.id == actor.tenant_id)
     if q:
         term = f"%{q}%"
-        stmt = stmt.where(or_(Tenant.name.like(term), Tenant.legal_name.like(term), Tenant.tax_id.like(term)))
+        stmt = stmt.where(
+            or_(Tenant.name.like(term), Tenant.legal_name.like(term), Tenant.tax_id.like(term))
+        )
     if status:
         stmt = stmt.where(Tenant.status == status)
-    return paginated(db, stmt, lambda row: tenant_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
+    return paginated(
+        db,
+        stmt,
+        lambda row: tenant_dict(row[0]),
+        paged=paged,
+        page=page,
+        page_size=page_size,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.post("/tenants", status_code=201)
@@ -213,7 +224,16 @@ def sites(
     if tenant_id:
         authorize_tenant(actor, tenant_id)
         stmt = stmt.where(Site.tenant_id == tenant_id)
-    return paginated(db, stmt, lambda row: site_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
+    return paginated(
+        db,
+        stmt,
+        lambda row: site_dict(row[0]),
+        paged=paged,
+        page=page,
+        page_size=page_size,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/sites/{site_id}")
@@ -266,10 +286,21 @@ def users(
     status: str | None = Query(None, pattern="^(ACTIVE|DISABLED)$"),
     role: str | None = Query(None, pattern="^(CLIENT_ADMIN|OPERATOR|VIEWER)$"),
 ):
-    stmt = select(User, UserRole.role_name).join(UserRole, UserRole.user_id == User.id).order_by(User.email)
+    stmt = (
+        select(User, UserRole.role_name)
+        .join(UserRole, UserRole.user_id == User.id)
+        .order_by(User.email)
+    )
     if q:
         term = f"%{q}%"
-        stmt = stmt.where(or_(User.email.like(term), User.username.like(term), User.first_name.like(term), User.last_name.like(term)))
+        stmt = stmt.where(
+            or_(
+                User.email.like(term),
+                User.username.like(term),
+                User.first_name.like(term),
+                User.last_name.like(term),
+            )
+        )
     if tenant_id:
         authorize_tenant(actor, tenant_id)
         stmt = stmt.where(User.tenant_id == tenant_id)
@@ -277,7 +308,16 @@ def users(
         stmt = stmt.where(User.status == status)
     if role:
         stmt = stmt.where(UserRole.role_name == role)
-    return paginated(db, stmt, lambda row: public_user(row[0], row[1]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
+    return paginated(
+        db,
+        stmt,
+        lambda row: public_user(row[0], row[1]),
+        paged=paged,
+        page=page,
+        page_size=page_size,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.post("/users", status_code=201)
@@ -346,10 +386,17 @@ def audit_logs(
     stmt = select(AuditLog).order_by(AuditLog.created_at.desc())
     if q:
         term = f"%{q}%"
-        stmt = stmt.where(or_(AuditLog.action.like(term), AuditLog.resource_type.like(term), AuditLog.resource_id.like(term)))
+        stmt = stmt.where(
+            or_(
+                AuditLog.action.like(term),
+                AuditLog.resource_type.like(term),
+                AuditLog.resource_id.like(term),
+            )
+        )
     if tenant_id:
         authorize_tenant(actor, tenant_id)
         stmt = stmt.where(AuditLog.tenant_id == tenant_id)
+
     def serialize(row):
         r = row[0]
         return {
@@ -360,7 +407,10 @@ def audit_logs(
             "resource_id": r.resource_id,
             "created_at": r.created_at.isoformat() + "Z",
         }
-    return paginated(db, stmt, serialize, paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
+
+    return paginated(
+        db, stmt, serialize, paged=paged, page=page, page_size=page_size, limit=limit, offset=offset
+    )
 
 
 @router.get("/dashboard")
@@ -395,7 +445,9 @@ def cameras(
     stmt = camera_query(actor).order_by(Camera.name)
     if q:
         term = f"%{q}%"
-        stmt = stmt.where(or_(Camera.name.like(term), Camera.brand.like(term), Camera.model.like(term)))
+        stmt = stmt.where(
+            or_(Camera.name.like(term), Camera.brand.like(term), Camera.model.like(term))
+        )
     if tenant_id:
         authorize_tenant(actor, tenant_id)
         stmt = stmt.where(Camera.tenant_id == tenant_id)
@@ -405,7 +457,16 @@ def cameras(
         stmt = stmt.where(Camera.status == status)
     if integration_type:
         stmt = stmt.where(Camera.integration_type == integration_type)
-    return paginated(db, stmt, lambda row: camera_dict(row[0]), paged=paged, page=page, page_size=page_size, limit=limit, offset=offset)
+    return paginated(
+        db,
+        stmt,
+        lambda row: camera_dict(row[0]),
+        paged=paged,
+        page=page,
+        page_size=page_size,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.get("/cameras/{camera_id}")

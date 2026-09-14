@@ -117,9 +117,7 @@ def test_recording_segments_are_grouped_into_playable_windows():
     ]
 
 
-def test_local_scope_rejects_site_from_another_company(
-    monkeypatch, tmp_path, clients, identities
-):
+def test_local_scope_rejects_site_from_another_company(monkeypatch, tmp_path, clients, identities):
     monkeypatch.setattr(camera_store, "LOCAL_IDENTITY_PATH", tmp_path / "identity.json")
     sites = []
     for key, tenant_id in zip(("a", "b"), identities["tenants"]):
@@ -130,9 +128,7 @@ def test_local_scope_rejects_site_from_another_company(
         sites.append(response.json()["id"])
 
     try:
-        camera_store.configure_local_scope(
-            tenant_id=identities["tenants"][0], site_id=sites[1]
-        )
+        camera_store.configure_local_scope(tenant_id=identities["tenants"][0], site_id=sites[1])
     except ValueError as exc:
         assert "no pertenece" in str(exc)
     else:

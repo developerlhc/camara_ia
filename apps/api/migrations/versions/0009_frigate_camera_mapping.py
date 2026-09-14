@@ -14,9 +14,7 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "cameras", sa.Column("frigate_camera_name", sa.String(length=80), nullable=True)
-    )
+    op.add_column("cameras", sa.Column("frigate_camera_name", sa.String(length=80), nullable=True))
     op.create_unique_constraint(
         "uq_camera_site_frigate_name", "cameras", ["site_id", "frigate_camera_name"]
     )
