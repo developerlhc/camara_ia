@@ -22,6 +22,7 @@
 | ENABLE_SIMULATOR | Activa únicamente el adaptador de desarrollo. |
 | API_INTERNAL_URL | Dirección privada de API que usa el servidor web. |
 | VIGILAY_API_URL | API alcanzable desde Vigilay Local, normalmente `http://localhost:8000`; se usa para validar aliases Frigate sin entregar el secreto al navegador. |
+| VIGILAY_REALTIME_URL | WebSocket público saliente usado por el agente de cada sede, por ejemplo `wss://mc-xxxx.bunny.run/api/v1/agent/realtime`. Si queda vacío, se deriva de `VIGILAY_API_URL`. |
 | ORIGIN | Origen público que usa adapter-node. |
 | TEST_DATABASE_URL | Esquema separado cuyo nombre termina en `_test`. |
 | VIGILAY_E2E_EMAIL / VIGILAY_E2E_PASSWORD | Cuenta de desarrollo para pruebas de navegador. |

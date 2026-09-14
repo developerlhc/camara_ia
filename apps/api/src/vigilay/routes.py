@@ -28,6 +28,7 @@ from vigilay.models import (
     User,
     UserRole,
 )
+from vigilay.realtime_hub import notify_site
 from vigilay.schemas import (
     CameraInput,
     PermissionInput,
@@ -623,6 +624,7 @@ def camera_ptz(
         raise HTTPException(409, "El simulador no ofrece control PTZ real")
     row = enqueue(db, actor, camera, "PTZ", data.model_dump())
     db.commit()
+    notify_site(camera.site_id, "camera.command", row.id)
     return {"id": row.id, "status": row.status}
 
 
@@ -682,6 +684,7 @@ def probe(
     camera = authorized_camera(db, actor, camera_id, configure=True)
     row = enqueue(db, actor, camera, "PROBE", {})
     db.commit()
+    notify_site(camera.site_id, "camera.command", row.id)
     return {"id": row.id, "status": row.status}
 
 

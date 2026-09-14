@@ -85,8 +85,7 @@ def rate_limit(request: Request, bucket: str, limit: int, seconds: int):
         )
 
 
-def principal(request: Request):
-    token = request.cookies.get(settings().session_cookie_name, "")
+def principal_from_token(token: str):
     if not token or len(token) > 256:
         raise HTTPException(401, "Inicia sesión para continuar")
     with system_session() as db:
@@ -118,10 +117,6 @@ def principal(request: Request):
                 )
             )
         )
-        if request.method not in {"GET", "HEAD", "OPTIONS"} and not hmac.compare_digest(
-            request.headers.get("x-csrf-token", ""), csrf_token(token)
-        ):
-            raise HTTPException(403, "Token CSRF inválido")
         return Principal(
             user.id,
             user.tenant_id,
@@ -131,6 +126,16 @@ def principal(request: Request):
             permissions,
             session.id,
         )
+
+
+def principal(request: Request):
+    actor = principal_from_token(request.cookies.get(settings().session_cookie_name, ""))
+    token = request.cookies[settings().session_cookie_name]
+    if request.method not in {"GET", "HEAD", "OPTIONS"} and not hmac.compare_digest(
+        request.headers.get("x-csrf-token", ""), csrf_token(token)
+    ):
+        raise HTTPException(403, "Token CSRF inválido")
+    return actor
 
 
 def require(permission):

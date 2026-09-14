@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     internal_proxy_secret: str = ""
     credential_encryption_key: str
     web_origin: str = "http://localhost:3000"
+    vigilay_api_url: str = "http://localhost:8000"
+    vigilay_realtime_url: str = ""
     session_cookie_name: str = "vigilay_session"
     session_cookie_secure: bool = False
     session_ttl_seconds: int = 28800
@@ -89,6 +91,10 @@ class Settings(BaseSettings):
             raise ValueError("FRIGATE_TIMEOUT_SECONDS debe estar entre 2 y 60")
         if not 1024 <= self.frigate_gateway_port <= 65535:
             raise ValueError("FRIGATE_GATEWAY_PORT debe ser un puerto no privilegiado")
+        if self.vigilay_realtime_url and not self.vigilay_realtime_url.startswith(
+            ("ws://", "wss://")
+        ):
+            raise ValueError("VIGILAY_REALTIME_URL debe usar ws:// o wss://")
         return self
 
 

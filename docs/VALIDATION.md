@@ -33,7 +33,7 @@ Al 14 de septiembre de 2026, el entorno real quedó limitado a Cenfelec, una sed
 
 Vigilay Local administra y valida la identidad empresa/sede, las conexiones LAN y la asignación única de alias Frigate. La web permite asignar varios usuarios a una cámara, controlar PTZ cuando el dispositivo lo soporta, filtrar grabaciones por empresa/sede/cámara, paginarlas y reproducir consecutivamente sus fragmentos.
 
-La publicación remota sigue dependiendo de infraestructura externa: GitHub Actions construye y publica `vigilay-web` en GHCR y puede actualizar Bunny Magic Containers cuando se configuran `BUNNYNET_APP_ID` y `BUNNYNET_API_KEY`. No se afirma un despliegue remoto mientras esas credenciales y un `push` a `main` no existan.
+GitHub Actions construye y publica las imágenes API/web versionadas en GHCR. La selección de esa versión y el rollout se realizan manualmente en Magic Containers; CI no llama a la API de despliegue de Bunny.
 
 Quedan dos advertencias de deprecación provenientes del cliente de pruebas Starlette/httpx/AnyIO; no causan fallos de las pruebas. La dependencia tzdata se incorporó para que la validación America/Lima también funcione en Windows.
 

@@ -13,6 +13,7 @@ from vigilay.models import (
     IntegrationSetting,
     utcnow,
 )
+from vigilay.realtime_hub import notify_site
 from vigilay.routes import authorized_camera
 from vigilay.schemas import CloudflareIntegrationInput, LiveSessionInput
 from vigilay.security import encrypt_credentials, hash_token
@@ -133,6 +134,7 @@ def start_live(
     db.flush()
     audit(db, actor, "CAMERA_LIVE_STARTED", "camera_stream_session", session.id, camera.tenant_id)
     db.commit()
+    notify_site(camera.site_id, "camera.stream.start", session.id)
     return _safe_response(session, live_input, viewer_key=viewer_key)
 
 

@@ -66,4 +66,4 @@ Respaldar la clave AES por separado y con acceso restringido: perderla impide re
 
 El entorno actual es local. El workflow prepara imágenes API y web en GHCR con tags SHA después de checks; el worker usa la imagen API con comando `vigilay-worker`. No se ha publicado un repositorio, imagen ni servicio remoto desde esta instalación.
 
-El despliegue de la imagen web en Bunny Magic Containers está descrito en `docs/MAGIC_CONTAINERS.md`. El workflow lo ejecuta al configurar las credenciales del repositorio; no se ha conectado una cuenta Bunny desde esta instalación local.
+El despliegue de las imágenes en Bunny Magic Containers está descrito en `docs/MAGIC_CONTAINERS.md`. El workflow publica versiones en GHCR, pero la selección de versión y el rollout se ejecutan manualmente en Bunny.

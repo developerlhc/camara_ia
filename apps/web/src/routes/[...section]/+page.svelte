@@ -39,6 +39,9 @@
   let eventsTenant = $state(''); let eventsPage = $state(1); let eventsPageSize = $state(12);
   let mediaQueue = $state<Row[]>([]); let mediaIndex = $state(-1);
   let liveTimer: ReturnType<typeof setTimeout> | undefined;
+  let realtimeSocket: WebSocket | undefined; let realtimeRetry: ReturnType<typeof setTimeout> | undefined;
+  let realtimeStopping = false;
+  const commandWaiters = new Map<string, (command: Row) => void>();
   let filtered = $derived(records);
   let recordingCameras = $derived(records.filter(row => row.frigate_camera_name && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite)));
   let recordingPages = $derived(Math.max(1, Math.ceil(recordings.length / recordingPageSize)));
@@ -75,6 +78,87 @@
     searchTimer = setTimeout(applyFilters, 300);
   }
 
+  function realtimeTarget() { return liveCameraId || cameraId; }
+  function subscribeRealtime() {
+    const target = realtimeTarget();
+    if (!target || realtimeSocket?.readyState !== WebSocket.OPEN) return;
+    realtimeSocket.send(JSON.stringify({
+      type: 'subscribe', cameraId: target,
+      sessionId: liveOpen && liveCameraId === target ? liveSessionId : '',
+      viewerKey: liveOpen && liveCameraId === target ? liveViewerKey : ''
+    }));
+  }
+  function applyRealtimeCommand(command: Row) {
+    if (!['SUCCEEDED', 'FAILED', 'TIMEOUT', 'CANCELLED'].includes(String(command.status))) return;
+    commandWaiters.get(command.id)?.(command);
+  }
+  function connectRealtime(target = realtimeTarget()) {
+    if (!target || realtimeStopping || typeof WebSocket === 'undefined') return;
+    if (realtimeSocket?.readyState === WebSocket.OPEN) { subscribeRealtime(); return; }
+    if (realtimeSocket?.readyState === WebSocket.CONNECTING) return;
+    clearTimeout(realtimeRetry);
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${location.host}/api/v1/realtime`);
+    realtimeSocket = socket;
+    socket.onopen = subscribeRealtime;
+    socket.onmessage = (event) => {
+      try {
+        const update = JSON.parse(String(event.data));
+        if (update.type !== 'snapshot') return;
+        if (update.camera) {
+          if (camera?.id === update.camera.id) camera = {...camera, ...update.camera};
+          records = records.map(row => row.id === update.camera.id ? {...row, ...update.camera} : row);
+        }
+        if (Array.isArray(update.commands)) {
+          commands = update.commands;
+          update.commands.forEach(applyRealtimeCommand);
+        }
+        if (update.live?.sessionId === liveSessionId) {
+          liveStatus = update.live.status;
+          if (update.live.error) error = update.live.error;
+        }
+      } catch { /* Ignore malformed frames and keep the last valid state. */ }
+    };
+    socket.onclose = () => {
+      if (realtimeSocket === socket) realtimeSocket = undefined;
+      if (!realtimeStopping && realtimeTarget()) {
+        realtimeRetry = setTimeout(() => connectRealtime(), 1000);
+        if (liveOpen) scheduleLiveHeartbeat();
+      }
+    };
+  }
+  function disconnectRealtime() {
+    realtimeStopping = true; clearTimeout(realtimeRetry);
+    realtimeSocket?.close(); realtimeSocket = undefined;
+  }
+  async function waitForCommand(commandId: string, targetId: string, timeoutMs: number) {
+    return new Promise<Row>((resolve, reject) => {
+      let checking = false;
+      const finish = (command: Row) => {
+        clearTimeout(timeout); clearInterval(fallback); commandWaiters.delete(commandId);
+        if (command.status === 'SUCCEEDED') resolve(command);
+        else reject(new Error(display(command.error || 'El comando no pudo completarse.')));
+      };
+      const timeout = setTimeout(() => {
+        clearInterval(fallback); commandWaiters.delete(commandId);
+        reject(new Error('El agente local no confirmó el comando a tiempo.'));
+      }, timeoutMs);
+      const fallback = setInterval(async () => {
+        if (realtimeSocket?.readyState === WebSocket.OPEN || checking) return;
+        checking = true;
+        try {
+          const history = await api<Row[]>(`/cameras/${targetId}/commands`);
+          const result = history.find(command => command.id === commandId);
+          if (result && ['SUCCEEDED', 'FAILED', 'TIMEOUT', 'CANCELLED'].includes(String(result.status))) finish(result);
+        } catch { /* A reconnect or the timeout will provide the final result. */ }
+        finally { checking = false; }
+      }, 1000);
+      commandWaiters.set(commandId, finish);
+      connectRealtime(targetId);
+      subscribeRealtime();
+    });
+  }
+
   async function refresh() {
     error = '';
     if (cameraId) {
@@ -108,7 +192,6 @@
     else if (endpoints[section]) await loadRecords();
   }
   onMount(() => {
-    let timer: ReturnType<typeof setInterval>;
     const stopOnExit = () => { if (liveOpen) void closeLive(); };
     window.addEventListener('pagehide', stopOnExit);
     void (async () => {
@@ -117,10 +200,10 @@
         [tenants, sites] = await Promise.all([api('/tenants'), api('/sites')]);
         tenantId = user.tenant_id || tenants[0]?.id || '';
         await refresh();
-        if (cameraId) timer = setInterval(() => { void refresh().catch(e => error = e.message); }, 3000);
+        if (cameraId) connectRealtime(cameraId);
       } catch(e) { error = (e as Error).message; } finally { loading = false; }
     })();
-    return () => { clearInterval(timer); clearTimeout(searchTimer); window.removeEventListener('pagehide', stopOnExit); stopOnExit(); };
+    return () => { disconnectRealtime(); clearTimeout(searchTimer); window.removeEventListener('pagehide', stopOnExit); stopOnExit(); };
   });
 
   async function loadFrigateCatalog(targetSite: string) {
@@ -138,20 +221,9 @@
     busy = true; error = ''; notice = 'Comprobando la conexión con la cámara…';
     try {
       const queued = await api<{id: string}>(`/cameras/${cameraId}/probe`, 'POST');
-      for (let attempt = 0; attempt < 15; attempt += 1) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        commands = await api<Row[]>(`/cameras/${cameraId}/commands`);
-        const result = commands.find(command => command.id === queued.id);
-        if (result?.status === 'SUCCEEDED') {
-          await refresh();
-          notice = 'Conexión exitosa. La cámara está en línea.';
-          return;
-        }
-        if (result && ['FAILED', 'TIMEOUT', 'CANCELLED'].includes(String(result.status))) {
-          throw new Error(`No se pudo conectar con la cámara: ${display(result.error)}`);
-        }
-      }
-      throw new Error('La prueba sigue pendiente. Revisa que el agente local esté iniciado.');
+      await waitForCommand(queued.id, cameraId, 30000);
+      await refresh();
+      notice = 'Conexión exitosa. La cámara está en línea.';
     } catch(e) { notice = ''; error = (e as Error).message; }
     finally { busy = false; }
   }
@@ -162,6 +234,7 @@
       const result = await api<Record<string, string>>(`/cameras/${targetId}/live/start`, 'POST');
       liveUrl = result.playbackUrl; liveSessionId = result.sessionId;
       liveViewerKey = result.viewerKey; liveStatus = result.status;
+      connectRealtime(targetId); subscribeRealtime();
       scheduleLiveHeartbeat();
     } catch (e) { liveStatus = 'error'; error = (e as Error).message; }
   }
@@ -170,6 +243,7 @@
     if (!liveOpen || !liveSessionId || ['error', 'stopped'].includes(liveStatus)) return;
     liveTimer = setTimeout(async () => {
       try {
+        if (realtimeSocket?.readyState === WebSocket.OPEN) { scheduleLiveHeartbeat(); return; }
         const state = await api<Record<string, string>>(`/cameras/${liveCameraId}/live/heartbeat`, 'POST', {session_id: liveSessionId, viewer_key: liveViewerKey});
         liveStatus = state.status; scheduleLiveHeartbeat();
       } catch (e) { liveStatus = 'error'; error = (e as Error).message; }
@@ -182,6 +256,7 @@
       await api(`/cameras/${targetId}/live/stop`, 'POST', {session_id: sessionId, viewer_key: viewerKey}).catch(() => {});
     }
     liveCameraId = ''; liveCameraName = '';
+    if (cameraId) subscribeRealtime(); else { realtimeSocket?.close(); realtimeSocket = undefined; }
   }
   async function loadFrigateRecordings() {
     recordings = [];
@@ -214,14 +289,8 @@
     const targetId = liveCameraId || cameraId;
     try {
       const queued = await api<{id: string}>(`/cameras/${targetId}/ptz`, 'POST', {action: actionName, speed: 0.5});
-      for (let attempt = 0; attempt < 12; attempt += 1) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const history = await api<Row[]>(`/cameras/${targetId}/commands`);
-        const result = history.find(command => command.id === queued.id);
-        if (result?.status === 'SUCCEEDED') { notice = 'Movimiento PTZ realizado.'; return; }
-        if (result?.status === 'FAILED') throw new Error(display(result.error));
-      }
-      throw new Error('El agente local no confirmó el movimiento PTZ.');
+      await waitForCommand(queued.id, targetId, 15000);
+      notice = 'Movimiento PTZ realizado.';
     } catch (e) { notice = ''; error = (e as Error).message; }
     finally { busy = false; }
   }

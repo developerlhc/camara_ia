@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 import shutil
@@ -16,9 +17,11 @@ from urllib.error import URLError
 from urllib.parse import quote, urlsplit
 
 from sqlalchemy import select
+from websockets.sync.client import connect
 
 from vigilay.config import settings
 from vigilay.db import system_session
+from vigilay.frigate_gateway import load_or_create_gateway_token, load_scope
 from vigilay.models import (
     AuditLog,
     Camera,
@@ -42,6 +45,65 @@ logger = logging.getLogger("vigilay.stream_agent")
 
 class StreamAgentError(RuntimeError):
     pass
+
+
+class AgentRealtimeSignal:
+    """Wake the local agent immediately when Vigilay Cloud queues work for its site."""
+
+    def __init__(self, wake_event, stop_event):
+        config = settings()
+        self.wake_event = wake_event
+        self.stop_event = stop_event
+        self.url = config.vigilay_realtime_url or self._url_from_api(config.vigilay_api_url)
+
+    @staticmethod
+    def _url_from_api(api_url):
+        parsed = urlsplit(api_url)
+        scheme = "wss" if parsed.scheme == "https" else "ws"
+        return f"{scheme}://{parsed.netloc}/api/v1/agent/realtime"
+
+    def run(self):
+        try:
+            tenant_id, site_id = load_scope()
+            token = load_or_create_gateway_token(tenant_id, site_id)
+        except Exception:
+            logger.warning("Agent real-time identity is not available; using MySQL polling")
+            return
+        delay = 1
+        while not self.stop_event.is_set():
+            try:
+                with connect(
+                    self.url,
+                    open_timeout=5,
+                    close_timeout=2,
+                    max_size=64 * 1024,
+                ) as websocket:
+                    websocket.send(
+                        json.dumps(
+                            {
+                                "type": "authenticate",
+                                "tenantId": tenant_id,
+                                "siteId": site_id,
+                                "token": token,
+                            }
+                        )
+                    )
+                    delay = 1
+                    for raw in websocket:
+                        message = json.loads(raw)
+                        if message.get("type") == "wake":
+                            self.wake_event.set()
+                        if self.stop_event.is_set():
+                            return
+            except Exception:
+                logger.warning("Agent real-time channel disconnected; retrying in %ss", delay)
+                self.stop_event.wait(delay)
+                delay = min(delay * 2, 30)
+
+    def start(self):
+        thread = threading.Thread(target=self.run, name="vigilay-agent-realtime", daemon=True)
+        thread.start()
+        return thread
 
 
 class PtzController:
@@ -397,7 +459,7 @@ class StreamManager:
 
 
 class LocalStreamAgent:
-    def __init__(self, *, resolver=None, manager=None, ptz=None, poll_seconds=0.25):
+    def __init__(self, *, resolver=None, manager=None, ptz=None, poll_seconds=1.0):
         config = settings()
         self.resolver = resolver or CameraStreamResolver()
         self.manager = manager or StreamManager(config.ffmpeg_path)
@@ -405,6 +467,7 @@ class LocalStreamAgent:
         self.poll_seconds = poll_seconds
         self.idle_timeout = config.stream_idle_timeout_seconds
         self.stop_event = threading.Event()
+        self.wake_event = threading.Event()
         self.last_viewer_at = {}
         self.failures = {}
         self.next_retry_at = {}
@@ -636,6 +699,7 @@ class LocalStreamAgent:
     def run(self):
         self._validate_transport()
         self.recover()
+        AgentRealtimeSignal(self.wake_event, self.stop_event).start()
         next_housekeeping_at = time.monotonic()
         while not self.stop_event.is_set():
             try:
@@ -649,7 +713,9 @@ class LocalStreamAgent:
                 except Exception:
                     logger.warning("Local stream agent housekeeping failed")
                 next_housekeeping_at = time.monotonic() + self.housekeeping_interval
-            self.stop_event.wait(self.poll_seconds)
+            if self.wake_event.wait(self.poll_seconds):
+                self.wake_event.clear()
+                next_housekeeping_at = 0
         self.manager.stop_all()
 
     def start(self):
