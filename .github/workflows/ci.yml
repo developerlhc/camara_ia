@@ -109,7 +109,7 @@ jobs:
           app_id: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
           api_key: ${{ secrets.BUNNYNET_API_KEY }}
           container: web
-          image_name: ghcr.io/developerlhc/vigilay-web
+          image_name: developerlhc/vigilay-web
           image_tag: ${{ github.sha }}
       - name: Retry Bunny update after transient API failure
         if: steps.bunny_update.outcome == 'failure'
@@ -131,7 +131,7 @@ jobs:
           fi
 
           payload="$(jq -cn --arg id "$container_id" --arg tag "$IMAGE_TAG" \
-            --arg name 'ghcr.io/developerlhc/vigilay-web' \
+            --arg name 'developerlhc/vigilay-web' \
             '{id: $id, imageTag: $tag, imageName: $name}')"
           response_file="$(mktemp)"
           trap 'rm -f "$response_file"' EXIT
