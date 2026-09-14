@@ -23,9 +23,9 @@
 
   function scheduleReconnect() {
     if (cancelled || reconnectTimer) return;
-    if (reconnectAttempts >= 7) { onState('error'); return; }
+    if (reconnectAttempts >= 10) { onState('error'); return; }
     onState('reconnecting');
-    const delay = [500, 1000, 2000, 3000, 5000, 8000, 10000][reconnectAttempts++];
+    const delay = [200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 8000][reconnectAttempts++];
     reconnectTimer = setTimeout(() => {
       reconnectTimer = undefined;
       void releaseCurrent().then(connect).catch(scheduleReconnect);

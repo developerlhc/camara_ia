@@ -13,7 +13,7 @@ import httpx
 from sqlalchemy import select
 
 from vigilay.config import settings
-from vigilay.models import CameraStreamProvider, IntegrationSetting
+from vigilay.models import Camera, CameraStreamProvider, IntegrationSetting
 from vigilay.security import decrypt_credentials, encrypt_credentials
 
 logger = logging.getLogger("vigilay.streaming")
@@ -140,6 +140,16 @@ class CloudflareStreamService:
         return LiveInput(row.provider_live_input_uid, secret["publish_url"], row.playback_url)
 
     def get_or_create_live_input(self, camera) -> LiveInput:
+        row = self.db.scalar(
+            select(CameraStreamProvider).where(CameraStreamProvider.camera_id == camera.id)
+        )
+        if row is not None and row.enabled:
+            return self._from_row(row)
+        if row is not None:
+            raise StreamProviderError("La transmisión Cloudflare de esta cámara está deshabilitada")
+        # The lock is only needed during first-time provisioning. Normal live starts reuse
+        # the provider without paying another round trip to the remote MySQL server.
+        self.db.scalar(select(Camera).where(Camera.id == camera.id).with_for_update())
         row = self.db.scalar(
             select(CameraStreamProvider).where(CameraStreamProvider.camera_id == camera.id)
         )

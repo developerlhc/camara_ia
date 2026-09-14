@@ -35,7 +35,7 @@
 | FRIGATE_TIMEOUT_SECONDS | Tiempo máximo de consulta a Frigate. |
 | FRIGATE_GATEWAY_PORT | Puerto loopback del proxy autenticado local; valor normal `8788`. |
 | CLOUDFLARED_PATH | Ejecutable de Cloudflare Tunnel; el contenedor local ya lo incorpora. |
-| STREAM_IDLE_TIMEOUT_SECONDS | Gracia sin espectadores antes de detener FFmpeg. |
+| STREAM_IDLE_TIMEOUT_SECONDS | Gracia sin espectadores antes de detener FFmpeg. Se recomiendan `300` segundos para que reaperturas cercanas sean instantáneas; sin espectadores Cloudflare no factura minutos entregados y la grabación remota está desactivada. |
 | STREAM_START_TIMEOUT_SECONDS | Espera máxima de confirmación al abrir el visor. |
 
 Generación manual de claves:

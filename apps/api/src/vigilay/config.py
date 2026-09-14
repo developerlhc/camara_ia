@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     frigate_timeout_seconds: int = 10
     frigate_gateway_port: int = 8788
     cloudflared_path: str = "cloudflared"
-    stream_idle_timeout_seconds: int = 60
+    stream_idle_timeout_seconds: int = 300
     stream_start_timeout_seconds: int = 15
 
     @model_validator(mode="before")

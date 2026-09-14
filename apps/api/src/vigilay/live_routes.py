@@ -8,7 +8,6 @@ from sqlalchemy import select
 from vigilay.auth import Principal, audit, database, rate_limit, require
 from vigilay.config import settings
 from vigilay.models import (
-    Camera,
     CameraStreamProvider,
     CameraStreamSession,
     IntegrationSetting,
@@ -118,7 +117,6 @@ def start_live(
     camera = authorized_camera(db, actor, camera_id)
     if not camera.enabled or camera.integration_type == "SIMULATOR":
         raise HTTPException(409, "Esta cámara no puede transmitir video")
-    db.scalar(select(Camera).where(Camera.id == camera.id).with_for_update())
     try:
         live_input = CloudflareStreamService(db).get_or_create_live_input(camera)
     except StreamProviderError as exc:

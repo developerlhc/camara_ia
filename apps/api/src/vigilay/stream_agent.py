@@ -264,7 +264,7 @@ class CameraStreamResolver:
 
 
 class StreamManager:
-    def __init__(self, ffmpeg_path: str, *, popen=subprocess.Popen, startup_seconds=2):
+    def __init__(self, ffmpeg_path: str, *, popen=subprocess.Popen, startup_seconds=0.35):
         self.ffmpeg_path = ffmpeg_path
         self._popen = popen
         self.startup_seconds = startup_seconds
@@ -395,7 +395,7 @@ class StreamManager:
 
 
 class LocalStreamAgent:
-    def __init__(self, *, resolver=None, manager=None, ptz=None, poll_seconds=1):
+    def __init__(self, *, resolver=None, manager=None, ptz=None, poll_seconds=0.25):
         config = settings()
         self.resolver = resolver or CameraStreamResolver()
         self.manager = manager or StreamManager(config.ffmpeg_path)
@@ -406,6 +406,7 @@ class LocalStreamAgent:
         self.last_viewer_at = {}
         self.failures = {}
         self.next_retry_at = {}
+        self.housekeeping_interval = 5
 
     def _active_sessions(self, db, camera_id=None):
         cutoff = utcnow().timestamp() - self.idle_timeout
@@ -426,16 +427,9 @@ class LocalStreamAgent:
                 active.append(row)
         return active
 
-    def reconcile(self):
+    def reconcile_live(self):
         now = time.monotonic()
         with system_session() as db:
-            heartbeat = db.get(ServiceHeartbeat, "stream-agent")
-            if heartbeat is None:
-                db.add(ServiceHeartbeat(service_name="stream-agent", last_seen_at=utcnow()))
-            else:
-                heartbeat.last_seen_at = utcnow()
-            self._process_probe(db)
-            self._process_ptz(db)
             active = self._active_sessions(db)
             by_camera = {}
             for session in active:
@@ -469,7 +463,14 @@ class LocalStreamAgent:
                         provider.publish_url_encrypted, camera.tenant_id, camera.id
                     )
                     source = self.resolver.resolve(camera, source_secret)
+                    started = time.monotonic()
                     self.manager.start_stream(camera.id, source, publish_secret["publish_url"])
+                    logger.info(
+                        "Publisher ready camera_id=%s elapsed_ms=%s request_age_ms=%s",
+                        camera.id,
+                        round((time.monotonic() - started) * 1000),
+                        round((utcnow() - min(row.started_at for row in sessions)).total_seconds() * 1000),
+                    )
                     self.failures.pop(camera_id, None)
                     self.next_retry_at.pop(camera_id, None)
                     for session in sessions:
@@ -502,6 +503,22 @@ class LocalStreamAgent:
                     self.failures.pop(camera_id, None)
                     self.next_retry_at.pop(camera_id, None)
             db.commit()
+
+    def reconcile_housekeeping(self):
+        with system_session() as db:
+            heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+            if heartbeat is None:
+                db.add(ServiceHeartbeat(service_name="stream-agent", last_seen_at=utcnow()))
+            else:
+                heartbeat.last_seen_at = utcnow()
+            self._process_probe(db)
+            self._process_ptz(db)
+            db.commit()
+
+    def reconcile(self):
+        """Run a complete pass; retained for commands and deterministic tests."""
+        self.reconcile_live()
+        self.reconcile_housekeeping()
 
     def _process_probe(self, db):
         command = db.scalar(
@@ -614,11 +631,19 @@ class LocalStreamAgent:
     def run(self):
         self._validate_transport()
         self.recover()
+        next_housekeeping_at = time.monotonic()
         while not self.stop_event.is_set():
             try:
-                self.reconcile()
+                self.reconcile_live()
             except Exception:
-                logger.warning("Local stream agent reconciliation failed")
+                logger.warning("Local stream agent live reconciliation failed")
+            now = time.monotonic()
+            if now >= next_housekeeping_at:
+                try:
+                    self.reconcile_housekeeping()
+                except Exception:
+                    logger.warning("Local stream agent housekeeping failed")
+                next_housekeeping_at = time.monotonic() + self.housekeeping_interval
             self.stop_event.wait(self.poll_seconds)
         self.manager.stop_all()
 
