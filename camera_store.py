@@ -17,6 +17,7 @@ from vigilay.db import system_session  # noqa: E402
 from vigilay.models import (  # noqa: E402
     Camera,
     CameraCredential,
+    FrigateConnection,
     NotificationChannel,
     Site,
     Tenant,
@@ -83,6 +84,23 @@ def get_local_scope(db, *, required=True):
     if required:
         raise RuntimeError("Configura la empresa y la sede de esta instalación.")
     return None, None
+
+
+def get_local_frigate_gateway_token():
+    """Return only this installation's credential for local-to-cloud calls."""
+    with system_session() as db:
+        tenant, site = get_local_scope(db)
+        connection = db.scalar(
+            select(FrigateConnection).where(
+                FrigateConnection.tenant_id == tenant.id,
+                FrigateConnection.site_id == site.id,
+            )
+        )
+        if connection is None or not connection.gateway_token_encrypted:
+            raise RuntimeError("Inicia frigate-gateway para provisionar esta sede.")
+        return decrypt_credentials(
+            connection.gateway_token_encrypted, tenant.id, site.id
+        )["gateway_token"]
 
 
 def local_scope_catalog():

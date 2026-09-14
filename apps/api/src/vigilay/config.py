@@ -68,8 +68,6 @@ class Settings(BaseSettings):
             not self.session_cookie_secure or not self.web_origin.startswith("https://")
         ):
             raise ValueError("Producción requiere HTTPS y cookies Secure")
-        if self.app_env == "production" and len(self.internal_proxy_secret) < 32:
-            raise ValueError("Producción requiere INTERNAL_PROXY_SECRET aleatorio")
         if not self.database_url.startswith("mysql+pymysql://"):
             raise ValueError("Vigilay requiere MySQL mediante mysql+pymysql")
         if bool(self.cloudflare_account_id) != bool(self.cloudflare_stream_api_token):

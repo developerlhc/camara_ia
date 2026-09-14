@@ -96,18 +96,15 @@ def load_notification_config():
 
 def load_frigate_camera_names():
     """Consulta aliases por el canal privado local; el navegador nunca recibe la clave."""
-    from camera_store import local_scope_catalog
+    from camera_store import get_local_frigate_gateway_token, local_scope_catalog
 
     api_url = os.getenv("VIGILAY_API_URL", "http://127.0.0.1:8000").rstrip("/")
-    local_key = os.getenv("INTERNAL_PROXY_SECRET", "")
-    if not local_key:
-        raise RuntimeError("Configura INTERNAL_PROXY_SECRET para consultar Frigate.")
     configured = local_scope_catalog().get("configured")
     if not configured:
         raise RuntimeError("Configura primero la empresa y la sede de Vigilay Local.")
     command = request.Request(
         f"{api_url}/api/v1/frigate/internal/cameras?site_id={quote(configured['site_id'])}",
-        headers={"x-vigilay-local-key": local_key},
+        headers={"Authorization": f"Bearer {get_local_frigate_gateway_token()}"},
     )
     try:
         with request.urlopen(command, timeout=10) as response:

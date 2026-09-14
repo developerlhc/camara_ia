@@ -5,7 +5,6 @@ x-api-environment: &api-environment
   DATABASE_URL: mysql+pymysql://${MYSQL_USER:-vigilay}:${MYSQL_PASSWORD:-vigilay-local-development}@mysql:3306/${MYSQL_DATABASE:-vigilay}?charset=utf8mb4
   BDMYSQL: ${BDMYSQL:-}
   SESSION_SECRET: ${SESSION_SECRET:?Configura .env}
-  INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
   CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?Configura .env}
   WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
   SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
@@ -47,7 +46,9 @@ services:
   api:
     image: vigilay-api:local
     build: {context: ., dockerfile: infra/docker/api.Dockerfile}
-    environment: *api-environment
+    environment:
+      <<: *api-environment
+      INTERNAL_PROXY_SECRET: ${INTERNAL_PROXY_SECRET:-}
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       migrate: {condition: service_completed_successfully}

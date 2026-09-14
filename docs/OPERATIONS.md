@@ -28,7 +28,9 @@ Si se cambia la identidad con Vigilay Local abierto, reiniciar `iniciar.ps1` par
 
 Frigate es la fuente de detecciones, eventos y grabaciones. El contenedor local `frigate-gateway` accede al puerto interno 5000 por la red Docker y abre una conexión saliente autenticada; el navegador nunca recibe la dirección de Frigate, el endpoint del túnel ni su credencial. Cada conexión se registra contra una empresa y sede validadas.
 
-Sin dominio propio, `docker compose up -d frigate-gateway` crea automáticamente un Quick Tunnel aleatorio `*.trycloudflare.com`. El endpoint cambia si reinicia el túnel y el gateway actualiza MySQL sin intervención. `INTERNAL_PROXY_SECRET` debe coincidir en Vigilay Cloud y Vigilay Local porque de él se deriva una credencial distinta por sede. Quick Tunnel es válido para la prueba actual; para producción con SLA se debe migrar a un túnel administrado y dominio propio.
+Sin dominio propio, `docker compose up -d frigate-gateway` crea automáticamente un Quick Tunnel aleatorio `*.trycloudflare.com`. El endpoint cambia si reinicia el túnel y el gateway actualiza MySQL sin intervención. Al vincular una sede, Vigilay Local genera una credencial aleatoria exclusiva, la guarda cifrada y la reutiliza en sus reconexiones. Una sede no comparte la credencial de otra y puede renovarse de forma independiente.
+
+`INTERNAL_PROXY_SECRET` pertenece únicamente al despliegue central: autentica el proxy interno entre `vigilay-web` y `api` dentro del mismo pod. No se configura ni se transmite a los equipos de clientes. Quick Tunnel es válido para la prueba actual; para producción con SLA se debe migrar a un túnel administrado y dominio propio.
 
 Comprobación:
 

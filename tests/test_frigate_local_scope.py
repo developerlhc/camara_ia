@@ -1,16 +1,16 @@
 import sys
 from datetime import timedelta
 from pathlib import Path
-from types import SimpleNamespace
 
 import httpx
 import pytest
+import vigilay.frigate_gateway as frigate_gateway
 import vigilay.frigate_routes as frigate_routes
 from sqlalchemy import select
 from vigilay.db import system_session
 from vigilay.frigate import FrigateError, FrigateService, recording_windows
 from vigilay.models import Camera, FrigateConnection, Site, utcnow
-from vigilay.security import frigate_gateway_token
+from vigilay.security import encrypt_credentials
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import camera_store  # noqa: E402
@@ -48,12 +48,25 @@ def test_frigate_events_are_filtered_by_tenant(monkeypatch, clients, cameras):
 
 def test_vigilay_local_frigate_catalog_requires_private_key(monkeypatch, clients, cameras):
     monkeypatch.setattr(frigate_routes, "FrigateService", FakeFrigate)
-    monkeypatch.setattr(
-        frigate_routes, "settings", lambda: SimpleNamespace(internal_proxy_secret="local-key")
-    )
+    token = "site-specific-key"
+    camera = cameras["a"]
+    with system_session() as db:
+        db.add(
+            FrigateConnection(
+                tenant_id=camera["tenant_id"],
+                site_id=camera["site_id"],
+                endpoint_url="https://site.trycloudflare.com",
+                gateway_token_encrypted=encrypt_credentials(
+                    {"gateway_token": token}, camera["tenant_id"], camera["site_id"]
+                ),
+                status="ONLINE",
+                last_seen_at=utcnow(),
+            )
+        )
+        db.commit()
     path = f"/api/v1/frigate/internal/cameras?site_id={cameras['a']['site_id']}"
     assert clients["root"].get(path).status_code == 404
-    response = clients["root"].get(path, headers={"x-vigilay-local-key": "local-key"})
+    response = clients["root"].get(path, headers={"authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json() == [{"name": "camera_a"}, {"name": "camera_b"}]
 
@@ -127,11 +140,10 @@ def test_recording_segments_are_grouped_into_playable_windows():
 
 def test_site_frigate_connection_is_authenticated(cameras):
     camera = cameras["a"]
+    token = "unique-site-token"
 
     def respond(request):
-        assert request.headers["authorization"] == (
-            "Bearer " + frigate_gateway_token(camera["tenant_id"], camera["site_id"])
-        )
+        assert request.headers["authorization"] == "Bearer " + token
         return httpx.Response(200, json={"cameras": {"imou": {}}})
 
     client = httpx.Client(transport=httpx.MockTransport(respond))
@@ -141,6 +153,9 @@ def test_site_frigate_connection_is_authenticated(cameras):
                 tenant_id=camera["tenant_id"],
                 site_id=camera["site_id"],
                 endpoint_url="https://site.trycloudflare.com",
+                gateway_token_encrypted=encrypt_credentials(
+                    {"gateway_token": token}, camera["tenant_id"], camera["site_id"]
+                ),
                 status="ONLINE",
                 last_seen_at=utcnow(),
             )
@@ -152,6 +167,29 @@ def test_site_frigate_connection_is_authenticated(cameras):
     client.close()
 
 
+def test_each_site_gets_a_distinct_stable_gateway_token(cameras):
+    first = cameras["a"]
+    second = cameras["b"]
+    first_token = frigate_gateway.load_or_create_gateway_token(first["tenant_id"], first["site_id"])
+    assert first_token == frigate_gateway.load_or_create_gateway_token(
+        first["tenant_id"], first["site_id"]
+    )
+    assert first_token != frigate_gateway.load_or_create_gateway_token(
+        second["tenant_id"], second["site_id"]
+    )
+
+
+def test_gateway_authentication_failure_has_an_explicit_error():
+    client = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(401)))
+    with pytest.raises(FrigateError, match="rechazó la credencial"):
+        FrigateService(
+            base_url="https://site.trycloudflare.com",
+            gateway_token="wrong-token",
+            client=client,
+        ).camera_names()
+    client.close()
+
+
 def test_stale_site_frigate_connection_is_rejected(cameras):
     camera = cameras["b"]
     with system_session() as db:
@@ -160,6 +198,9 @@ def test_stale_site_frigate_connection_is_rejected(cameras):
                 tenant_id=camera["tenant_id"],
                 site_id=camera["site_id"],
                 endpoint_url="https://stale.trycloudflare.com",
+                gateway_token_encrypted=encrypt_credentials(
+                    {"gateway_token": "stale-token"}, camera["tenant_id"], camera["site_id"]
+                ),
                 status="ONLINE",
                 last_seen_at=utcnow() - timedelta(minutes=2),
             )

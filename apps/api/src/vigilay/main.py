@@ -21,6 +21,8 @@ logger = logging.getLogger("vigilay")
 
 def create_app():
     config = settings()
+    if config.app_env == "production" and len(config.internal_proxy_secret) < 32:
+        raise RuntimeError("La API en producción requiere INTERNAL_PROXY_SECRET aleatorio")
     app = FastAPI(
         title="Vigilay",
         version="0.1.0",

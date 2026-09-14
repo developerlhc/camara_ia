@@ -8,6 +8,7 @@ import logging
 import os
 import queue
 import re
+import secrets
 import signal
 import subprocess
 import threading
@@ -17,12 +18,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import httpx
+from cryptography.exceptions import InvalidTag
 from sqlalchemy import select
 
 from vigilay.config import settings
 from vigilay.db import system_session
 from vigilay.models import FrigateConnection, Site, Tenant, utcnow
-from vigilay.security import frigate_gateway_token
+from vigilay.security import decrypt_credentials, encrypt_credentials
 
 logger = logging.getLogger("vigilay.frigate_gateway")
 TUNNEL_URL = re.compile(r"https://[a-z0-9-]+\.trycloudflare\.com")
@@ -64,6 +66,30 @@ def publish_connection(tenant_id, site_id, endpoint_url, status):
         db.commit()
 
 
+def load_or_create_gateway_token(tenant_id, site_id):
+    with system_session() as db:
+        row = db.scalar(select(FrigateConnection).where(FrigateConnection.site_id == site_id))
+        if row is None:
+            row = FrigateConnection(tenant_id=tenant_id, site_id=site_id)
+            db.add(row)
+            db.flush()
+        elif row.tenant_id != tenant_id:
+            raise RuntimeError("La conexión Frigate registrada pertenece a otra empresa")
+        if row.gateway_token_encrypted:
+            try:
+                return decrypt_credentials(row.gateway_token_encrypted, tenant_id, site_id)[
+                    "gateway_token"
+                ]
+            except (InvalidTag, KeyError, ValueError) as exc:
+                raise RuntimeError("No se pudo descifrar la credencial de esta sede") from exc
+        token = secrets.token_urlsafe(48)
+        row.gateway_token_encrypted = encrypt_credentials(
+            {"gateway_token": token}, tenant_id, site_id
+        )
+        db.commit()
+        return token
+
+
 def handler_factory(token, frigate_url, timeout):
     class FrigateProxyHandler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -71,7 +97,7 @@ def handler_factory(token, frigate_url, timeout):
         def do_GET(self):  # noqa: N802
             supplied = self.headers.get("Authorization", "")
             if not hmac.compare_digest(supplied, f"Bearer {token}"):
-                return self._error(404, b"Not found")
+                return self._error(401, b"Unauthorized")
             parsed = urlsplit(self.path)
             if not any(pattern.fullmatch(parsed.path) for pattern in SAFE_PATHS):
                 return self._error(404, b"Not found")
@@ -123,7 +149,7 @@ class Gateway:
         config = settings()
         self.tenant_id, self.site_id = load_scope()
         self.port = config.frigate_gateway_port
-        self.token = frigate_gateway_token(self.tenant_id, self.site_id)
+        self.token = load_or_create_gateway_token(self.tenant_id, self.site_id)
         self.frigate_url = config.frigate_api_url
         self.cloudflared = config.cloudflared_path
         self.timeout = config.frigate_timeout_seconds

@@ -2,15 +2,17 @@
 
 import hmac
 
+from cryptography.exceptions import InvalidTag
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import Response, StreamingResponse
+from sqlalchemy import select
 
 from vigilay.auth import Principal, audit, database, require
-from vigilay.config import settings
 from vigilay.frigate import FrigateError, FrigateService, recording_windows
-from vigilay.models import Camera, Site
+from vigilay.models import Camera, FrigateConnection, Site
 from vigilay.routes import authorized_camera, camera_dict, camera_query
 from vigilay.schemas import FrigateCameraInput
+from vigilay.security import decrypt_credentials
 
 router = APIRouter(prefix="/api/v1/frigate", tags=["Frigate"])
 SAFE_EVENT_ID = r"^[a-zA-Z0-9_.-]+$"
@@ -18,13 +20,26 @@ SAFE_EVENT_ID = r"^[a-zA-Z0-9_.-]+$"
 
 @router.get("/internal/cameras", include_in_schema=False)
 def internal_frigate_cameras(request: Request, site_id: str, db=Depends(database)):
-    expected = settings().internal_proxy_secret
-    supplied = request.headers.get("x-vigilay-local-key", "")
-    if not expected or not hmac.compare_digest(expected, supplied):
-        raise HTTPException(404, "Recurso no encontrado")
     site = db.get(Site, site_id)
     if site is None:
         raise HTTPException(404, "Sede no encontrada")
+    connection = db.scalar(
+        select(FrigateConnection).where(
+            FrigateConnection.tenant_id == site.tenant_id,
+            FrigateConnection.site_id == site.id,
+        )
+    )
+    if connection is None or not connection.gateway_token_encrypted:
+        raise HTTPException(404, "Recurso no encontrado")
+    try:
+        expected = decrypt_credentials(
+            connection.gateway_token_encrypted, site.tenant_id, site.id
+        ).get("gateway_token", "")
+    except (InvalidTag, ValueError):
+        raise HTTPException(404, "Recurso no encontrado") from None
+    supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
+    if not expected or not hmac.compare_digest(expected, supplied):
+        raise HTTPException(404, "Recurso no encontrado")
     names = safe_call(lambda: FrigateService.for_site(db, site.tenant_id, site.id).camera_names())
     return [{"name": name} for name in sorted(names)]
 

@@ -4,11 +4,12 @@ from datetime import timedelta
 from urllib.parse import urlsplit
 
 import httpx
+from cryptography.exceptions import InvalidTag
 from sqlalchemy import select
 
 from vigilay.config import settings
 from vigilay.models import FrigateConnection, utcnow
-from vigilay.security import frigate_gateway_token
+from vigilay.security import decrypt_credentials
 
 
 class FrigateError(RuntimeError):
@@ -51,9 +52,17 @@ class FrigateService:
             or connection.last_seen_at < utcnow() - timedelta(seconds=45)
         ):
             raise FrigateError("El enlace de Vigilay Local con Frigate está desconectado")
+        if not connection.gateway_token_encrypted:
+            raise FrigateError("Vigilay Local debe renovar la credencial de esta sede")
+        try:
+            gateway_token = decrypt_credentials(
+                connection.gateway_token_encrypted, tenant_id, site_id
+            )["gateway_token"]
+        except (InvalidTag, KeyError, ValueError) as exc:
+            raise FrigateError("La credencial de Vigilay Local no es válida") from exc
         return cls(
             base_url=connection.endpoint_url,
-            gateway_token=frigate_gateway_token(tenant_id, site_id),
+            gateway_token=gateway_token,
             client=client,
         )
 
@@ -62,6 +71,8 @@ class FrigateService:
         client = self._client or httpx.Client(timeout=self.timeout)
         try:
             response = client.get(f"{self.base_url}/api{path}", params=params, headers=self.headers)
+            if response.status_code in {401, 403}:
+                raise FrigateError("Vigilay Local rechazó la credencial de esta sede")
             if response.status_code == 404:
                 raise FrigateError("El recurso ya no existe en Frigate")
             if response.status_code >= 400:
@@ -108,6 +119,10 @@ class FrigateService:
                 "GET", f"{self.base_url}/api{path}", headers=self.headers
             )
             response = client.send(request, stream=True)
+            if response.status_code in {401, 403}:
+                response.close()
+                client.close()
+                raise FrigateError("Vigilay Local rechazó la credencial de esta sede")
             if response.status_code == 404:
                 response.close()
                 client.close()

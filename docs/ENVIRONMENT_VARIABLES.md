@@ -12,7 +12,7 @@
 | MYSQL_DATABASE / MYSQL_USER / MYSQL_PASSWORD | Base y usuario de aplicación en Compose. |
 | MYSQL_ROOT_PASSWORD | Inicialización/administración de MySQL; no se inyecta en la API. |
 | SESSION_SECRET | Clave aleatoria de al menos 32 caracteres para CSRF. |
-| INTERNAL_PROXY_SECRET | Secreto compartido solo entre web y API para autenticar la IP reenviada. |
+| INTERNAL_PROXY_SECRET | Secreto del despliegue central, compartido sólo entre `vigilay-web` y `api` dentro del pod. No se instala en Vigilay Local. |
 | CREDENTIAL_ENCRYPTION_KEY | Clave AES de 32 bytes codificada en base64. No rotar sin migrar credenciales. |
 | WEB_ORIGIN | Origen exacto permitido, inicialmente `http://localhost:3000`. |
 | SESSION_COOKIE_SECURE | `true` para HTTPS/producción. |
@@ -43,5 +43,7 @@ python -c "import base64,secrets; print(base64.b64encode(secrets.token_bytes(32)
 ```
 
 Usar claves independientes. Guardar SESSION_SECRET, INTERNAL_PROXY_SECRET, CREDENTIAL_ENCRYPTION_KEY y contraseñas MySQL en el gestor de secretos del entorno de despliegue. Nunca usar prefijos PUBLIC_ para secretos.
+
+La autenticación del gateway de Frigate no se configura manualmente: Vigilay Local genera un token aleatorio diferente para cada sede, lo conserva cifrado en `frigate_connections` y lo reutiliza al reconectar. Cambiar `INTERNAL_PROXY_SECRET` del pod central no desconecta los gateways de clientes.
 
 Las credenciales EZVIZ, Imou, V380 y RTSP genéricas se guardan cifradas con AES-GCM en `camera_credentials`. Para importar una instalación antigua se ejecuta `migrar-camaras-mysql.ps1`: comprueba la conexión, aplica Alembic, importa las cámaras y solo después retira de `.env` las URLs, usuarios y contraseñas individuales. No se requiere Docker para este flujo.

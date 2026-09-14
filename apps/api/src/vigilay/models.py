@@ -226,6 +226,7 @@ class FrigateConnection(TenantScoped, Identity, Base):
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenants.id"), index=True)
     site_id: Mapped[str] = mapped_column(String(36), index=True)
     endpoint_url: Mapped[str] = mapped_column(String(2048), default="")
+    gateway_token_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary)
     status: Mapped[str] = mapped_column(String(20), default="OFFLINE")
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, index=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
