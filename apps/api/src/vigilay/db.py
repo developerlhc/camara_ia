@@ -44,7 +44,16 @@ _engine = None
 def engine():
     global _engine
     if _engine is None:
-        _engine = create_engine(settings().database_url, pool_pre_ping=True, pool_recycle=1800)
+        config = settings()
+        _engine = create_engine(
+            config.database_url,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_size=config.database_pool_size,
+            max_overflow=config.database_max_overflow,
+            pool_timeout=15,
+            pool_use_lifo=True,
+        )
     return _engine
 
 

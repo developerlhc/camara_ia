@@ -6,6 +6,8 @@
 | --- | --- |
 | DATABASE_URL | Conexión SQLAlchemy `mysql+pymysql`, esquema UTF8MB4. |
 | BDMYSQL | Cadena ADO.NET (`Server=...;Database=...;Uid=...;Pwd=...`) aceptada como alternativa y con prioridad sobre `DATABASE_URL`. |
+| DATABASE_POOL_SIZE | Conexiones persistentes máximas por proceso; usar `2` en hosting con límite de 20 conexiones. |
+| DATABASE_MAX_OVERFLOW | Conexiones adicionales temporales por proceso; usar `0` en el hosting compartido actual. |
 | CAMERA_STORAGE | `mysql` hace que el visor cargue todas las cámaras desde MySQL. |
 | LOCAL_AI_ENABLED | Debe permanecer `false` normalmente: Frigate realiza toda la IA. Sólo habilita el YOLO heredado para pruebas aisladas. |
 | START_STREAM_AGENT_WITH_LOCAL | Inicia el agente de vivo dentro de Vigilay Local. Mantener `false` si se usa el agente dedicado recomendado. |

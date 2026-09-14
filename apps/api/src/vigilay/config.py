@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_url: str = ""
     bdmysql: str = ""
+    database_pool_size: int = 2
+    database_max_overflow: int = 0
     session_secret: str
     internal_proxy_secret: str = ""
     credential_encryption_key: str
@@ -70,6 +72,10 @@ class Settings(BaseSettings):
             raise ValueError("Producción requiere HTTPS y cookies Secure")
         if not self.database_url.startswith("mysql+pymysql://"):
             raise ValueError("Vigilay requiere MySQL mediante mysql+pymysql")
+        if not 1 <= self.database_pool_size <= 10:
+            raise ValueError("DATABASE_POOL_SIZE debe estar entre 1 y 10")
+        if not 0 <= self.database_max_overflow <= 10:
+            raise ValueError("DATABASE_MAX_OVERFLOW debe estar entre 0 y 10")
         if bool(self.cloudflare_account_id) != bool(self.cloudflare_stream_api_token):
             raise ValueError(
                 "CLOUDFLARE_ACCOUNT_ID y CLOUDFLARE_STREAM_API_TOKEN deben configurarse juntos"
