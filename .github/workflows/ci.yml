@@ -3,6 +3,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 permissions:
   contents: read
 
@@ -84,13 +85,26 @@ jobs:
           cache-to: type=gha,mode=max
   deploy-web-magic-container:
     needs: images
-    if: github.event_name == 'push' && vars.BUNNYNET_APP_ID != ''
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
+      - name: Validate Bunny deployment configuration
+        env:
+          BUNNY_APP_ID: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
+          BUNNY_API_KEY: ${{ secrets.BUNNYNET_API_KEY }}
+        run: |
+          if [ -z "$BUNNY_APP_ID" ]; then
+            echo "::error::BUNNYNET_APP_ID no está disponible como variable o secreto del repositorio."
+            exit 1
+          fi
+          if [ -z "$BUNNY_API_KEY" ]; then
+            echo "::error::BUNNYNET_API_KEY no está disponible como secreto del repositorio."
+            exit 1
+          fi
       - name: Update Vigilay Web in Magic Containers
         uses: BunnyWay/actions/container-update-image@main
         with:
-          app_id: ${{ vars.BUNNYNET_APP_ID }}
+          app_id: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
           api_key: ${{ secrets.BUNNYNET_API_KEY }}
           container: web
           image_tag: ${{ github.sha }}
