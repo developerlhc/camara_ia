@@ -107,4 +107,5 @@ jobs:
           app_id: ${{ vars.BUNNYNET_APP_ID || secrets.BUNNYNET_APP_ID }}
           api_key: ${{ secrets.BUNNYNET_API_KEY }}
           container: web
+          image_name: ghcr.io/developerlhc/vigilay-web
           image_tag: ${{ github.sha }}
