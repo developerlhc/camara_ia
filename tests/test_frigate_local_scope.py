@@ -7,7 +7,7 @@ import pytest
 import vigilay.frigate_gateway as frigate_gateway
 import vigilay.frigate_routes as frigate_routes
 from sqlalchemy import select
-from vigilay.db import system_session
+from vigilay.db import engine, system_session
 from vigilay.frigate import FrigateError, FrigateService, recording_windows
 from vigilay.models import Camera, FrigateConnection, Site, utcnow
 from vigilay.security import encrypt_credentials
@@ -44,6 +44,49 @@ def test_frigate_events_are_filtered_by_tenant(monkeypatch, clients, cameras):
     assert response.status_code == 200
     assert [event["id"] for event in response.json()] == ["event-a"]
     assert response.json()[0]["camera_id"] == cameras["a"]["id"]
+
+
+def test_frigate_events_carry_tenant_for_company_filtering(monkeypatch, clients, cameras):
+    monkeypatch.setattr(frigate_routes, "FrigateService", FakeFrigate)
+    with system_session() as db:
+        camera_a = db.get(Camera, cameras["a"]["id"])
+        camera_a.frigate_camera_name = "camera_a"
+        db.commit()
+
+    response = clients["a"].get("/api/v1/frigate/events")
+    assert response.status_code == 200
+    assert response.json()[0]["tenant_id"] == cameras["a"]["tenant_id"]
+
+
+def test_frigate_events_release_database_connection_before_calling_frigate(
+    monkeypatch, clients, cameras
+):
+    # DATABASE_POOL_SIZE is deliberately tiny (see docs/ENVIRONMENT_VARIABLES.md), so a
+    # request must give back its MySQL connection before making the outbound call to a
+    # site's Frigate gateway. Otherwise one slow or unreachable site stalls every other
+    # tenant sharing the same API process. This reproduces that with a fake that reports
+    # how many pooled connections are checked out while Frigate "responds".
+    checked_out_during_call = []
+
+    class SlowFrigate:
+        @classmethod
+        def for_site(cls, db, tenant_id, site_id, *, client=None):
+            return cls()
+
+        def events(self, *, limit=200):
+            checked_out_during_call.append(engine().pool.checkedout())
+            return [{"id": "event-a", "camera": "camera_a", "label": "person"}]
+
+    monkeypatch.setattr(frigate_routes, "FrigateService", SlowFrigate)
+    with system_session() as db:
+        camera_a = db.get(Camera, cameras["a"]["id"])
+        camera_a.frigate_camera_name = "camera_a"
+        db.commit()
+
+    response = clients["a"].get("/api/v1/frigate/events")
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert checked_out_during_call == [0]
 
 
 def test_vigilay_local_frigate_catalog_requires_private_key(monkeypatch, clients, cameras):

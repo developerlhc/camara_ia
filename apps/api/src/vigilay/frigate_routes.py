@@ -40,7 +40,9 @@ def internal_frigate_cameras(request: Request, site_id: str, db=Depends(database
     supplied = request.headers.get("authorization", "").removeprefix("Bearer ")
     if not expected or not hmac.compare_digest(expected, supplied):
         raise HTTPException(404, "Recurso no encontrado")
-    names = safe_call(lambda: FrigateService.for_site(db, site.tenant_id, site.id).camera_names())
+    service = safe_call(lambda: FrigateService.for_site(db, site.tenant_id, site.id))
+    db.close()  # return the pooled MySQL connection before the outbound Frigate request
+    names = safe_call(lambda: service.camera_names())
     return [{"name": name} for name in sorted(names)]
 
 
@@ -71,7 +73,9 @@ def frigate_cameras(
     site = db.get(Site, site_id)
     if site is None or (actor.tenant_id and site.tenant_id != actor.tenant_id):
         raise HTTPException(404, "Sede no encontrada")
-    names = safe_call(lambda: FrigateService.for_site(db, site.tenant_id, site.id).camera_names())
+    service = safe_call(lambda: FrigateService.for_site(db, site.tenant_id, site.id))
+    db.close()  # return the pooled MySQL connection before the outbound Frigate request
+    names = safe_call(lambda: service.camera_names())
     return [{"name": name} for name in sorted(names)]
 
 
@@ -114,16 +118,29 @@ def events(
         allowed = list(
             db.scalars(camera_query(actor).where(Camera.frigate_camera_name.is_not(None)))
         )
-    result = []
     by_site = {}
     for camera in allowed:
         by_site.setdefault((camera.tenant_id, camera.site_id), {})[camera.frigate_camera_name] = (
             camera
         )
+    # Build every FrigateService while the pooled connection is still open, then release it:
+    # the calls below reach each site over the internet and must not hold a scarce MySQL
+    # connection while they wait, or one slow/offline site stalls every other request.
+    services = {}
+    for tenant_id, site_id in by_site:
+        try:
+            services[(tenant_id, site_id)] = FrigateService.for_site(db, tenant_id, site_id)
+        except FrigateError as exc:
+            services[(tenant_id, site_id)] = exc
+    db.close()
+    result = []
     errors = []
     for (tenant_id, site_id), by_name in by_site.items():
+        service = services[(tenant_id, site_id)]
+        if isinstance(service, FrigateError):
+            errors.append(str(service))
+            continue
         try:
-            service = FrigateService.for_site(db, tenant_id, site_id)
             rows = service.events(limit=200)
         except FrigateError as exc:
             errors.append(str(exc))
@@ -138,6 +155,7 @@ def events(
                     "id": event_id,
                     "camera_id": camera.id,
                     "camera_name": camera.name,
+                    "tenant_id": camera.tenant_id,
                     "label": row.get("label"),
                     "sub_label": row.get("sub_label"),
                     "start_time": row.get("start_time"),
@@ -166,18 +184,21 @@ def recordings(
     if before <= after or before - after > 604800:
         raise HTTPException(422, "Selecciona un intervalo válido de hasta 7 días")
     camera = mapped_camera(db, actor, camera_id)
-    segments = safe_call(
-        lambda: service_for_camera(db, camera).recordings(
-            camera.frigate_camera_name, after=after, before=before
-        )
+    service = safe_call(lambda: service_for_camera(db, camera))
+    camera_id_value, camera_name_value, frigate_name = (
+        camera.id,
+        camera.name,
+        camera.frigate_camera_name,
     )
+    db.close()  # return the pooled MySQL connection before the outbound Frigate request
+    segments = safe_call(lambda: service.recordings(frigate_name, after=after, before=before))
     return [
         {
             **window,
-            "camera_id": camera.id,
-            "camera_name": camera.name,
+            "camera_id": camera_id_value,
+            "camera_name": camera_name_value,
             "clip_url": (
-                f"/api/v1/frigate/recordings/{camera.id}/start/{int(window['start'])}"
+                f"/api/v1/frigate/recordings/{camera_id_value}/start/{int(window['start'])}"
                 f"/end/{int(window['end'])}/clip.mp4"
             ),
         }
@@ -220,33 +241,40 @@ def recording_clip(
     if end <= start or end - start > 3600:
         raise HTTPException(422, "El fragmento debe durar como máximo una hora")
     camera = mapped_camera(db, actor, camera_id)
+    service = safe_call(lambda: service_for_camera(db, camera))
+    frigate_name = camera.frigate_camera_name
+    db.close()  # return the pooled MySQL connection before streaming the clip from Frigate
     chunks, media_type = safe_call(
-        lambda: service_for_camera(db, camera).stream_media(
-            f"/{camera.frigate_camera_name}/start/{start}/end/{end}/clip.mp4"
-        )
+        lambda: service.stream_media(f"/{frigate_name}/start/{start}/end/{end}/clip.mp4")
     )
     return StreamingResponse(chunks, media_type=media_type)
 
 
 def locate_event(db, actor, event_id):
     cameras = list(db.scalars(camera_query(actor).where(Camera.frigate_camera_name.is_not(None))))
-    checked = set()
+    by_scope = {}
     for camera in cameras:
-        scope = (camera.tenant_id, camera.site_id)
-        if scope in checked:
-            continue
-        checked.add(scope)
+        by_scope.setdefault((camera.tenant_id, camera.site_id), []).append(camera)
+    # As above: resolve every site's FrigateService up front so the possibly-slow lookup
+    # of the right site (one HTTP round trip per site, until the event is found) never
+    # holds the pooled MySQL connection.
+    services = {}
+    for scope, scope_cameras in by_scope.items():
         try:
-            service = service_for_camera(db, camera)
+            services[scope] = service_for_camera(db, scope_cameras[0])
+        except FrigateError:
+            services[scope] = None
+    db.close()
+    for scope, scope_cameras in by_scope.items():
+        service = services[scope]
+        if service is None:
+            continue
+        try:
             event = service.event(event_id)
         except FrigateError:
             continue
         matched = next(
-            (
-                row
-                for row in cameras
-                if row.site_id == camera.site_id and row.frigate_camera_name == event.get("camera")
-            ),
+            (row for row in scope_cameras if row.frigate_camera_name == event.get("camera")),
             None,
         )
         if matched is not None:

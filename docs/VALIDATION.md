@@ -36,3 +36,11 @@ Vigilay Local administra y valida la identidad empresa/sede, las conexiones LAN 
 La publicación remota sigue dependiendo de infraestructura externa: GitHub Actions construye y publica `vigilay-web` en GHCR y puede actualizar Bunny Magic Containers cuando se configuran `BUNNYNET_APP_ID` y `BUNNYNET_API_KEY`. No se afirma un despliegue remoto mientras esas credenciales y un `push` a `main` no existan.
 
 Quedan dos advertencias de deprecación provenientes del cliente de pruebas Starlette/httpx/AnyIO; no causan fallos de las pruebas. La dependencia tzdata se incorporó para que la validación America/Lima también funcione en Windows.
+
+## Corrección EZVIZ (`cuarto`) — 14 de septiembre de 2026
+
+Se investigaron los logs del contenedor `frigate` (0.18.0-77a66e7) y se encontró que `cuarto` era la única cámara con el rol `audio` en `F:\ia\frigate\config\config.yaml` (activa detección de eventos por sonido). Ese rol hacía que su proceso ffmpeg se reiniciara en bucle: 1115 reinicios registrados entre las 02:26 y las 11:40 (hora local), aproximadamente uno cada 30 segundos, por timestamps de audio corruptos (`Queue input is backward in time`, `Non-monotonic DTS`, terminando en `Failed reading RTSP data: End of file`). `calle` e `imou` no presentaron ningún reinicio en el mismo periodo; el problema no estaba en Vigilay.
+
+Se quitó el rol `audio` de `cuarto` (queda `[detect, record]`, igual que `calle`/`imou`) y se reinició el contenedor `frigate`. En los minutos posteriores no se registró ningún reinicio de ffmpeg para `cuarto`, y `calle`/`imou` no se vieron afectados. Detalle completo, comando exacto y respaldo del archivo original en `docs/EZVIZ_FRIGATE.md`.
+
+Esto no se equipara todavía a "imagen y procesamiento verificados" al nivel de Imou: falta observar estabilidad por más tiempo y confirmar eventos/grabaciones reales de `cuarto` desde Vigilay Web antes de igualar esa afirmación.
