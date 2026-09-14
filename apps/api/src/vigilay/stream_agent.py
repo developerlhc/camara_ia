@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from urllib import request
 from urllib.error import URLError
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 from sqlalchemy import select
 
@@ -148,11 +148,49 @@ def _port_open(host: str, port: int, timeout=1.0):
         return False
 
 
+def _rtsp_stream_available(url: str, timeout=1.0):
+    """Check a concrete RTSP path without starting another camera consumer."""
+    parsed = urlsplit(url)
+    if parsed.scheme != "rtsp" or not parsed.hostname:
+        return False
+    try:
+        with socket.create_connection((parsed.hostname, parsed.port or 554), timeout=timeout) as sock:
+            sock.settimeout(timeout)
+            request_bytes = (
+                f"DESCRIBE {url} RTSP/1.0\r\n"
+                "CSeq: 1\r\n"
+                "Accept: application/sdp\r\n"
+                "User-Agent: Vigilay\r\n\r\n"
+            ).encode("ascii")
+            sock.sendall(request_bytes)
+            response = sock.recv(128)
+        return response.startswith(b"RTSP/1.0 200")
+    except (OSError, UnicodeEncodeError):
+        return False
+
+
 class CameraStreamResolver:
-    def __init__(self, *, v380_starter=None):
+    def __init__(self, *, v380_starter=None, restream_base_url=None):
         self.v380_starter = v380_starter
+        self.restream_base_url = restream_base_url
+
+    def _frigate_restream(self, camera: Camera) -> str | None:
+        name = (getattr(camera, "frigate_camera_name", None) or "").strip()
+        if not name:
+            return None
+        base_url = (self.restream_base_url or settings().frigate_restream_url).rstrip("/")
+        source = f"{base_url}/{quote(name, safe='')}"
+        return source if _rtsp_stream_available(source) else None
 
     def resolve(self, camera: Camera, secret: dict) -> str:
+        restream = self._frigate_restream(camera)
+        if restream:
+            logger.info(
+                "Using Frigate restream camera_id=%s frigate_camera=%s",
+                camera.id,
+                camera.frigate_camera_name,
+            )
+            return restream
         if camera.integration_type == "V380":
             port = int(secret.get("rtsp_port", 8555))
             if not _port_open("127.0.0.1", port):

@@ -191,6 +191,45 @@ def test_v380_resolver_starts_bridge_once(monkeypatch):
     assert started[0]["host"] == "192.168.1.20"
 
 
+def test_resolver_prefers_available_frigate_restream(monkeypatch):
+    from vigilay import stream_agent
+
+    monkeypatch.setattr(stream_agent, "_rtsp_stream_available", lambda url: True)
+    camera = SimpleNamespace(
+        id="camera",
+        name="V380",
+        brand="V380",
+        model="x",
+        integration_type="V380",
+        frigate_camera_name="calle",
+    )
+
+    source = CameraStreamResolver(restream_base_url="rtsp://127.0.0.1:8554").resolve(camera, {})
+
+    assert source == "rtsp://127.0.0.1:8554/calle"
+
+
+def test_resolver_falls_back_when_frigate_restream_is_missing(monkeypatch):
+    from vigilay import stream_agent
+
+    monkeypatch.setattr(stream_agent, "_rtsp_stream_available", lambda url: False)
+    camera = SimpleNamespace(
+        id="camera",
+        name="Imou",
+        brand="Imou",
+        model="x",
+        integration_type="RTSP",
+        frigate_camera_name="imou",
+    )
+    monkeypatch.setattr(stream_agent, "_port_open", lambda *args, **kwargs: True)
+
+    source = CameraStreamResolver(restream_base_url="rtsp://127.0.0.1:8554").resolve(
+        camera, {"rtsp_url": "rtsp://camera.local/live"}
+    )
+
+    assert source == "rtsp://camera.local/live"
+
+
 def test_stream_agent_rejects_plaintext_transport_in_production(monkeypatch):
     from vigilay import stream_agent
 

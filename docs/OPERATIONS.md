@@ -16,6 +16,15 @@ En producción `DATABASE_URL` debe configurar `ssl_ca` o `ssl_verify_cert=true`.
 
 `START_STREAM_AGENT_WITH_LOCAL=false` evita que `iniciar.ps1` cree otro agente cuando ya se usa `scripts/iniciar-agente-stream.ps1` o el iniciador completo. Cloudflare sólo transporta el vivo; no es el almacén de grabaciones.
 
+Cuando la cámara tiene `frigate_camera_name`, el agente prueba primero
+`FRIGATE_RESTREAM_URL/<alias>` (go2rtc). De esta forma Frigate, sus grabaciones/IA y el vivo
+remoto comparten una sola conexión con la cámara. Si el alias todavía no existe en go2rtc,
+el agente vuelve automáticamente a la conexión RTSP registrada en Vigilay.
+
+Los Live Inputs de Cloudflare son recursos de transporte reutilizables, uno por cámara. No
+representan cámaras adicionales ni almacenan grabaciones en esta arquitectura: se crean con
+`recording.mode=off` y se publican únicamente mientras existe una sesión de visualización.
+
 El agente publica la primera pista de audio del RTSP junto con el video y la convierte a Opus para WebRTC. El reproductor inicia silenciado para cumplir las reglas de reproducción automática del navegador; el usuario debe pulsar **Activar sonido**. Una cámara con micrófono permite escuchar. Enviar voz exige además un altavoz y un canal de retorno específico del fabricante/ONVIF; no se ofrece como control funcional mientras esa capacidad no haya sido detectada e implementada por el adaptador.
 
 ## Identidad de Vigilay Local
