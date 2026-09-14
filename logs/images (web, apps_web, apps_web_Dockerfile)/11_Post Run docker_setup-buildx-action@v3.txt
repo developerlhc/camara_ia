@@ -1,0 +1,13 @@
+﻿2026-09-14T12:57:05.2366393Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:05.2368774Z Post job cleanup.
+2026-09-14T12:57:05.5023881Z ##[group]Removing builder
+2026-09-14T12:57:05.5031742Z (node:3458) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:05.5032616Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:05.6141620Z [command]/usr/bin/docker buildx rm builder-fda69ab9-d997-4b88-a9c7-71774e660d9b
+2026-09-14T12:57:06.0494935Z builder-fda69ab9-d997-4b88-a9c7-71774e660d9b removed
+2026-09-14T12:57:06.0532652Z ##[endgroup]
+2026-09-14T12:57:06.0533408Z ##[group]Cleaning up certificates
+2026-09-14T12:57:06.0534177Z ##[endgroup]
+2026-09-14T12:57:06.0534901Z ##[group]Post cache
+2026-09-14T12:57:06.0535303Z State not set
+2026-09-14T12:57:06.0535860Z ##[endgroup]

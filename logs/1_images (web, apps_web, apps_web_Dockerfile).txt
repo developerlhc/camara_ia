@@ -1,0 +1,1256 @@
+﻿2026-09-14T12:56:13.3999742Z Current runner version: '2.337.0'
+2026-09-14T12:56:13.4027022Z ##[group]Runner Image Provisioner
+2026-09-14T12:56:13.4028126Z Hosted Compute Agent
+2026-09-14T12:56:13.4028883Z Version: 20260828.587
+2026-09-14T12:56:13.4029541Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-14T12:56:13.4030275Z Build Date: 2026-08-28T16:44:25Z
+2026-09-14T12:56:13.4031032Z Worker ID: {7fb59e7f-6609-400d-b485-b8fb1583e4c8}
+2026-09-14T12:56:13.4031744Z Azure Region: westus
+2026-09-14T12:56:13.4032367Z ##[endgroup]
+2026-09-14T12:56:13.4034049Z ##[group]Operating System
+2026-09-14T12:56:13.4034702Z Ubuntu
+2026-09-14T12:56:13.4035306Z 24.04.5
+2026-09-14T12:56:13.4035821Z LTS
+2026-09-14T12:56:13.4036451Z ##[endgroup]
+2026-09-14T12:56:13.4037102Z ##[group]Runner Image
+2026-09-14T12:56:13.4037940Z Image: ubuntu-24.04
+2026-09-14T12:56:13.4038603Z Version: 20260907.300.1
+2026-09-14T12:56:13.4039930Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-14T12:56:13.4041552Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-14T12:56:13.4042518Z ##[endgroup]
+2026-09-14T12:56:13.4044157Z ##[group]GITHUB_TOKEN Permissions
+2026-09-14T12:56:13.4046380Z Contents: read
+2026-09-14T12:56:13.4047074Z Metadata: read
+2026-09-14T12:56:13.4047917Z Packages: write
+2026-09-14T12:56:13.4048472Z ##[endgroup]
+2026-09-14T12:56:13.4050752Z Secret source: Actions
+2026-09-14T12:56:13.4051723Z Cache mode: write
+2026-09-14T12:56:13.4052573Z Prepare workflow directory
+2026-09-14T12:56:13.4399621Z Prepare all required actions
+2026-09-14T12:56:13.4451951Z Getting action download info
+2026-09-14T12:56:13.8445929Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-14T12:56:13.9821595Z Download action repository 'docker/setup-buildx-action@v3' (SHA:8d2750c68a42422c14e847fe6c8ac0403b4cbd6f)
+2026-09-14T12:56:14.5252409Z Download action repository 'docker/login-action@v3' (SHA:c94ce9fb468520275223c153574b00df6fe4bcc9)
+2026-09-14T12:56:15.0769203Z Download action repository 'docker/metadata-action@v5' (SHA:c299e40c65443455700f0fdfc63efafe5b349051)
+2026-09-14T12:56:15.7356532Z Download action repository 'docker/build-push-action@v6' (SHA:10e90e3645eae34f1e60eeb005ba3a3d33f178e8)
+2026-09-14T12:56:16.3992999Z Complete job name: images (web, apps/web, apps/web/Dockerfile)
+2026-09-14T12:56:16.4760597Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:16.4768841Z ##[group]Run actions/checkout@v4
+2026-09-14T12:56:16.4769477Z with:
+2026-09-14T12:56:16.4769977Z   repository: developerlhc/camara_ia
+2026-09-14T12:56:16.4772968Z   token: ***
+2026-09-14T12:56:16.4773269Z   ssh-strict: true
+2026-09-14T12:56:16.4773655Z   ssh-user: git
+2026-09-14T12:56:16.4773999Z   persist-credentials: true
+2026-09-14T12:56:16.4774412Z   clean: true
+2026-09-14T12:56:16.4774793Z   sparse-checkout-cone-mode: true
+2026-09-14T12:56:16.4775145Z   fetch-depth: 1
+2026-09-14T12:56:16.4775522Z   fetch-tags: false
+2026-09-14T12:56:16.4775835Z   show-progress: true
+2026-09-14T12:56:16.4776206Z   lfs: false
+2026-09-14T12:56:16.4776625Z   submodules: false
+2026-09-14T12:56:16.4776960Z   set-safe-directory: true
+2026-09-14T12:56:16.4777332Z   allow-unsafe-pr-checkout: false
+2026-09-14T12:56:16.4778222Z ##[endgroup]
+2026-09-14T12:56:16.5802036Z Syncing repository: developerlhc/camara_ia
+2026-09-14T12:56:16.5803913Z ##[group]Getting Git version info
+2026-09-14T12:56:16.5804824Z Working directory is '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:56:16.5806392Z [command]/usr/bin/git version
+2026-09-14T12:56:16.5899944Z git version 2.55.0
+2026-09-14T12:56:16.5933555Z ##[endgroup]
+2026-09-14T12:56:16.5941449Z Temporarily overriding HOME='/home/runner/work/_temp/ac2967e8-b562-4603-a2c4-e75fe4ebadc5' before making global git config changes
+2026-09-14T12:56:16.5943575Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:56:16.5946133Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:16.6001524Z Deleting the contents of '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:56:16.6005891Z ##[group]Initializing the repository
+2026-09-14T12:56:16.6010718Z [command]/usr/bin/git init /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:16.6129121Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-14T12:56:16.6130208Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-14T12:56:16.6131321Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-14T12:56:16.6132141Z hint: call:
+2026-09-14T12:56:16.6132653Z hint:
+2026-09-14T12:56:16.6133405Z hint: 	git config --global init.defaultBranch <name>
+2026-09-14T12:56:16.6134066Z hint:
+2026-09-14T12:56:16.6134750Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-14T12:56:16.6135717Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-14T12:56:16.6136533Z hint:
+2026-09-14T12:56:16.6137075Z hint: 	git branch -m <name>
+2026-09-14T12:56:16.6137810Z hint:
+2026-09-14T12:56:16.6138582Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-14T12:56:16.6140021Z Initialized empty Git repository in /home/runner/work/camara_ia/camara_ia/.git/
+2026-09-14T12:56:16.6145328Z [command]/usr/bin/git remote add origin https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:16.6216070Z ##[endgroup]
+2026-09-14T12:56:16.6216984Z ##[group]Disabling automatic garbage collection
+2026-09-14T12:56:16.6219475Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-14T12:56:16.6258782Z ##[endgroup]
+2026-09-14T12:56:16.6259654Z ##[group]Setting up auth
+2026-09-14T12:56:16.6268807Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:56:16.6307250Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:56:16.6728248Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:56:16.6768004Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:56:16.7000197Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:56:16.7041604Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:56:16.7271749Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-14T12:56:16.7312416Z ##[endgroup]
+2026-09-14T12:56:16.7313085Z ##[group]Fetching the repository
+2026-09-14T12:56:16.7322859Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f3b3fba671c5df44e063b94ad08d055b9d177e40:refs/remotes/origin/main
+2026-09-14T12:56:17.2451435Z From https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:17.2453347Z  * [new ref]         f3b3fba671c5df44e063b94ad08d055b9d177e40 -> origin/main
+2026-09-14T12:56:17.2458568Z ##[endgroup]
+2026-09-14T12:56:17.2459682Z ##[group]Determining the checkout info
+2026-09-14T12:56:17.2461664Z ##[endgroup]
+2026-09-14T12:56:17.2469243Z [command]/usr/bin/git sparse-checkout disable
+2026-09-14T12:56:17.2532278Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-14T12:56:17.2572518Z ##[group]Checking out the ref
+2026-09-14T12:56:17.2578273Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-14T12:56:17.2711682Z Switched to a new branch 'main'
+2026-09-14T12:56:17.2716708Z branch 'main' set up to track 'origin/main'.
+2026-09-14T12:56:17.2723642Z ##[endgroup]
+2026-09-14T12:56:17.2774111Z [command]/usr/bin/git log -1 --format=%H
+2026-09-14T12:56:17.2802779Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:17.3062455Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:17.3064248Z ##[group]Run docker/setup-buildx-action@v3
+2026-09-14T12:56:17.3064539Z with:
+2026-09-14T12:56:17.3064751Z   driver: docker-container
+2026-09-14T12:56:17.3064984Z   use: true
+2026-09-14T12:56:17.3065189Z   keep-state: false
+2026-09-14T12:56:17.3065401Z   cache-binary: true
+2026-09-14T12:56:17.3065628Z   cleanup: true
+2026-09-14T12:56:17.3065825Z   install: false
+2026-09-14T12:56:17.3066029Z ##[endgroup]
+2026-09-14T12:56:17.5651853Z (node:2257) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:17.5652960Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:17.5714539Z ##[group]Docker info
+2026-09-14T12:56:17.5768333Z [command]/usr/bin/docker version
+2026-09-14T12:56:17.6790344Z Client: Docker Engine - Community
+2026-09-14T12:56:17.6791041Z  Version:           28.0.4
+2026-09-14T12:56:17.6792608Z  API version:       1.48
+2026-09-14T12:56:17.6793016Z  Go version:        go1.23.7
+2026-09-14T12:56:17.6793427Z  Git commit:        b8034c0
+2026-09-14T12:56:17.6793912Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:17.6794420Z  OS/Arch:           linux/amd64
+2026-09-14T12:56:17.6794864Z  Context:           default
+2026-09-14T12:56:17.6795095Z 
+2026-09-14T12:56:17.6795230Z Server: Docker Engine - Community
+2026-09-14T12:56:17.6795481Z  Engine:
+2026-09-14T12:56:17.6795671Z   Version:          28.0.4
+2026-09-14T12:56:17.6795953Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T12:56:17.6796259Z   Go version:       go1.23.7
+2026-09-14T12:56:17.6796500Z   Git commit:       6430e49
+2026-09-14T12:56:17.6796770Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:17.6797067Z   OS/Arch:          linux/amd64
+2026-09-14T12:56:17.6797333Z   Experimental:     false
+2026-09-14T12:56:17.6797868Z  containerd:
+2026-09-14T12:56:17.6798073Z   Version:          v2.3.4
+2026-09-14T12:56:17.6798371Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:17.6798704Z  runc:
+2026-09-14T12:56:17.6798902Z   Version:          1.5.1
+2026-09-14T12:56:17.6799152Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T12:56:17.6799425Z  docker-init:
+2026-09-14T12:56:17.6799634Z   Version:          0.19.0
+2026-09-14T12:56:17.6799867Z   GitCommit:        de40ad0
+2026-09-14T12:56:17.6888009Z [command]/usr/bin/docker info
+2026-09-14T12:56:20.3852987Z Client: Docker Engine - Community
+2026-09-14T12:56:20.3853554Z  Version:    28.0.4
+2026-09-14T12:56:20.3853956Z  Context:    default
+2026-09-14T12:56:20.3854323Z  Debug Mode: false
+2026-09-14T12:56:20.3854646Z  Plugins:
+2026-09-14T12:56:20.3855019Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T12:56:20.3855479Z     Version:  v0.37.0
+2026-09-14T12:56:20.3855835Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T12:56:20.3856190Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T12:56:20.3856454Z     Version:  v2.38.2
+2026-09-14T12:56:20.3856727Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T12:56:20.3857019Z 
+2026-09-14T12:56:20.3857174Z Server:
+2026-09-14T12:56:20.3857733Z  Containers: 0
+2026-09-14T12:56:20.3858372Z   Running: 0
+2026-09-14T12:56:20.3858692Z   Paused: 0
+2026-09-14T12:56:20.3859088Z   Stopped: 0
+2026-09-14T12:56:20.3859370Z  Images: 6
+2026-09-14T12:56:20.3859645Z  Server Version: 28.0.4
+2026-09-14T12:56:20.3860381Z  Storage Driver: overlay2
+2026-09-14T12:56:20.3860717Z   Backing Filesystem: extfs
+2026-09-14T12:56:20.3861081Z   Supports d_type: true
+2026-09-14T12:56:20.3861415Z   Using metacopy: false
+2026-09-14T12:56:20.3861725Z   Native Overlay Diff: false
+2026-09-14T12:56:20.3862121Z   userxattr: false
+2026-09-14T12:56:20.3862684Z  Logging Driver: json-file
+2026-09-14T12:56:20.3863056Z  Cgroup Driver: systemd
+2026-09-14T12:56:20.3863376Z  Cgroup Version: 2
+2026-09-14T12:56:20.3863696Z  Plugins:
+2026-09-14T12:56:20.3864062Z   Volume: local
+2026-09-14T12:56:20.3864398Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T12:56:20.3864896Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T12:56:20.3865424Z  Swarm: inactive
+2026-09-14T12:56:20.3865773Z  Runtimes: io.containerd.runc.v2 runc
+2026-09-14T12:56:20.3866167Z  Default Runtime: runc
+2026-09-14T12:56:20.3866534Z  Init Binary: docker-init
+2026-09-14T12:56:20.3866909Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:20.3867886Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T12:56:20.3868301Z  init version: de40ad0
+2026-09-14T12:56:20.3868670Z  Security Options:
+2026-09-14T12:56:20.3868982Z   apparmor
+2026-09-14T12:56:20.3869292Z   seccomp
+2026-09-14T12:56:20.3869613Z    Profile: builtin
+2026-09-14T12:56:20.3869942Z   cgroupns
+2026-09-14T12:56:20.3870214Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T12:56:20.3870479Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T12:56:20.3870736Z  OSType: linux
+2026-09-14T12:56:20.3870937Z  Architecture: x86_64
+2026-09-14T12:56:20.3871140Z  CPUs: 4
+2026-09-14T12:56:20.3871325Z  Total Memory: 15.61GiB
+2026-09-14T12:56:20.3871544Z  Name: runnervmlun5p
+2026-09-14T12:56:20.3871784Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T12:56:20.3872064Z  Docker Root Dir: /var/lib/docker
+2026-09-14T12:56:20.3872310Z  Debug Mode: false
+2026-09-14T12:56:20.3872517Z  Username: githubactions
+2026-09-14T12:56:20.3872739Z  Experimental: false
+2026-09-14T12:56:20.3872958Z  Insecure Registries:
+2026-09-14T12:56:20.3877172Z   ::1/128
+2026-09-14T12:56:20.3877918Z   127.0.0.0/8
+2026-09-14T12:56:20.3878281Z  Live Restore Enabled: false
+2026-09-14T12:56:20.3878559Z 
+2026-09-14T12:56:20.3894676Z ##[endgroup]
+2026-09-14T12:56:20.5164661Z ##[group]Buildx version
+2026-09-14T12:56:20.5195899Z [command]/usr/bin/docker buildx version
+2026-09-14T12:56:20.6013291Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T12:56:20.6045791Z ##[endgroup]
+2026-09-14T12:56:20.6213983Z ##[group]Inspecting default docker context
+2026-09-14T12:56:20.6370765Z [
+2026-09-14T12:56:20.6371123Z   {
+2026-09-14T12:56:20.6371431Z     "Name": "default",
+2026-09-14T12:56:20.6371838Z     "Metadata": {},
+2026-09-14T12:56:20.6372278Z     "Endpoints": {
+2026-09-14T12:56:20.6372635Z       "docker": {
+2026-09-14T12:56:20.6373046Z         "Host": "unix:///var/run/docker.sock",
+2026-09-14T12:56:20.6373566Z         "SkipTLSVerify": false
+2026-09-14T12:56:20.6374016Z       }
+2026-09-14T12:56:20.6374312Z     },
+2026-09-14T12:56:20.6374528Z     "TLSMaterial": {},
+2026-09-14T12:56:20.6374769Z     "Storage": {
+2026-09-14T12:56:20.6374985Z       "MetadataPath": "<IN MEMORY>",
+2026-09-14T12:56:20.6375247Z       "TLSPath": "<IN MEMORY>"
+2026-09-14T12:56:20.6375476Z     }
+2026-09-14T12:56:20.6375651Z   }
+2026-09-14T12:56:20.6375855Z ]
+2026-09-14T12:56:20.6376349Z ##[endgroup]
+2026-09-14T12:56:20.6376723Z ##[group]Creating a new builder instance
+2026-09-14T12:56:20.7806428Z [command]/usr/bin/docker buildx create --name builder-fda69ab9-d997-4b88-a9c7-71774e660d9b --driver docker-container --buildkitd-flags --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host --use
+2026-09-14T12:56:20.8840273Z builder-fda69ab9-d997-4b88-a9c7-71774e660d9b
+2026-09-14T12:56:20.8875286Z ##[endgroup]
+2026-09-14T12:56:20.8876503Z ##[group]Booting builder
+2026-09-14T12:56:20.8915507Z [command]/usr/bin/docker buildx inspect --bootstrap --builder builder-fda69ab9-d997-4b88-a9c7-71774e660d9b
+2026-09-14T12:56:20.9528355Z #1 [internal] booting buildkit
+2026-09-14T12:56:21.1035582Z #1 pulling image moby/buildkit:buildx-stable-1
+2026-09-14T12:56:26.1277061Z #1 pulling image moby/buildkit:buildx-stable-1 5.2s done
+2026-09-14T12:56:26.2793063Z #1 creating container buildx_buildkit_builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0
+2026-09-14T12:56:26.5599876Z #1 creating container buildx_buildkit_builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0 0.4s done
+2026-09-14T12:56:26.5972866Z #1 DONE 5.6s
+2026-09-14T12:56:26.6372297Z Name:          builder-fda69ab9-d997-4b88-a9c7-71774e660d9b
+2026-09-14T12:56:26.6372957Z Driver:        docker-container
+2026-09-14T12:56:26.6373444Z Last Activity: 2026-09-14 12:56:20 +0000 UTC
+2026-09-14T12:56:26.6373774Z 
+2026-09-14T12:56:26.6373930Z Nodes:
+2026-09-14T12:56:26.6377249Z Name:                  builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0
+2026-09-14T12:56:26.6378866Z Endpoint:              unix:///var/run/docker.sock
+2026-09-14T12:56:26.6379736Z Status:                running
+2026-09-14T12:56:26.6380671Z BuildKit daemon flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+2026-09-14T12:56:26.6381260Z BuildKit version:      v0.32.2
+2026-09-14T12:56:26.6381613Z Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/386
+2026-09-14T12:56:26.6381997Z Labels:
+2026-09-14T12:56:26.6382259Z  org.mobyproject.buildkit.worker.executor:         oci
+2026-09-14T12:56:26.6382702Z  org.mobyproject.buildkit.worker.hostname:         b1f4acb6a334
+2026-09-14T12:56:26.6383124Z  org.mobyproject.buildkit.worker.network:          host
+2026-09-14T12:56:26.6383532Z  org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+2026-09-14T12:56:26.6383961Z  org.mobyproject.buildkit.worker.selinux.enabled:  false
+2026-09-14T12:56:26.6384375Z  org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+2026-09-14T12:56:26.6384715Z GC Policy rule#0:
+2026-09-14T12:56:26.6384921Z  All:            false
+2026-09-14T12:56:26.6385272Z  Filters:        type==source.local type==exec.cachemount type==source.git.checkout
+2026-09-14T12:56:26.6385676Z  Keep Duration:  48h0m0s
+2026-09-14T12:56:26.6385900Z  Max Used Space: 488.3MiB
+2026-09-14T12:56:26.6386119Z GC Policy rule#1:
+2026-09-14T12:56:26.6386318Z  All:            false
+2026-09-14T12:56:26.6386534Z  Keep Duration:  1440h0m0s
+2026-09-14T12:56:26.6386758Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:26.6386983Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:26.6387198Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:26.6387729Z GC Policy rule#2:
+2026-09-14T12:56:26.6387931Z  All:            false
+2026-09-14T12:56:26.6388140Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:26.6388358Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:26.6388574Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:26.6388787Z GC Policy rule#3:
+2026-09-14T12:56:26.6388976Z  All:            true
+2026-09-14T12:56:26.6389183Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:26.6389400Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:26.6389628Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:26.6436291Z ##[endgroup]
+2026-09-14T12:56:26.7366426Z ##[group]Inspect builder
+2026-09-14T12:56:26.7370249Z {
+2026-09-14T12:56:26.7370850Z   "nodes": [
+2026-09-14T12:56:26.7371870Z     {
+2026-09-14T12:56:26.7372343Z       "name": "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0",
+2026-09-14T12:56:26.7373408Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T12:56:26.7374167Z       "status": "running",
+2026-09-14T12:56:26.7375558Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T12:56:26.7377318Z       "buildkit": "v0.32.2",
+2026-09-14T12:56:26.7378280Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T12:56:26.7378818Z       "features": {
+2026-09-14T12:56:26.7379337Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T12:56:26.7379724Z         "Cache export": true,
+2026-09-14T12:56:26.7379970Z         "Direct push": true,
+2026-09-14T12:56:26.7380545Z         "Docker exporter": true,
+2026-09-14T12:56:26.7380801Z         "Multi-platform build": true,
+2026-09-14T12:56:26.7381062Z         "OCI exporter": true
+2026-09-14T12:56:26.7381300Z       },
+2026-09-14T12:56:26.7381487Z       "labels": {
+2026-09-14T12:56:26.7381941Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T12:56:26.7382418Z         "org.mobyproject.buildkit.worker.hostname": "b1f4acb6a334",
+2026-09-14T12:56:26.7382833Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T12:56:26.7383262Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T12:56:26.7383738Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T12:56:26.7384317Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T12:56:26.7384760Z       },
+2026-09-14T12:56:26.7384962Z       "gcPolicy": [
+2026-09-14T12:56:26.7385177Z         {
+2026-09-14T12:56:26.7385371Z           "all": false,
+2026-09-14T12:56:26.7385589Z           "filter": [
+2026-09-14T12:56:26.7385915Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T12:56:26.7386339Z           ],
+2026-09-14T12:56:26.7386553Z           "keepDuration": "48h0m0s",
+2026-09-14T12:56:26.7386835Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T12:56:26.7387099Z         },
+2026-09-14T12:56:26.7387294Z         {
+2026-09-14T12:56:26.7387897Z           "all": false,
+2026-09-14T12:56:26.7388150Z           "keepDuration": "1440h0m0s",
+2026-09-14T12:56:26.7388446Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:26.7388843Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:26.7389103Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:26.7389339Z         },
+2026-09-14T12:56:26.7389508Z         {
+2026-09-14T12:56:26.7389692Z           "all": false,
+2026-09-14T12:56:26.7389905Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:26.7390197Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:26.7390455Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:26.7390684Z         },
+2026-09-14T12:56:26.7390853Z         {
+2026-09-14T12:56:26.7391029Z           "all": true,
+2026-09-14T12:56:26.7391249Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:26.7391503Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:26.7391826Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:26.7392101Z         }
+2026-09-14T12:56:26.7392309Z       ]
+2026-09-14T12:56:26.7392516Z     }
+2026-09-14T12:56:26.7392714Z   ],
+2026-09-14T12:56:26.7393012Z   "name": "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b",
+2026-09-14T12:56:26.7393395Z   "driver": "docker-container",
+2026-09-14T12:56:26.7393662Z   "lastActivity": "2026-09-14T12:56:20.000Z"
+2026-09-14T12:56:26.7393956Z }
+2026-09-14T12:56:26.7394565Z ##[endgroup]
+2026-09-14T12:56:26.7394995Z ##[group]BuildKit version
+2026-09-14T12:56:26.7395329Z builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0: v0.32.2
+2026-09-14T12:56:26.7395795Z ##[endgroup]
+2026-09-14T12:56:26.7602962Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:26.7604246Z ##[group]Run docker/login-action@v3
+2026-09-14T12:56:26.7604509Z with:
+2026-09-14T12:56:26.7604704Z   registry: ghcr.io
+2026-09-14T12:56:26.7604922Z   username: developerlhc
+2026-09-14T12:56:26.7607900Z   password: ***
+2026-09-14T12:56:26.7608122Z   logout: true
+2026-09-14T12:56:26.7608320Z ##[endgroup]
+2026-09-14T12:56:27.0755480Z Logging into ghcr.io...
+2026-09-14T12:56:27.0780767Z (node:2770) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:27.0782461Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:27.5155193Z Login Succeeded!
+2026-09-14T12:56:27.5353424Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:27.5354734Z ##[group]Run docker/metadata-action@v5
+2026-09-14T12:56:27.5355003Z with:
+2026-09-14T12:56:27.5355223Z   images: ghcr.io/developerlhc/vigilay-web
+2026-09-14T12:56:27.5355591Z   tags: type=raw,value=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:27.5355934Z   context: workflow
+2026-09-14T12:56:27.5359012Z   github-token: ***
+2026-09-14T12:56:27.5359233Z ##[endgroup]
+2026-09-14T12:56:27.9204897Z (node:2790) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:27.9205667Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:28.2632334Z ##[group]Context info
+2026-09-14T12:56:28.2632768Z eventName: push
+2026-09-14T12:56:28.2633168Z sha: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2633690Z ref: refs/heads/main
+2026-09-14T12:56:28.2634110Z workflow: Vigilay checks
+2026-09-14T12:56:28.2634535Z action: meta
+2026-09-14T12:56:28.2634919Z actor: developerlhc
+2026-09-14T12:56:28.2635308Z runNumber: 22
+2026-09-14T12:56:28.2635667Z runId: 34846028989
+2026-09-14T12:56:28.2636248Z commitDate: Mon Sep 14 2026 12:54:29 GMT+0000 (Coordinated Universal Time)
+2026-09-14T12:56:28.2637266Z ##[endgroup]
+2026-09-14T12:56:28.2652917Z ##[group]Processing images input
+2026-09-14T12:56:28.2653483Z name=ghcr.io/developerlhc/vigilay-web,enable=true
+2026-09-14T12:56:28.2654275Z ##[endgroup]
+2026-09-14T12:56:28.2654864Z ##[group]Processing tags input
+2026-09-14T12:56:28.2658916Z type=raw,value=f3b3fba671c5df44e063b94ad08d055b9d177e40,enable=true,priority=200
+2026-09-14T12:56:28.2659920Z ##[endgroup]
+2026-09-14T12:56:28.2660494Z ##[group]Processing flavor input
+2026-09-14T12:56:28.2660896Z latest=auto
+2026-09-14T12:56:28.2661184Z prefix=
+2026-09-14T12:56:28.2661470Z prefixLatest=false
+2026-09-14T12:56:28.2661778Z suffix=
+2026-09-14T12:56:28.2662132Z suffixLatest=false
+2026-09-14T12:56:28.2662727Z ##[endgroup]
+2026-09-14T12:56:28.2694184Z ##[group]Docker image version
+2026-09-14T12:56:28.2694982Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2695892Z ##[endgroup]
+2026-09-14T12:56:28.2699982Z ##[group]Docker tags
+2026-09-14T12:56:28.2700622Z ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2702302Z ##[endgroup]
+2026-09-14T12:56:28.2778333Z ##[group]Docker labels
+2026-09-14T12:56:28.2778907Z org.opencontainers.image.created=2026-09-14T12:56:28.265Z
+2026-09-14T12:56:28.2779560Z org.opencontainers.image.description=
+2026-09-14T12:56:28.2780097Z org.opencontainers.image.licenses=
+2026-09-14T12:56:28.2780804Z org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2781841Z org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:28.2782614Z org.opencontainers.image.title=camara_ia
+2026-09-14T12:56:28.2783335Z org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:28.2784256Z org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2798835Z ##[endgroup]
+2026-09-14T12:56:28.2809055Z ##[group]Annotations
+2026-09-14T12:56:28.2809657Z manifest:org.opencontainers.image.created=2026-09-14T12:56:28.265Z
+2026-09-14T12:56:28.2810470Z manifest:org.opencontainers.image.description=
+2026-09-14T12:56:28.2826126Z manifest:org.opencontainers.image.licenses=
+2026-09-14T12:56:28.2827117Z manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2831193Z manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:28.2832169Z manifest:org.opencontainers.image.title=camara_ia
+2026-09-14T12:56:28.2833811Z manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:28.2835045Z manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.2836376Z ##[endgroup]
+2026-09-14T12:56:28.2837043Z ##[group]JSON output
+2026-09-14T12:56:28.2837773Z {
+2026-09-14T12:56:28.2838129Z   "tags": [
+2026-09-14T12:56:28.2838806Z     "ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2839782Z   ],
+2026-09-14T12:56:28.2840319Z   "tag-names": [
+2026-09-14T12:56:28.2840901Z     "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2841541Z   ],
+2026-09-14T12:56:28.2841953Z   "labels": {
+2026-09-14T12:56:28.2842574Z     "org.opencontainers.image.created": "2026-09-14T12:56:28.265Z",
+2026-09-14T12:56:28.2843349Z     "org.opencontainers.image.description": "",
+2026-09-14T12:56:28.2844025Z     "org.opencontainers.image.licenses": "",
+2026-09-14T12:56:28.2844952Z     "org.opencontainers.image.revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:28.2846118Z     "org.opencontainers.image.source": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2847033Z     "org.opencontainers.image.title": "camara_ia",
+2026-09-14T12:56:28.2848127Z     "org.opencontainers.image.url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2849342Z     "org.opencontainers.image.version": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2850122Z   },
+2026-09-14T12:56:28.2850461Z   "annotations": [
+2026-09-14T12:56:28.2851107Z     "manifest:org.opencontainers.image.created=2026-09-14T12:56:28.265Z",
+2026-09-14T12:56:28.2851972Z     "manifest:org.opencontainers.image.description=",
+2026-09-14T12:56:28.2852699Z     "manifest:org.opencontainers.image.licenses=",
+2026-09-14T12:56:28.2853644Z     "manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:28.2854899Z     "manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2855919Z     "manifest:org.opencontainers.image.title=camara_ia",
+2026-09-14T12:56:28.2856897Z     "manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2858511Z     "manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2859359Z   ]
+2026-09-14T12:56:28.2859721Z }
+2026-09-14T12:56:28.2860351Z ##[endgroup]
+2026-09-14T12:56:28.2861002Z ##[group]Bake file definition (tags)
+2026-09-14T12:56:28.2861480Z {
+2026-09-14T12:56:28.2861807Z   "target": {
+2026-09-14T12:56:28.2862220Z     "docker-metadata-action": {
+2026-09-14T12:56:28.2862670Z       "tags": [
+2026-09-14T12:56:28.2863353Z         "ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2863949Z       ],
+2026-09-14T12:56:28.2864167Z       "args": {
+2026-09-14T12:56:28.2864489Z         "DOCKER_META_IMAGES": "ghcr.io/developerlhc/vigilay-web",
+2026-09-14T12:56:28.2865008Z         "DOCKER_META_VERSION": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2865421Z       }
+2026-09-14T12:56:28.2865628Z     }
+2026-09-14T12:56:28.2865842Z   }
+2026-09-14T12:56:28.2866032Z }
+2026-09-14T12:56:28.2866455Z ##[endgroup]
+2026-09-14T12:56:28.2866896Z ##[group]Bake file definition (labels)
+2026-09-14T12:56:28.2867168Z {
+2026-09-14T12:56:28.2867497Z   "target": {
+2026-09-14T12:56:28.2867731Z     "docker-metadata-action": {
+2026-09-14T12:56:28.2867996Z       "labels": {
+2026-09-14T12:56:28.2868338Z         "org.opencontainers.image.created": "2026-09-14T12:56:28.265Z",
+2026-09-14T12:56:28.2868790Z         "org.opencontainers.image.description": "",
+2026-09-14T12:56:28.2869160Z         "org.opencontainers.image.licenses": "",
+2026-09-14T12:56:28.2869634Z         "org.opencontainers.image.revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:28.2870278Z         "org.opencontainers.image.source": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2871309Z         "org.opencontainers.image.title": "camara_ia",
+2026-09-14T12:56:28.2872271Z         "org.opencontainers.image.url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2873269Z         "org.opencontainers.image.version": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2873990Z       }
+2026-09-14T12:56:28.2874293Z     }
+2026-09-14T12:56:28.2874591Z   }
+2026-09-14T12:56:28.2874878Z }
+2026-09-14T12:56:28.2875434Z ##[endgroup]
+2026-09-14T12:56:28.2876039Z ##[group]Bake file definition (annotations)
+2026-09-14T12:56:28.2876505Z {
+2026-09-14T12:56:28.2876843Z   "target": {
+2026-09-14T12:56:28.2877208Z     "docker-metadata-action": {
+2026-09-14T12:56:28.2877859Z       "annotations": [
+2026-09-14T12:56:28.2878443Z         "manifest:org.opencontainers.image.created=2026-09-14T12:56:28.265Z",
+2026-09-14T12:56:28.2879237Z         "manifest:org.opencontainers.image.description=",
+2026-09-14T12:56:28.2879890Z         "manifest:org.opencontainers.image.licenses=",
+2026-09-14T12:56:28.2880777Z         "manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:28.2881910Z         "manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2882820Z         "manifest:org.opencontainers.image.title=camara_ia",
+2026-09-14T12:56:28.2883689Z         "manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:28.2884722Z         "manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:28.2885187Z       ]
+2026-09-14T12:56:28.2885387Z     }
+2026-09-14T12:56:28.2885585Z   }
+2026-09-14T12:56:28.2885901Z }
+2026-09-14T12:56:28.2886256Z ##[endgroup]
+2026-09-14T12:56:28.3051804Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:28.3053162Z ##[group]Run docker/build-push-action@v6
+2026-09-14T12:56:28.3053438Z with:
+2026-09-14T12:56:28.3053637Z   context: apps/web
+2026-09-14T12:56:28.3053854Z   file: apps/web/Dockerfile
+2026-09-14T12:56:28.3054088Z   push: true
+2026-09-14T12:56:28.3054431Z   tags: ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3054844Z   cache-from: type=gha
+2026-09-14T12:56:28.3055077Z   cache-to: type=gha,mode=max
+2026-09-14T12:56:28.3055314Z   load: false
+2026-09-14T12:56:28.3055508Z   no-cache: false
+2026-09-14T12:56:28.3055710Z   pull: false
+2026-09-14T12:56:28.3058651Z   github-token: ***
+2026-09-14T12:56:28.3058921Z env:
+2026-09-14T12:56:28.3059232Z   DOCKER_METADATA_OUTPUT_VERSION: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3059847Z   DOCKER_METADATA_OUTPUT_TAGS: ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3060450Z   DOCKER_METADATA_OUTPUT_TAG_NAMES: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3062525Z   DOCKER_METADATA_OUTPUT_LABELS: org.opencontainers.image.created=2026-09-14T12:56:28.265Z
+org.opencontainers.image.description=
+org.opencontainers.image.licenses=
+org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+org.opencontainers.image.title=camara_ia
+org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3066394Z   DOCKER_METADATA_OUTPUT_ANNOTATIONS: manifest:org.opencontainers.image.created=2026-09-14T12:56:28.265Z
+manifest:org.opencontainers.image.description=
+manifest:org.opencontainers.image.licenses=
+manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+manifest:org.opencontainers.image.title=camara_ia
+manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:28.3073347Z   DOCKER_METADATA_OUTPUT_JSON: {"tags":["ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40"],"tag-names":["f3b3fba671c5df44e063b94ad08d055b9d177e40"],"labels":{"org.opencontainers.image.created":"2026-09-14T12:56:28.265Z","org.opencontainers.image.description":"","org.opencontainers.image.licenses":"","org.opencontainers.image.revision":"f3b3fba671c5df44e063b94ad08d055b9d177e40","org.opencontainers.image.source":"https://github.com/developerlhc/camara_ia","org.opencontainers.image.title":"camara_ia","org.opencontainers.image.url":"https://github.com/developerlhc/camara_ia","org.opencontainers.image.version":"f3b3fba671c5df44e063b94ad08d055b9d177e40"},"annotations":["manifest:org.opencontainers.image.created=2026-09-14T12:56:28.265Z","manifest:org.opencontainers.image.description=","manifest:org.opencontainers.image.licenses=","manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40","manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia","manifest:org.opencontainers.image.title=camara_ia","manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia","manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"]}
+2026-09-14T12:56:28.3078652Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS: /home/runner/work/_temp/docker-actions-toolkit-L2yQdi/docker-metadata-action-bake-tags.json
+2026-09-14T12:56:28.3079800Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS: /home/runner/work/_temp/docker-actions-toolkit-L2yQdi/docker-metadata-action-bake-labels.json
+2026-09-14T12:56:28.3080801Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS: /home/runner/work/_temp/docker-actions-toolkit-L2yQdi/docker-metadata-action-bake-annotations.json
+2026-09-14T12:56:28.3081740Z   DOCKER_METADATA_OUTPUT_BAKE_FILE: /home/runner/work/_temp/docker-actions-toolkit-L2yQdi/docker-metadata-action-bake.json
+2026-09-14T12:56:28.3082293Z ##[endgroup]
+2026-09-14T12:56:28.5559216Z (node:2805) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:28.5560531Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:28.5580836Z ##[group]GitHub Actions runtime token ACs
+2026-09-14T12:56:28.5589302Z refs/heads/main: read/write
+2026-09-14T12:56:28.5590573Z ##[endgroup]
+2026-09-14T12:56:28.5591242Z ##[group]Docker info
+2026-09-14T12:56:28.5638345Z [command]/usr/bin/docker version
+2026-09-14T12:56:28.5848014Z Client: Docker Engine - Community
+2026-09-14T12:56:28.5849181Z  Version:           28.0.4
+2026-09-14T12:56:28.5851049Z  API version:       1.48
+2026-09-14T12:56:28.5851639Z  Go version:        go1.23.7
+2026-09-14T12:56:28.5852057Z  Git commit:        b8034c0
+2026-09-14T12:56:28.5852476Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:28.5852832Z  OS/Arch:           linux/amd64
+2026-09-14T12:56:28.5853075Z  Context:           default
+2026-09-14T12:56:28.5853218Z 
+2026-09-14T12:56:28.5853334Z Server: Docker Engine - Community
+2026-09-14T12:56:28.5853580Z  Engine:
+2026-09-14T12:56:28.5853765Z   Version:          28.0.4
+2026-09-14T12:56:28.5854030Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T12:56:28.5854333Z   Go version:       go1.23.7
+2026-09-14T12:56:28.5854571Z   Git commit:       6430e49
+2026-09-14T12:56:28.5854827Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:28.5855116Z   OS/Arch:          linux/amd64
+2026-09-14T12:56:28.5855361Z   Experimental:     false
+2026-09-14T12:56:28.5855586Z  containerd:
+2026-09-14T12:56:28.5855798Z   Version:          v2.3.4
+2026-09-14T12:56:28.5856086Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:28.5856403Z  runc:
+2026-09-14T12:56:28.5856587Z   Version:          1.5.1
+2026-09-14T12:56:28.5856815Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T12:56:28.5857887Z  docker-init:
+2026-09-14T12:56:28.5858225Z   Version:          0.19.0
+2026-09-14T12:56:28.5858625Z   GitCommit:        de40ad0
+2026-09-14T12:56:28.5910650Z [command]/usr/bin/docker info
+2026-09-14T12:56:28.6885584Z Client: Docker Engine - Community
+2026-09-14T12:56:28.6886155Z  Version:    28.0.4
+2026-09-14T12:56:28.6886536Z  Context:    default
+2026-09-14T12:56:28.6886910Z  Debug Mode: false
+2026-09-14T12:56:28.6887251Z  Plugins:
+2026-09-14T12:56:28.6887843Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T12:56:28.6888304Z     Version:  v0.37.0
+2026-09-14T12:56:28.6888762Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T12:56:28.6889359Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T12:56:28.6889800Z     Version:  v2.38.2
+2026-09-14T12:56:28.6890246Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T12:56:28.6890651Z 
+2026-09-14T12:56:28.6890772Z Server:
+2026-09-14T12:56:28.6891068Z  Containers: 1
+2026-09-14T12:56:28.6891374Z   Running: 1
+2026-09-14T12:56:28.6891688Z   Paused: 0
+2026-09-14T12:56:28.6892019Z   Stopped: 0
+2026-09-14T12:56:28.6892324Z  Images: 7
+2026-09-14T12:56:28.6892667Z  Server Version: 28.0.4
+2026-09-14T12:56:28.6893062Z  Storage Driver: overlay2
+2026-09-14T12:56:28.6893490Z   Backing Filesystem: extfs
+2026-09-14T12:56:28.6893894Z   Supports d_type: true
+2026-09-14T12:56:28.6894256Z   Using metacopy: false
+2026-09-14T12:56:28.6894625Z   Native Overlay Diff: false
+2026-09-14T12:56:28.6895008Z   userxattr: false
+2026-09-14T12:56:28.6895350Z  Logging Driver: json-file
+2026-09-14T12:56:28.6895727Z  Cgroup Driver: systemd
+2026-09-14T12:56:28.6896079Z  Cgroup Version: 2
+2026-09-14T12:56:28.6896397Z  Plugins:
+2026-09-14T12:56:28.6897149Z   Volume: local
+2026-09-14T12:56:28.6897798Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T12:56:28.6898515Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T12:56:28.6899184Z  Swarm: inactive
+2026-09-14T12:56:28.6899561Z  Runtimes: io.containerd.runc.v2 runc
+2026-09-14T12:56:28.6900023Z  Default Runtime: runc
+2026-09-14T12:56:28.6900380Z  Init Binary: docker-init
+2026-09-14T12:56:28.6900872Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:28.6901442Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T12:56:28.6901850Z  init version: de40ad0
+2026-09-14T12:56:28.6902197Z  Security Options:
+2026-09-14T12:56:28.6902527Z   apparmor
+2026-09-14T12:56:28.6902820Z   seccomp
+2026-09-14T12:56:28.6903156Z    Profile: builtin
+2026-09-14T12:56:28.6903513Z   cgroupns
+2026-09-14T12:56:28.6903838Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T12:56:28.6904292Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T12:56:28.6904779Z  OSType: linux
+2026-09-14T12:56:28.6905122Z  Architecture: x86_64
+2026-09-14T12:56:28.6905461Z  CPUs: 4
+2026-09-14T12:56:28.6905760Z  Total Memory: 15.61GiB
+2026-09-14T12:56:28.6906118Z  Name: runnervmlun5p
+2026-09-14T12:56:28.6906495Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T12:56:28.6906966Z  Docker Root Dir: /var/lib/docker
+2026-09-14T12:56:28.6908392Z  Debug Mode: false
+2026-09-14T12:56:28.6908780Z  Username: githubactions
+2026-09-14T12:56:28.6909161Z  Experimental: false
+2026-09-14T12:56:28.6909561Z  Insecure Registries:
+2026-09-14T12:56:28.6909947Z   ::1/128
+2026-09-14T12:56:28.6910262Z   127.0.0.0/8
+2026-09-14T12:56:28.6910589Z  Live Restore Enabled: false
+2026-09-14T12:56:28.6910854Z 
+2026-09-14T12:56:28.6929485Z ##[endgroup]
+2026-09-14T12:56:28.6930480Z ##[group]Proxy configuration
+2026-09-14T12:56:28.6933315Z No proxy configuration found
+2026-09-14T12:56:28.6934292Z ##[endgroup]
+2026-09-14T12:56:28.7587815Z ##[group]Buildx version
+2026-09-14T12:56:28.7616237Z [command]/usr/bin/docker buildx version
+2026-09-14T12:56:28.8124039Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T12:56:28.8158005Z ##[endgroup]
+2026-09-14T12:56:28.8158534Z ##[group]Builder info
+2026-09-14T12:56:28.9180006Z {
+2026-09-14T12:56:28.9180630Z   "nodes": [
+2026-09-14T12:56:28.9181150Z     {
+2026-09-14T12:56:28.9182801Z       "name": "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0",
+2026-09-14T12:56:28.9184126Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T12:56:28.9184623Z       "status": "running",
+2026-09-14T12:56:28.9185387Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T12:56:28.9185940Z       "buildkit": "v0.32.2",
+2026-09-14T12:56:28.9186522Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T12:56:28.9187125Z       "features": {
+2026-09-14T12:56:28.9187926Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T12:56:28.9188473Z         "Cache export": true,
+2026-09-14T12:56:28.9188821Z         "Direct push": true,
+2026-09-14T12:56:28.9189299Z         "Docker exporter": true,
+2026-09-14T12:56:28.9189609Z         "Multi-platform build": true,
+2026-09-14T12:56:28.9189883Z         "OCI exporter": true
+2026-09-14T12:56:28.9190205Z       },
+2026-09-14T12:56:28.9190504Z       "labels": {
+2026-09-14T12:56:28.9190776Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T12:56:28.9191225Z         "org.mobyproject.buildkit.worker.hostname": "b1f4acb6a334",
+2026-09-14T12:56:28.9191657Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T12:56:28.9192082Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T12:56:28.9192537Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T12:56:28.9192967Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T12:56:28.9193307Z       },
+2026-09-14T12:56:28.9193502Z       "gcPolicy": [
+2026-09-14T12:56:28.9193938Z         {
+2026-09-14T12:56:28.9194137Z           "all": false,
+2026-09-14T12:56:28.9194349Z           "filter": [
+2026-09-14T12:56:28.9194672Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T12:56:28.9195047Z           ],
+2026-09-14T12:56:28.9195253Z           "keepDuration": "48h0m0s",
+2026-09-14T12:56:28.9195513Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T12:56:28.9195748Z         },
+2026-09-14T12:56:28.9195944Z         {
+2026-09-14T12:56:28.9196151Z           "all": false,
+2026-09-14T12:56:28.9196373Z           "keepDuration": "1440h0m0s",
+2026-09-14T12:56:28.9196633Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:28.9196896Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:28.9197147Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:28.9198269Z         },
+2026-09-14T12:56:28.9198494Z         {
+2026-09-14T12:56:28.9198677Z           "all": false,
+2026-09-14T12:56:28.9198907Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:28.9199246Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:28.9199717Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:28.9200079Z         },
+2026-09-14T12:56:28.9200260Z         {
+2026-09-14T12:56:28.9200436Z           "all": true,
+2026-09-14T12:56:28.9200677Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:28.9200952Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:28.9201228Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:28.9201464Z         }
+2026-09-14T12:56:28.9201653Z       ]
+2026-09-14T12:56:28.9201824Z     }
+2026-09-14T12:56:28.9201998Z   ],
+2026-09-14T12:56:28.9202246Z   "name": "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b",
+2026-09-14T12:56:28.9202592Z   "driver": "docker-container",
+2026-09-14T12:56:28.9202858Z   "lastActivity": "2026-09-14T12:56:20.000Z"
+2026-09-14T12:56:28.9203122Z }
+2026-09-14T12:56:28.9203557Z ##[endgroup]
+2026-09-14T12:56:29.0831483Z [command]/usr/bin/docker buildx build --cache-from type=gha --cache-to type=gha,mode=max --file apps/web/Dockerfile --iidfile /home/runner/work/_temp/docker-actions-toolkit-D0718C/build-iidfile-522180150a.txt --attest type=provenance,mode=max,builder-id=https://github.com/developerlhc/camara_ia/actions/runs/34846028989/attempts/1 --tag ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40 --metadata-file /home/runner/work/_temp/docker-actions-toolkit-D0718C/build-metadata-6ecd40acd4.json --push apps/web
+2026-09-14T12:56:29.4090739Z #0 building with "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b" instance using docker-container driver
+2026-09-14T12:56:29.4091476Z 
+2026-09-14T12:56:29.4091669Z #1 [internal] load build definition from Dockerfile
+2026-09-14T12:56:29.4092118Z #1 transferring dockerfile: 595B 0.0s done
+2026-09-14T12:56:29.4092480Z #1 DONE 0.0s
+2026-09-14T12:56:29.4092623Z 
+2026-09-14T12:56:29.4092843Z #2 [internal] load metadata for docker.io/library/node:22-alpine
+2026-09-14T12:56:29.6269769Z #2 ...
+2026-09-14T12:56:29.6270027Z 
+2026-09-14T12:56:29.6270358Z #3 [auth] library/node:pull token for registry-1.docker.io
+2026-09-14T12:56:29.6270967Z #3 DONE 0.0s
+2026-09-14T12:56:29.7760188Z 
+2026-09-14T12:56:29.7760741Z #2 [internal] load metadata for docker.io/library/node:22-alpine
+2026-09-14T12:56:30.1010140Z #2 DONE 0.8s
+2026-09-14T12:56:30.2817715Z 
+2026-09-14T12:56:30.2818218Z #4 [internal] load .dockerignore
+2026-09-14T12:56:30.2818755Z #4 transferring context: 108B done
+2026-09-14T12:56:30.2819226Z #4 DONE 0.0s
+2026-09-14T12:56:30.2819363Z 
+2026-09-14T12:56:30.2819481Z #5 [internal] load build context
+2026-09-14T12:56:30.2819775Z #5 DONE 0.0s
+2026-09-14T12:56:30.2819901Z 
+2026-09-14T12:56:30.2820394Z #6 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+2026-09-14T12:56:30.2821469Z #6 resolve docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32 0.0s done
+2026-09-14T12:56:30.2822161Z #6 DONE 0.0s
+2026-09-14T12:56:30.2822300Z 
+2026-09-14T12:56:30.2822771Z #7 importing cache manifest from gha:17970317086218191780
+2026-09-14T12:56:30.6136399Z #7 DONE 0.5s
+2026-09-14T12:56:30.7256591Z 
+2026-09-14T12:56:30.7258033Z #5 [internal] load build context
+2026-09-14T12:56:30.7259891Z #5 transferring context: 143.12kB 0.0s done
+2026-09-14T12:56:30.7260460Z #5 DONE 0.0s
+2026-09-14T12:56:30.7260633Z 
+2026-09-14T12:56:30.7261463Z #6 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+2026-09-14T12:56:30.7263071Z #6 sha256:16da5a6403776464b5bf551ef294de57da242eac594527ea551a46e7f76ac2d6 445B / 445B 0.1s done
+2026-09-14T12:56:30.8970556Z #6 sha256:a2980c1fee17dfd6263234b253955e0e9d5f38d47c0e71c001139897134899d0 1.26MB / 1.26MB 0.2s done
+2026-09-14T12:56:30.8971842Z #6 sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a 0B / 52.63MB 0.2s
+2026-09-14T12:56:30.8973126Z #6 sha256:55afa1ecc21d2bb5e5045f32dafee56272ffd89860bac26f6c32123439af26a4 3.85MB / 3.85MB 0.2s done
+2026-09-14T12:56:31.0592757Z #6 sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a 52.63MB / 52.63MB 0.4s done
+2026-09-14T12:56:31.0594460Z #6 extracting sha256:55afa1ecc21d2bb5e5045f32dafee56272ffd89860bac26f6c32123439af26a4 0.1s done
+2026-09-14T12:56:31.2121006Z #6 extracting sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a
+2026-09-14T12:56:32.1027608Z #6 extracting sha256:efbef6f9e333972a10ca323e700496a64e7ddcc3a6725e6afbbae52e690f4a4a 1.0s done
+2026-09-14T12:56:32.1028836Z #6 DONE 1.5s
+2026-09-14T12:56:32.2846555Z 
+2026-09-14T12:56:32.2847780Z #6 [builder 1/6] FROM docker.io/library/node:22-alpine@sha256:c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32
+2026-09-14T12:56:32.2849266Z #6 extracting sha256:a2980c1fee17dfd6263234b253955e0e9d5f38d47c0e71c001139897134899d0 0.0s done
+2026-09-14T12:56:32.2850075Z #6 extracting sha256:16da5a6403776464b5bf551ef294de57da242eac594527ea551a46e7f76ac2d6 done
+2026-09-14T12:56:32.2850634Z #6 DONE 1.5s
+2026-09-14T12:56:32.2850773Z 
+2026-09-14T12:56:32.2850911Z #8 [builder 2/6] WORKDIR /app
+2026-09-14T12:56:32.3136504Z #8 DONE 0.2s
+2026-09-14T12:56:32.4761671Z 
+2026-09-14T12:56:32.4762252Z #9 [builder 3/6] COPY package.json package-lock.json ./
+2026-09-14T12:56:32.4762714Z #9 DONE 0.0s
+2026-09-14T12:56:32.4762853Z 
+2026-09-14T12:56:32.4763498Z #10 [builder 4/6] RUN npm ci
+2026-09-14T12:56:34.6316342Z #10 2.306 
+2026-09-14T12:56:34.6316973Z #10 2.306 added 79 packages, and audited 80 packages in 2s
+2026-09-14T12:56:34.7868967Z #10 2.306 
+2026-09-14T12:56:34.7869475Z #10 2.306 11 packages are looking for funding
+2026-09-14T12:56:34.7869971Z #10 2.306   run `npm fund` for details
+2026-09-14T12:56:34.7870425Z #10 2.307 
+2026-09-14T12:56:34.7870779Z #10 2.307 found 0 vulnerabilities
+2026-09-14T12:56:34.7871221Z #10 2.309 npm notice
+2026-09-14T12:56:34.7871786Z #10 2.309 npm notice New major version of npm available! 10.9.8 -> 12.0.2
+2026-09-14T12:56:34.7872701Z #10 2.309 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+2026-09-14T12:56:34.7873593Z #10 2.309 npm notice To update run: npm install -g npm@12.0.2
+2026-09-14T12:56:34.7874237Z #10 2.309 npm notice
+2026-09-14T12:56:34.7959713Z #10 DONE 2.5s
+2026-09-14T12:56:34.9916736Z 
+2026-09-14T12:56:34.9917724Z #11 [builder 5/6] COPY . .
+2026-09-14T12:56:34.9918256Z #11 DONE 0.0s
+2026-09-14T12:56:34.9918459Z 
+2026-09-14T12:56:34.9918648Z #12 [builder 6/6] RUN npm run check && npm run build
+2026-09-14T12:56:35.0344270Z #12 0.194 
+2026-09-14T12:56:35.0344741Z #12 0.194 > vigilay-web@0.1.0 check
+2026-09-14T12:56:35.0345542Z #12 0.194 > svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+2026-09-14T12:56:35.0346274Z #12 0.194 
+2026-09-14T12:56:41.0836732Z #12 6.242 Loading svelte-check in workspace: /app
+2026-09-14T12:56:41.0838102Z #12 6.242 Getting Svelte diagnostics...
+2026-09-14T12:56:41.2358602Z #12 6.243 
+2026-09-14T12:56:41.2359198Z #12 6.244 svelte-check found 0 errors and 0 warnings
+2026-09-14T12:56:41.2703863Z #12 6.429 
+2026-09-14T12:56:41.2704408Z #12 6.429 > vigilay-web@0.1.0 build
+2026-09-14T12:56:41.2705281Z #12 6.429 > vite build
+2026-09-14T12:56:41.2705733Z #12 6.429 
+2026-09-14T12:56:42.5404185Z #12 7.699 vite v6.4.3 building SSR bundle for production...
+2026-09-14T12:56:42.7141462Z #12 7.721 transforming...
+2026-09-14T12:56:44.2127468Z #12 9.370 ✓ 156 modules transformed.
+2026-09-14T12:56:44.3417912Z #12 9.501 rendering chunks...
+2026-09-14T12:56:45.4243788Z #12 10.58 vite v6.4.3 building for production...
+2026-09-14T12:56:45.5788019Z #12 10.59 transforming...
+2026-09-14T12:56:46.7399043Z #12 11.90 ✓ 168 modules transformed.
+2026-09-14T12:56:46.8801472Z #12 11.99 rendering chunks...
+2026-09-14T12:56:46.8802076Z #12 12.04 computing gzip size...
+2026-09-14T12:56:47.0432667Z #12 12.05 .svelte-kit/output/client/_app/version.json                        0.03 kB │ gzip:  0.05 kB
+2026-09-14T12:56:47.0434394Z #12 12.05 .svelte-kit/output/client/.vite/manifest.json                      5.61 kB │ gzip:  0.88 kB
+2026-09-14T12:56:47.0435489Z #12 12.05 .svelte-kit/output/client/_app/immutable/assets/3.B4tCP_NU.css     4.89 kB │ gzip:  1.21 kB
+2026-09-14T12:56:47.0436947Z #12 12.05 .svelte-kit/output/client/_app/immutable/assets/0.DA1nlDLJ.css     9.14 kB │ gzip:  2.85 kB
+2026-09-14T12:56:47.0439075Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/DNtpPyip.js        0.04 kB │ gzip:  0.06 kB
+2026-09-14T12:56:47.0440573Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/B1x1-FGU.js        0.15 kB │ gzip:  0.13 kB
+2026-09-14T12:56:47.0441986Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/DKZ4DsWN.js        0.32 kB │ gzip:  0.25 kB
+2026-09-14T12:56:47.0443475Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/0.CwvZwD4z.js       0.33 kB │ gzip:  0.24 kB
+2026-09-14T12:56:47.0444944Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/1.BbJmb084.js       0.42 kB │ gzip:  0.28 kB
+2026-09-14T12:56:47.0446434Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/z6vCDTMR.js        0.47 kB │ gzip:  0.32 kB
+2026-09-14T12:56:47.0448330Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/PglIXXgm.js        0.51 kB │ gzip:  0.37 kB
+2026-09-14T12:56:47.0449865Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/4.BWolC2VX.js       0.75 kB │ gzip:  0.49 kB
+2026-09-14T12:56:47.0451316Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/CG_OOD36.js        1.33 kB │ gzip:  0.73 kB
+2026-09-14T12:56:47.0453304Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/wbPk3Yxo.js        1.37 kB │ gzip:  0.66 kB
+2026-09-14T12:56:47.0454784Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/CYZXEYR5.js        1.44 kB │ gzip:  0.80 kB
+2026-09-14T12:56:47.0456410Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/6.Db3p0waX.js       1.44 kB │ gzip:  0.83 kB
+2026-09-14T12:56:47.0458127Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/5.C5fmq0_g.js       2.05 kB │ gzip:  1.17 kB
+2026-09-14T12:56:47.0459654Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/C5CBdfNc.js        2.24 kB │ gzip:  0.98 kB
+2026-09-14T12:56:47.0461188Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/5AbnCP9i.js        2.53 kB │ gzip:  1.32 kB
+2026-09-14T12:56:47.0462615Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/MZBq5G-j.js        6.90 kB │ gzip:  3.13 kB
+2026-09-14T12:56:47.0464014Z #12 12.05 .svelte-kit/output/client/_app/immutable/entry/app.B9KGhEzL.js     7.07 kB │ gzip:  3.13 kB
+2026-09-14T12:56:47.0465432Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/BP8rzWiu.js        8.72 kB │ gzip:  3.66 kB
+2026-09-14T12:56:47.0466825Z #12 12.05 .svelte-kit/output/client/_app/immutable/chunks/BFuiSmvQ.js       29.02 kB │ gzip: 11.05 kB
+2026-09-14T12:56:47.0468501Z #12 12.05 .svelte-kit/output/client/_app/immutable/entry/start.Djt1zbj6.js  29.52 kB │ gzip: 11.22 kB
+2026-09-14T12:56:47.0469889Z #12 12.05 .svelte-kit/output/client/_app/immutable/nodes/3.BzjSLsQj.js      61.12 kB │ gzip: 20.71 kB
+2026-09-14T12:56:47.0470838Z #12 12.05 ✓ built in 1.47s
+2026-09-14T12:56:47.8892626Z #12 13.05 .svelte-kit/output/server/.vite/manifest.json                              4.36 kB
+2026-09-14T12:56:48.0484711Z #12 13.05 .svelte-kit/output/server/_app/immutable/assets/_page.CHIcwCQe.css         4.85 kB
+2026-09-14T12:56:48.0485897Z #12 13.05 .svelte-kit/output/server/_app/immutable/assets/_layout.BGGduIA5.css       9.09 kB
+2026-09-14T12:56:48.0487063Z #12 13.05 .svelte-kit/output/server/entries/pages/_page.server.ts.js                 0.11 kB
+2026-09-14T12:56:48.0488393Z #12 13.05 .svelte-kit/output/server/entries/pages/_layout.svelte.js                  0.17 kB
+2026-09-14T12:56:48.0489461Z #12 13.05 .svelte-kit/output/server/env.js                                           0.23 kB
+2026-09-14T12:56:48.0490506Z #12 13.05 .svelte-kit/output/server/chunks/shared-server.js                          0.28 kB
+2026-09-14T12:56:48.0491560Z #12 13.05 .svelte-kit/output/server/entries/fallbacks/error.svelte.js                0.35 kB
+2026-09-14T12:56:48.0492294Z #12 13.05 .svelte-kit/output/server/internal.js                                      0.41 kB
+2026-09-14T12:56:48.0492986Z #12 13.05 .svelte-kit/output/server/chunks/server.js                                 0.62 kB
+2026-09-14T12:56:48.0493730Z #12 13.05 .svelte-kit/output/server/entries/pages/forgot-password/_page.svelte.js    0.76 kB
+2026-09-14T12:56:48.0494440Z #12 13.05 .svelte-kit/output/server/chunks/index2.js                                 0.81 kB
+2026-09-14T12:56:48.0495159Z #12 13.05 .svelte-kit/output/server/entries/pages/reset-password/_page.svelte.js     1.00 kB
+2026-09-14T12:56:48.0495870Z #12 13.05 .svelte-kit/output/server/chunks/utils2.js                                 1.09 kB
+2026-09-14T12:56:48.0496578Z #12 13.05 .svelte-kit/output/server/entries/endpoints/api/_...path_/_server.ts.js    1.59 kB
+2026-09-14T12:56:48.0497298Z #12 13.05 .svelte-kit/output/server/entries/pages/login/_page.svelte.js              1.59 kB
+2026-09-14T12:56:48.0498351Z #12 13.05 .svelte-kit/output/server/chunks/internal.js                               3.10 kB
+2026-09-14T12:56:48.0499090Z #12 13.05 .svelte-kit/output/server/entries/pages/_...section_/_page.svelte.js       4.51 kB
+2026-09-14T12:56:48.0499803Z #12 13.05 .svelte-kit/output/server/chunks/exports.js                                5.54 kB
+2026-09-14T12:56:48.0500399Z #12 13.05 .svelte-kit/output/server/chunks/utils.js                                 34.22 kB
+2026-09-14T12:56:48.0501266Z #12 13.05 .svelte-kit/output/server/remote-entry.js                                 36.81 kB
+2026-09-14T12:56:48.0501812Z #12 13.05 .svelte-kit/output/server/chunks/index.js                                 41.12 kB
+2026-09-14T12:56:48.0502367Z #12 13.05 .svelte-kit/output/server/chunks/root.js                                  88.77 kB
+2026-09-14T12:56:48.0502902Z #12 13.05 .svelte-kit/output/server/index.js                                       132.29 kB
+2026-09-14T12:56:48.0503523Z #12 13.05 ✓ built in 5.35s
+2026-09-14T12:56:48.0503751Z #12 13.05 
+2026-09-14T12:56:48.0504038Z #12 13.05 Run npm run preview to preview your production build locally.
+2026-09-14T12:56:48.0504397Z #12 13.06 
+2026-09-14T12:56:48.0504606Z #12 13.06 > Using @sveltejs/adapter-node
+2026-09-14T12:56:48.8401344Z #12 14.00   ✔ done
+2026-09-14T12:56:49.0360643Z #12 DONE 14.2s
+2026-09-14T12:56:49.1391400Z 
+2026-09-14T12:56:49.1392467Z #13 [runtime 3/4] COPY --from=builder --chown=node:node /app/build ./build
+2026-09-14T12:56:49.1394195Z #13 DONE 0.0s
+2026-09-14T12:56:49.1394621Z 
+2026-09-14T12:56:49.1395188Z #14 [runtime 4/4] COPY --from=builder --chown=node:node /app/package.json ./package.json
+2026-09-14T12:56:49.1396121Z #14 DONE 0.0s
+2026-09-14T12:56:49.2428964Z 
+2026-09-14T12:56:49.2430449Z #15 exporting to image
+2026-09-14T12:56:49.2431271Z #15 exporting layers 0.1s done
+2026-09-14T12:56:49.2432287Z #15 exporting manifest sha256:dd4fc6f2465a389a69e82607930d9ef7e929c3d2c63cf377e587027f433249c1 done
+2026-09-14T12:56:49.2433421Z #15 exporting config sha256:ec75e0e28f1ee22701a2dbb4bc21a09b4b3b988ef77f944e3abec83710fdf007 done
+2026-09-14T12:56:49.2434718Z #15 exporting attestation manifest sha256:506bef27495121c962b26ccfce254be626d39d086de76730283c7fb8e2d1db50
+2026-09-14T12:56:49.3681173Z #15 exporting attestation manifest sha256:506bef27495121c962b26ccfce254be626d39d086de76730283c7fb8e2d1db50 done
+2026-09-14T12:56:49.3682594Z #15 exporting manifest list sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781 done
+2026-09-14T12:56:49.3683494Z #15 pushing layers
+2026-09-14T12:56:49.5177919Z #15 ...
+2026-09-14T12:56:49.5178376Z 
+2026-09-14T12:56:49.5178952Z #16 [auth] developerlhc/vigilay-web:pull,push token for ghcr.io
+2026-09-14T12:56:49.5179729Z #16 DONE 0.0s
+2026-09-14T12:56:49.6680560Z 
+2026-09-14T12:56:49.6681105Z #17 exporting to GitHub Actions Cache
+2026-09-14T12:56:49.6681670Z #17 preparing build cache for export
+2026-09-14T12:56:52.3777460Z #17 preparing build cache for export 3.1s done
+2026-09-14T12:56:52.3778316Z #17 sending cache export
+2026-09-14T12:56:52.4856589Z #17 ...
+2026-09-14T12:56:52.4856792Z 
+2026-09-14T12:56:52.4857010Z #15 exporting to image
+2026-09-14T12:56:52.4857331Z #15 pushing layers 1.9s done
+2026-09-14T12:56:52.4858453Z #15 pushing manifest for ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40@sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781 1.4s done
+2026-09-14T12:56:52.4859405Z #15 DONE 3.3s
+2026-09-14T12:56:52.6945396Z 
+2026-09-14T12:56:52.6946117Z #17 exporting to GitHub Actions Cache
+2026-09-14T12:56:52.6946777Z #17 writing layer sha256:27fddf1f2f9b8f63da54af6f3bb71ada0096aa4f578ad6d887681c5411f79542
+2026-09-14T12:56:53.0990805Z #17 writing layer sha256:27fddf1f2f9b8f63da54af6f3bb71ada0096aa4f578ad6d887681c5411f79542 0.6s done
+2026-09-14T12:56:53.3350861Z #17 writing layer sha256:3c0c916f27d53d7ef972e4ae9f1e4167a865459305e32b9dc6cf97b02cbf5133
+2026-09-14T12:56:54.4140812Z #17 writing layer sha256:3c0c916f27d53d7ef972e4ae9f1e4167a865459305e32b9dc6cf97b02cbf5133 1.2s done
+2026-09-14T12:56:54.5773790Z #17 writing layer sha256:9d25680e65f1dcb9a9e2a716439f620f52531d76fce6dbc753c88d213e3f3a18
+2026-09-14T12:56:54.8739001Z #17 writing layer sha256:9d25680e65f1dcb9a9e2a716439f620f52531d76fce6dbc753c88d213e3f3a18 0.3s done
+2026-09-14T12:56:55.1048148Z #17 writing layer sha256:9ea9a3f8b24e3025fb6d2f1aa5ad030e2ffc70a6ef2bfbbca65ae4b99c88a296
+2026-09-14T12:57:00.0962055Z #17 writing layer sha256:9ea9a3f8b24e3025fb6d2f1aa5ad030e2ffc70a6ef2bfbbca65ae4b99c88a296 5.1s done
+2026-09-14T12:57:00.3311334Z #17 writing layer sha256:a57f22d4dfff0c1f323881a16c91e4f9a6a2b4a906f451a91483d7285b34bfb6
+2026-09-14T12:57:00.8650207Z #17 writing layer sha256:a57f22d4dfff0c1f323881a16c91e4f9a6a2b4a906f451a91483d7285b34bfb6 0.5s done
+2026-09-14T12:57:01.1032013Z #17 writing layer sha256:af5ca4726713b2540bc4e289277b079b2649482e4783d4decb4397bcd57e1be6
+2026-09-14T12:57:01.2603519Z #17 writing layer sha256:af5ca4726713b2540bc4e289277b079b2649482e4783d4decb4397bcd57e1be6 0.3s done
+2026-09-14T12:57:01.5023065Z #17 writing layer sha256:cc556d72f4ae25139484d7915fbb8542c8abd4b468a8e6dc51780b4e7e75932a
+2026-09-14T12:57:02.1442288Z #17 writing layer sha256:cc556d72f4ae25139484d7915fbb8542c8abd4b468a8e6dc51780b4e7e75932a 0.8s done
+2026-09-14T12:57:02.9650656Z #17 sending cache export 10.6s done
+2026-09-14T12:57:02.9651324Z #17 DONE 13.7s
+2026-09-14T12:57:03.0023158Z 
+2026-09-14T12:57:03.0026768Z #18 resolving provenance for metadata file
+2026-09-14T12:57:03.0027952Z #18 DONE 0.0s
+2026-09-14T12:57:03.0113204Z ##[group]ImageID
+2026-09-14T12:57:03.0113849Z sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781
+2026-09-14T12:57:03.0115462Z ##[endgroup]
+2026-09-14T12:57:03.0116311Z ##[group]Digest
+2026-09-14T12:57:03.0117090Z sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781
+2026-09-14T12:57:03.0118418Z ##[endgroup]
+2026-09-14T12:57:03.0119165Z ##[group]Metadata
+2026-09-14T12:57:03.0119738Z {
+2026-09-14T12:57:03.0120299Z   "buildx.build.provenance": {
+2026-09-14T12:57:03.0120832Z     "builder": {
+2026-09-14T12:57:03.0121868Z       "id": "https://github.com/developerlhc/camara_ia/actions/runs/34846028989/attempts/1"
+2026-09-14T12:57:03.0123591Z     },
+2026-09-14T12:57:03.0124354Z     "buildType": "https://mobyproject.org/buildkit@v1",
+2026-09-14T12:57:03.0125286Z     "materials": [
+2026-09-14T12:57:03.0125518Z       {
+2026-09-14T12:57:03.0125829Z         "uri": "pkg:docker/node@22-alpine?platform=linux%2Famd64",
+2026-09-14T12:57:03.0126179Z         "digest": {
+2026-09-14T12:57:03.0126532Z           "sha256": "c610fcdfb1d5b4740dd70c284ed3cb16bb857e0f7166196e36a5501df7a3aa32"
+2026-09-14T12:57:03.0126963Z         }
+2026-09-14T12:57:03.0127145Z       }
+2026-09-14T12:57:03.0127320Z     ],
+2026-09-14T12:57:03.0127974Z     "invocation": {
+2026-09-14T12:57:03.0128193Z       "configSource": {
+2026-09-14T12:57:03.0128447Z         "entryPoint": "Dockerfile"
+2026-09-14T12:57:03.0128688Z       },
+2026-09-14T12:57:03.0128870Z       "parameters": {
+2026-09-14T12:57:03.0129096Z         "frontend": "dockerfile.v0",
+2026-09-14T12:57:03.0129367Z         "locals": [
+2026-09-14T12:57:03.0129760Z           {
+2026-09-14T12:57:03.0129965Z             "name": "context"
+2026-09-14T12:57:03.0130201Z           },
+2026-09-14T12:57:03.0130388Z           {
+2026-09-14T12:57:03.0130580Z             "name": "dockerfile"
+2026-09-14T12:57:03.0130995Z           }
+2026-09-14T12:57:03.0131303Z         ],
+2026-09-14T12:57:03.0131654Z         "root": {
+2026-09-14T12:57:03.0131910Z           "configSource": {
+2026-09-14T12:57:03.0132154Z             "path": "Dockerfile"
+2026-09-14T12:57:03.0132390Z           },
+2026-09-14T12:57:03.0132579Z           "request": {
+2026-09-14T12:57:03.0132790Z             "args": {
+2026-09-14T12:57:03.0133021Z               "vcs:localdir:context": "apps/web",
+2026-09-14T12:57:03.0133334Z               "vcs:localdir:dockerfile": "apps/web",
+2026-09-14T12:57:03.0133700Z               "vcs:revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:57:03.0134130Z               "vcs:source": "https://github.com/developerlhc/camara_ia"
+2026-09-14T12:57:03.0134461Z             }
+2026-09-14T12:57:03.0134663Z           }
+2026-09-14T12:57:03.0134886Z         },
+2026-09-14T12:57:03.0135090Z         "compatibilityVersion": 30
+2026-09-14T12:57:03.0135366Z       },
+2026-09-14T12:57:03.0135549Z       "environment": {
+2026-09-14T12:57:03.0135776Z         "dockerfileVersion": "1.26.0",
+2026-09-14T12:57:03.0136048Z         "github_actor": "developerlhc",
+2026-09-14T12:57:03.0136599Z         "github_actor_id": "169218068",
+2026-09-14T12:57:03.0136859Z         "github_event_name": "push",
+2026-09-14T12:57:03.0137119Z         "github_event_payload": {
+2026-09-14T12:57:03.0138037Z           "after": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:57:03.0138586Z           "base_ref": null,
+2026-09-14T12:57:03.0139013Z           "before": "faafea0e588e57ff5826f22d5b98483ea1d5e764",
+2026-09-14T12:57:03.0139332Z           "commits": [
+2026-09-14T12:57:03.0139572Z             {
+2026-09-14T12:57:03.0139782Z               "author": {
+2026-09-14T12:57:03.0140043Z                 "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:57:03.0140376Z                 "name": "Luis Huaman Cortegana"
+2026-09-14T12:57:03.0140642Z               },
+2026-09-14T12:57:03.0140838Z               "committer": {
+2026-09-14T12:57:03.0141092Z                 "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:57:03.0141408Z                 "name": "Luis Huaman Cortegana"
+2026-09-14T12:57:03.0141722Z               },
+2026-09-14T12:57:03.0141963Z               "distinct": true,
+2026-09-14T12:57:03.0142266Z               "id": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:57:03.0142678Z               "message": "fix CI formatting for Vigilay deployment",
+2026-09-14T12:57:03.0143051Z               "timestamp": "2026-09-14T07:54:29-05:00",
+2026-09-14T12:57:03.0143381Z               "tree_id": "081ac9199daf898ac412942672babdfbc0c61939",
+2026-09-14T12:57:03.0143927Z               "url": "https://github.com/developerlhc/camara_ia/commit/f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:57:03.0144455Z             }
+2026-09-14T12:57:03.0144647Z           ],
+2026-09-14T12:57:03.0145432Z           "compare": "https://github.com/developerlhc/camara_ia/compare/faafea0e588e...f3b3fba671c5",
+2026-09-14T12:57:03.0146409Z           "created": false,
+2026-09-14T12:57:03.0146873Z           "deleted": false,
+2026-09-14T12:57:03.0147270Z           "forced": false,
+2026-09-14T12:57:03.0148406Z           "head_commit": {
+2026-09-14T12:57:03.0148858Z             "author": {
+2026-09-14T12:57:03.0149448Z               "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:57:03.0150139Z               "name": "Luis Huaman Cortegana"
+2026-09-14T12:57:03.0150742Z             },
+2026-09-14T12:57:03.0151060Z             "committer": {
+2026-09-14T12:57:03.0151330Z               "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:57:03.0151659Z               "name": "Luis Huaman Cortegana"
+2026-09-14T12:57:03.0151935Z             },
+2026-09-14T12:57:03.0152127Z             "distinct": true,
+2026-09-14T12:57:03.0152439Z             "id": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:57:03.0152844Z             "message": "fix CI formatting for Vigilay deployment",
+2026-09-14T12:57:03.0153232Z             "timestamp": "2026-09-14T07:54:29-05:00",
+2026-09-14T12:57:03.0153592Z             "tree_id": "081ac9199daf898ac412942672babdfbc0c61939",
+2026-09-14T12:57:03.0154176Z             "url": "https://github.com/developerlhc/camara_ia/commit/f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:57:03.0154696Z           },
+2026-09-14T12:57:03.0154925Z           "pusher": {
+2026-09-14T12:57:03.0155229Z             "email": "luishuamancortegana@gmail.com",
+2026-09-14T12:57:03.0155602Z             "name": "developerlhc"
+2026-09-14T12:57:03.0155840Z           },
+2026-09-14T12:57:03.0156054Z           "ref": "refs/heads/main",
+2026-09-14T12:57:03.0156326Z           "repository": {
+2026-09-14T12:57:03.0156558Z             "allow_forking": true,
+2026-09-14T12:57:03.0157032Z             "archive_url": "https://api.github.com/repos/developerlhc/camara_ia/{archive_format}{/ref}",
+2026-09-14T12:57:03.0157894Z             "archived": false,
+2026-09-14T12:57:03.0158352Z             "assignees_url": "https://api.github.com/repos/developerlhc/camara_ia/assignees{/user}",
+2026-09-14T12:57:03.0159004Z             "blobs_url": "https://api.github.com/repos/developerlhc/camara_ia/git/blobs{/sha}",
+2026-09-14T12:57:03.0159628Z             "branches_url": "https://api.github.com/repos/developerlhc/camara_ia/branches{/branch}",
+2026-09-14T12:57:03.0160469Z             "clone_url": "https://github.com/developerlhc/camara_ia.git",
+2026-09-14T12:57:03.0161142Z             "collaborators_url": "https://api.github.com/repos/developerlhc/camara_ia/collaborators{/collaborator}",
+2026-09-14T12:57:03.0161859Z             "comments_url": "https://api.github.com/repos/developerlhc/camara_ia/comments{/number}",
+2026-09-14T12:57:03.0162487Z             "commits_url": "https://api.github.com/repos/developerlhc/camara_ia/commits{/sha}",
+2026-09-14T12:57:03.0163128Z             "compare_url": "https://api.github.com/repos/developerlhc/camara_ia/compare/{base}...{head}",
+2026-09-14T12:57:03.0163790Z             "contents_url": "https://api.github.com/repos/developerlhc/camara_ia/contents/{+path}",
+2026-09-14T12:57:03.0164448Z             "contributors_url": "https://api.github.com/repos/developerlhc/camara_ia/contributors",
+2026-09-14T12:57:03.0164924Z             "created_at": 1789183022,
+2026-09-14T12:57:03.0165211Z             "default_branch": "main",
+2026-09-14T12:57:03.0165673Z             "deployments_url": "https://api.github.com/repos/developerlhc/camara_ia/deployments",
+2026-09-14T12:57:03.0166161Z             "description": null,
+2026-09-14T12:57:03.0166406Z             "disabled": false,
+2026-09-14T12:57:03.0166837Z             "downloads_url": "https://api.github.com/repos/developerlhc/camara_ia/downloads",
+2026-09-14T12:57:03.0167673Z             "events_url": "https://api.github.com/repos/developerlhc/camara_ia/events",
+2026-09-14T12:57:03.0168122Z             "fork": false,
+2026-09-14T12:57:03.0168360Z             "forks": 0,
+2026-09-14T12:57:03.0168743Z             "forks_count": 0,
+2026-09-14T12:57:03.0169157Z             "forks_url": "https://api.github.com/repos/developerlhc/camara_ia/forks",
+2026-09-14T12:57:03.0169593Z             "full_name": "developerlhc/camara_ia",
+2026-09-14T12:57:03.0170101Z             "git_commits_url": "https://api.github.com/repos/developerlhc/camara_ia/git/commits{/sha}",
+2026-09-14T12:57:03.0170769Z             "git_refs_url": "https://api.github.com/repos/developerlhc/camara_ia/git/refs{/sha}",
+2026-09-14T12:57:03.0171445Z             "git_tags_url": "https://api.github.com/repos/developerlhc/camara_ia/git/tags{/sha}",
+2026-09-14T12:57:03.0171982Z             "git_url": "git://github.com/developerlhc/camara_ia.git",
+2026-09-14T12:57:03.0172365Z             "has_discussions": false,
+2026-09-14T12:57:03.0172628Z             "has_downloads": true,
+2026-09-14T12:57:03.0172900Z             "has_issues": true,
+2026-09-14T12:57:03.0173156Z             "has_pages": false,
+2026-09-14T12:57:03.0173413Z             "has_projects": true,
+2026-09-14T12:57:03.0173690Z             "has_pull_requests": true,
+2026-09-14T12:57:03.0173967Z             "has_wiki": true,
+2026-09-14T12:57:03.0174213Z             "homepage": null,
+2026-09-14T12:57:03.0174595Z             "hooks_url": "https://api.github.com/repos/developerlhc/camara_ia/hooks",
+2026-09-14T12:57:03.0175111Z             "html_url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:57:03.0175469Z             "id": 1366898650,
+2026-09-14T12:57:03.0175725Z             "is_template": false,
+2026-09-14T12:57:03.0176224Z             "issue_comment_url": "https://api.github.com/repos/developerlhc/camara_ia/issues/comments{/number}",
+2026-09-14T12:57:03.0176959Z             "issue_events_url": "https://api.github.com/repos/developerlhc/camara_ia/issues/events{/number}",
+2026-09-14T12:57:03.0177869Z             "issues_url": "https://api.github.com/repos/developerlhc/camara_ia/issues{/number}",
+2026-09-14T12:57:03.0178482Z             "keys_url": "https://api.github.com/repos/developerlhc/camara_ia/keys{/key_id}",
+2026-09-14T12:57:03.0179139Z             "labels_url": "https://api.github.com/repos/developerlhc/camara_ia/labels{/name}",
+2026-09-14T12:57:03.0179641Z             "language": "Python",
+2026-09-14T12:57:03.0180116Z             "languages_url": "https://api.github.com/repos/developerlhc/camara_ia/languages",
+2026-09-14T12:57:03.0180699Z             "license": null,
+2026-09-14T12:57:03.0180964Z             "master_branch": "main",
+2026-09-14T12:57:03.0181372Z             "merges_url": "https://api.github.com/repos/developerlhc/camara_ia/merges",
+2026-09-14T12:57:03.0181984Z             "milestones_url": "https://api.github.com/repos/developerlhc/camara_ia/milestones{/number}",
+2026-09-14T12:57:03.0182442Z             "mirror_url": null,
+2026-09-14T12:57:03.0182702Z             "name": "camara_ia",
+2026-09-14T12:57:03.0182961Z             "node_id": "R_kgDOUXk32g",
+2026-09-14T12:57:03.0183674Z             "notifications_url": "https://api.github.com/repos/developerlhc/camara_ia/notifications{?since,all,participating}",
+2026-09-14T12:57:03.0184835Z             "open_issues": 14,
+2026-09-14T12:57:03.0185234Z             "open_issues_count": 14,
+2026-09-14T12:57:03.0185511Z             "owner": {
+2026-09-14T12:57:03.0185895Z               "avatar_url": "https://avatars.githubusercontent.com/u/169218068?v=4",
+2026-09-14T12:57:03.0186374Z               "email": "luishuamancortegana@gmail.com",
+2026-09-14T12:57:03.0186808Z               "events_url": "https://api.github.com/users/developerlhc/events{/privacy}",
+2026-09-14T12:57:03.0187554Z               "followers_url": "https://api.github.com/users/developerlhc/followers",
+2026-09-14T12:57:03.0188124Z               "following_url": "https://api.github.com/users/developerlhc/following{/other_user}",
+2026-09-14T12:57:03.0188667Z               "gists_url": "https://api.github.com/users/developerlhc/gists{/gist_id}",
+2026-09-14T12:57:03.0189059Z               "gravatar_id": "",
+2026-09-14T12:57:03.0189528Z               "html_url": "https://github.com/developerlhc",
+2026-09-14T12:57:03.0189852Z               "id": 169218068,
+2026-09-14T12:57:03.0190095Z               "login": "developerlhc",
+2026-09-14T12:57:03.0190356Z               "name": "developerlhc",
+2026-09-14T12:57:03.0190618Z               "node_id": "U_kgDOChYQFA",
+2026-09-14T12:57:03.0191027Z               "organizations_url": "https://api.github.com/users/developerlhc/orgs",
+2026-09-14T12:57:03.0191581Z               "received_events_url": "https://api.github.com/users/developerlhc/received_events",
+2026-09-14T12:57:03.0192101Z               "repos_url": "https://api.github.com/users/developerlhc/repos",
+2026-09-14T12:57:03.0192464Z               "site_admin": false,
+2026-09-14T12:57:03.0192865Z               "starred_url": "https://api.github.com/users/developerlhc/starred{/owner}{/repo}",
+2026-09-14T12:57:03.0193434Z               "subscriptions_url": "https://api.github.com/users/developerlhc/subscriptions",
+2026-09-14T12:57:03.0193855Z               "type": "User",
+2026-09-14T12:57:03.0194178Z               "url": "https://api.github.com/users/developerlhc",
+2026-09-14T12:57:03.0194513Z               "user_view_type": "public"
+2026-09-14T12:57:03.0194772Z             },
+2026-09-14T12:57:03.0194968Z             "private": false,
+2026-09-14T12:57:03.0195225Z             "pull_request_creation_policy": "all",
+2026-09-14T12:57:03.0195669Z             "pulls_url": "https://api.github.com/repos/developerlhc/camara_ia/pulls{/number}",
+2026-09-14T12:57:03.0196094Z             "pushed_at": 1789390475,
+2026-09-14T12:57:03.0196496Z             "releases_url": "https://api.github.com/repos/developerlhc/camara_ia/releases{/id}",
+2026-09-14T12:57:03.0196912Z             "size": 208,
+2026-09-14T12:57:03.0197194Z             "ssh_url": "git@github.com:developerlhc/camara_ia.git",
+2026-09-14T12:57:03.0197940Z             "stargazers": 0,
+2026-09-14T12:57:03.0198202Z             "stargazers_count": 0,
+2026-09-14T12:57:03.0198637Z             "stargazers_url": "https://api.github.com/repos/developerlhc/camara_ia/stargazers",
+2026-09-14T12:57:03.0199229Z             "statuses_url": "https://api.github.com/repos/developerlhc/camara_ia/statuses/{sha}",
+2026-09-14T12:57:03.0199828Z             "subscribers_url": "https://api.github.com/repos/developerlhc/camara_ia/subscribers",
+2026-09-14T12:57:03.0200435Z             "subscription_url": "https://api.github.com/repos/developerlhc/camara_ia/subscription",
+2026-09-14T12:57:03.0201088Z             "svn_url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:57:03.0201526Z             "tags_url": "https://api.github.com/repos/developerlhc/camara_ia/tags",
+2026-09-14T12:57:03.0202048Z             "teams_url": "https://api.github.com/repos/developerlhc/camara_ia/teams",
+2026-09-14T12:57:03.0202503Z             "topics": [],
+2026-09-14T12:57:03.0203268Z             "trees_url": "https://api.github.com/repos/developerlhc/camara_ia/git/trees{/sha}",
+2026-09-14T12:57:03.0203835Z             "updated_at": "2026-09-14T12:42:49Z",
+2026-09-14T12:57:03.0204238Z             "url": "https://api.github.com/repos/developerlhc/camara_ia",
+2026-09-14T12:57:03.0204596Z             "visibility": "public",
+2026-09-14T12:57:03.0204849Z             "watchers": 0,
+2026-09-14T12:57:03.0205097Z             "watchers_count": 0,
+2026-09-14T12:57:03.0205357Z             "web_commit_signoff_required": false
+2026-09-14T12:57:03.0205634Z           },
+2026-09-14T12:57:03.0205819Z           "sender": {
+2026-09-14T12:57:03.0206151Z             "avatar_url": "https://avatars.githubusercontent.com/u/169218068?v=4",
+2026-09-14T12:57:03.0206661Z             "events_url": "https://api.github.com/users/developerlhc/events{/privacy}",
+2026-09-14T12:57:03.0207172Z             "followers_url": "https://api.github.com/users/developerlhc/followers",
+2026-09-14T12:57:03.0207975Z             "following_url": "https://api.github.com/users/developerlhc/following{/other_user}",
+2026-09-14T12:57:03.0208515Z             "gists_url": "https://api.github.com/users/developerlhc/gists{/gist_id}",
+2026-09-14T12:57:03.0209066Z             "gravatar_id": "",
+2026-09-14T12:57:03.0209353Z             "html_url": "https://github.com/developerlhc",
+2026-09-14T12:57:03.0209659Z             "id": 169218068,
+2026-09-14T12:57:03.0209892Z             "login": "developerlhc",
+2026-09-14T12:57:03.0210159Z             "node_id": "U_kgDOChYQFA",
+2026-09-14T12:57:03.0210532Z             "organizations_url": "https://api.github.com/users/developerlhc/orgs",
+2026-09-14T12:57:03.0211081Z             "received_events_url": "https://api.github.com/users/developerlhc/received_events",
+2026-09-14T12:57:03.0211596Z             "repos_url": "https://api.github.com/users/developerlhc/repos",
+2026-09-14T12:57:03.0211956Z             "site_admin": false,
+2026-09-14T12:57:03.0212341Z             "starred_url": "https://api.github.com/users/developerlhc/starred{/owner}{/repo}",
+2026-09-14T12:57:03.0212900Z             "subscriptions_url": "https://api.github.com/users/developerlhc/subscriptions",
+2026-09-14T12:57:03.0213318Z             "type": "User",
+2026-09-14T12:57:03.0213611Z             "url": "https://api.github.com/users/developerlhc",
+2026-09-14T12:57:03.0213933Z             "user_view_type": "public"
+2026-09-14T12:57:03.0214175Z           }
+2026-09-14T12:57:03.0214352Z         },
+2026-09-14T12:57:03.0214542Z         "github_job": "images",
+2026-09-14T12:57:03.0214790Z         "github_ref": "refs/heads/main",
+2026-09-14T12:57:03.0215060Z         "github_ref_name": "main",
+2026-09-14T12:57:03.0215316Z         "github_ref_protected": "false",
+2026-09-14T12:57:03.0215583Z         "github_ref_type": "branch",
+2026-09-14T12:57:03.0215870Z         "github_repository": "developerlhc/camara_ia",
+2026-09-14T12:57:03.0216300Z         "github_repository_id": "1366898650",
+2026-09-14T12:57:03.0216618Z         "github_repository_owner": "developerlhc",
+2026-09-14T12:57:03.0216922Z         "github_repository_owner_id": "169218068",
+2026-09-14T12:57:03.0217206Z         "github_run_attempt": "1",
+2026-09-14T12:57:03.0217690Z         "github_run_id": "34846028989",
+2026-09-14T12:57:03.0217958Z         "github_run_number": "22",
+2026-09-14T12:57:03.0218200Z         "github_runner_arch": "X64",
+2026-09-14T12:57:03.0218485Z         "github_runner_environment": "github-hosted",
+2026-09-14T12:57:03.0218792Z         "github_runner_image_os": "ubuntu24",
+2026-09-14T12:57:03.0219238Z         "github_runner_image_version": "20260907.300.1",
+2026-09-14T12:57:03.0219572Z         "github_runner_name": "GitHub Actions 1000000082",
+2026-09-14T12:57:03.0219881Z         "github_runner_os": "Linux",
+2026-09-14T12:57:03.0220241Z         "github_runner_tracking_id": "github_601ccc35-5900-4e93-b0bb-bc5146c85f96",
+2026-09-14T12:57:03.0220655Z         "github_server_url": "https://github.com",
+2026-09-14T12:57:03.0220965Z         "github_triggering_actor": "developerlhc",
+2026-09-14T12:57:03.0221260Z         "github_workflow": "Vigilay checks",
+2026-09-14T12:57:03.0221742Z         "github_workflow_ref": "developerlhc/camara_ia/.github/workflows/ci.yml@refs/heads/main",
+2026-09-14T12:57:03.0222280Z         "github_workflow_sha": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:57:03.0222650Z         "platform": "linux/amd64"
+2026-09-14T12:57:03.0222932Z       }
+2026-09-14T12:57:03.0223102Z     }
+2026-09-14T12:57:03.0223267Z   },
+2026-09-14T12:57:03.0223817Z   "buildx.build.ref": "builder-fda69ab9-d997-4b88-a9c7-71774e660d9b/builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0/jh502ig84q3adk4crbwdagi3e",
+2026-09-14T12:57:03.0224482Z   "containerimage.descriptor": {
+2026-09-14T12:57:03.0224805Z     "mediaType": "application/vnd.oci.image.index.v1+json",
+2026-09-14T12:57:03.0225275Z     "digest": "sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781",
+2026-09-14T12:57:03.0225713Z     "size": 856
+2026-09-14T12:57:03.0225929Z   },
+2026-09-14T12:57:03.0226318Z   "containerimage.digest": "sha256:27331606510716aa32011fa1cfd27d2f72ea2c1e1700df8125cf419ca93e1781",
+2026-09-14T12:57:03.0226966Z   "image.name": "ghcr.io/developerlhc/vigilay-web:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:57:03.0227809Z }
+2026-09-14T12:57:03.0228212Z ##[endgroup]
+2026-09-14T12:57:03.0228754Z ##[group]Reference
+2026-09-14T12:57:03.0229677Z builder-fda69ab9-d997-4b88-a9c7-71774e660d9b/builder-fda69ab9-d997-4b88-a9c7-71774e660d9b0/jh502ig84q3adk4crbwdagi3e
+2026-09-14T12:57:03.0230995Z ##[endgroup]
+2026-09-14T12:57:03.0231646Z ##[group]Check build summary support
+2026-09-14T12:57:03.0232423Z Build summary supported!
+2026-09-14T12:57:03.0233069Z ##[endgroup]
+2026-09-14T12:57:03.0338244Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:03.0339563Z Post job cleanup.
+2026-09-14T12:57:03.2773885Z ##[group]Generating build summary
+2026-09-14T12:57:03.2778709Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-06rkso/export
+2026-09-14T12:57:03.2791810Z (node:3284) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:03.2792928Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:03.4881278Z [command]/usr/bin/docker buildx history export --builder builder-fda69ab9-d997-4b88-a9c7-71774e660d9b --output /home/runner/work/_temp/docker-actions-toolkit-06rkso/export/developerlhc~camara_ia~JH502I.dockerbuild jh502ig84q3adk4crbwdagi3e --finalize
+2026-09-14T12:57:03.7026825Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-06rkso/export/developerlhc~camara_ia~JH502I.dockerbuild (47.88 KB)
+2026-09-14T12:57:03.7052614Z Uploading developerlhc~camara_ia~JH502I.dockerbuild to blob storage
+2026-09-14T12:57:04.0757233Z Beginning upload of artifact content to blob storage
+2026-09-14T12:57:04.0845714Z (node:3284) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:57:04.0854260Z Uploaded bytes 49034
+2026-09-14T12:57:04.4618265Z Finished uploading artifact content to blob storage!
+2026-09-14T12:57:04.4622360Z SHA256 hash of uploaded artifact is 865607eb88f87087bf4b3d8fc34b64a4494330da85f4a6fb1d43031b64073730
+2026-09-14T12:57:04.4623912Z Finalizing artifact upload
+2026-09-14T12:57:04.8529131Z Artifact successfully finalized (10348227788)
+2026-09-14T12:57:04.8531367Z Artifact download URL: https://github.com/developerlhc/camara_ia/actions/runs/34846028989/artifacts/10348227788
+2026-09-14T12:57:04.8557907Z Writing summary
+2026-09-14T12:57:04.8573208Z ##[endgroup]
+2026-09-14T12:57:04.8574098Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-D0718C
+2026-09-14T12:57:04.8575959Z ##[endgroup]
+2026-09-14T12:57:04.8576621Z ##[group]Post cache
+2026-09-14T12:57:04.8578948Z State not set
+2026-09-14T12:57:04.8579619Z ##[endgroup]
+2026-09-14T12:57:04.8734343Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:04.8735669Z Post job cleanup.
+2026-09-14T12:57:05.1875160Z ##[group]Logout from ghcr.io
+2026-09-14T12:57:05.1897373Z (node:3438) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:05.1898523Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:05.1921956Z [command]/usr/bin/docker logout ghcr.io
+2026-09-14T12:57:05.2092131Z Removing login credentials for ghcr.io
+2026-09-14T12:57:05.2125748Z ##[endgroup]
+2026-09-14T12:57:05.2126772Z ##[group]Post cache
+2026-09-14T12:57:05.2128635Z State not set
+2026-09-14T12:57:05.2129378Z ##[endgroup]
+2026-09-14T12:57:05.2366417Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:05.2368786Z Post job cleanup.
+2026-09-14T12:57:05.5023909Z ##[group]Removing builder
+2026-09-14T12:57:05.5031753Z (node:3458) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:05.5032619Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:05.6141661Z [command]/usr/bin/docker buildx rm builder-fda69ab9-d997-4b88-a9c7-71774e660d9b
+2026-09-14T12:57:06.0494978Z builder-fda69ab9-d997-4b88-a9c7-71774e660d9b removed
+2026-09-14T12:57:06.0532674Z ##[endgroup]
+2026-09-14T12:57:06.0533416Z ##[group]Cleaning up certificates
+2026-09-14T12:57:06.0534262Z ##[endgroup]
+2026-09-14T12:57:06.0534909Z ##[group]Post cache
+2026-09-14T12:57:06.0535311Z State not set
+2026-09-14T12:57:06.0535864Z ##[endgroup]
+2026-09-14T12:57:06.0710941Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:06.0712247Z Post job cleanup.
+2026-09-14T12:57:06.1572374Z [command]/usr/bin/git version
+2026-09-14T12:57:06.1618608Z git version 2.55.0
+2026-09-14T12:57:06.1694209Z Temporarily overriding HOME='/home/runner/work/_temp/92c4f154-71b8-48ad-a302-dd8303ecc2bf' before making global git config changes
+2026-09-14T12:57:06.1695797Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:57:06.1700970Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:57:06.1745923Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:57:06.1792886Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:57:06.2050308Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:57:06.2180843Z http.https://github.com/.extraheader
+2026-09-14T12:57:06.2195300Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-14T12:57:06.2236607Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:57:06.2497916Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:57:06.2540824Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:57:06.2919286Z Cleaning up orphan processes
+2026-09-14T12:57:06.3293980Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, docker/build-push-action@v6, docker/login-action@v3, docker/metadata-action@v5, docker/setup-buildx-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

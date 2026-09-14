@@ -1,0 +1,25 @@
+﻿2026-09-14T12:55:36.5958281Z ##[group]Run pytest
+2026-09-14T12:55:36.5958846Z [36;1mpytest[0m
+2026-09-14T12:55:36.5997237Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:36.5997499Z env:
+2026-09-14T12:55:36.5998094Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:36.5998966Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:36.5999485Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6000090Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:36.6000526Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6000915Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6001308Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6001708Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:36.6002042Z ##[endgroup]
+2026-09-14T12:56:02.2381010Z ..........................................                               [100%]
+2026-09-14T12:56:02.2382202Z =============================== warnings summary ===============================
+2026-09-14T12:56:02.2383457Z ../../../../../opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/fastapi/testclient.py:1
+2026-09-14T12:56:02.2385699Z   /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+2026-09-14T12:56:02.2387771Z     from starlette.testclient import TestClient as TestClient  # noqa
+2026-09-14T12:56:02.2388275Z 
+2026-09-14T12:56:02.2389057Z ../../../../../opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/starlette/testclient.py:53
+2026-09-14T12:56:02.2390587Z   /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+2026-09-14T12:56:02.2392070Z     _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+2026-09-14T12:56:02.2392567Z 
+2026-09-14T12:56:02.2392852Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2026-09-14T12:56:02.2393386Z 42 passed, 2 warnings in 23.32s

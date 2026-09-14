@@ -1,0 +1,701 @@
+﻿2026-09-14T12:54:42.9451153Z Current runner version: '2.337.0'
+2026-09-14T12:54:42.9475404Z ##[group]Runner Image Provisioner
+2026-09-14T12:54:42.9476243Z Hosted Compute Agent
+2026-09-14T12:54:42.9476991Z Version: 20260828.587
+2026-09-14T12:54:42.9477640Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-14T12:54:42.9478413Z Build Date: 2026-08-28T16:44:25Z
+2026-09-14T12:54:42.9479547Z Worker ID: {401ff189-7fb2-4eef-a2f8-afa105a9a106}
+2026-09-14T12:54:42.9480271Z Azure Region: westus
+2026-09-14T12:54:42.9480950Z ##[endgroup]
+2026-09-14T12:54:42.9482592Z ##[group]Operating System
+2026-09-14T12:54:42.9483336Z Ubuntu
+2026-09-14T12:54:42.9483884Z 24.04.5
+2026-09-14T12:54:42.9484400Z LTS
+2026-09-14T12:54:42.9485355Z ##[endgroup]
+2026-09-14T12:54:42.9485930Z ##[group]Runner Image
+2026-09-14T12:54:42.9486514Z Image: ubuntu-24.04
+2026-09-14T12:54:42.9487141Z Version: 20260907.300.1
+2026-09-14T12:54:42.9488399Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-14T12:54:42.9490351Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-14T12:54:42.9491305Z ##[endgroup]
+2026-09-14T12:54:42.9492500Z ##[group]GITHUB_TOKEN Permissions
+2026-09-14T12:54:42.9494367Z Contents: read
+2026-09-14T12:54:42.9495211Z Metadata: read
+2026-09-14T12:54:42.9495791Z ##[endgroup]
+2026-09-14T12:54:42.9497922Z Secret source: Actions
+2026-09-14T12:54:42.9499111Z Cache mode: write
+2026-09-14T12:54:42.9499902Z Prepare workflow directory
+2026-09-14T12:54:43.0012186Z Prepare all required actions
+2026-09-14T12:54:43.0060563Z Getting action download info
+2026-09-14T12:54:43.3638115Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-14T12:54:43.4780357Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-09-14T12:54:43.7093085Z Complete job name: backend
+2026-09-14T12:54:43.7638272Z ##[group]Checking docker version
+2026-09-14T12:54:43.7652023Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-09-14T12:54:43.8784413Z '1.48'
+2026-09-14T12:54:43.8796222Z Docker daemon API version: '1.48'
+2026-09-14T12:54:43.8797018Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-09-14T12:54:43.8984371Z '1.48'
+2026-09-14T12:54:43.8997961Z Docker client API version: '1.48'
+2026-09-14T12:54:43.9003132Z ##[endgroup]
+2026-09-14T12:54:43.9006159Z ##[group]Clean up resources from previous jobs
+2026-09-14T12:54:43.9012214Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=6654b2"
+2026-09-14T12:54:43.9174467Z ##[command]/usr/bin/docker network prune --force --filter "label=6654b2"
+2026-09-14T12:54:43.9321240Z ##[endgroup]
+2026-09-14T12:54:43.9321789Z ##[group]Create local container network
+2026-09-14T12:54:43.9332545Z ##[command]/usr/bin/docker network create --label 6654b2 github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:54:43.9870048Z 14c01ce9aea5eab01e7f750ae310cdfd05cf0d77248f50a6e96b99502f219140
+2026-09-14T12:54:43.9892230Z ##[endgroup]
+2026-09-14T12:54:43.9917640Z ##[group]Starting mysql service container
+2026-09-14T12:54:43.9939818Z ##[command]/usr/bin/docker pull mysql:8.4
+2026-09-14T12:54:44.8714408Z 8.4: Pulling from library/mysql
+2026-09-14T12:54:45.1373565Z 13c85306055e: Pulling fs layer
+2026-09-14T12:54:45.1375205Z 62f909f48b33: Pulling fs layer
+2026-09-14T12:54:45.1375818Z 70d659eb9b53: Pulling fs layer
+2026-09-14T12:54:45.1377998Z 7c507b2b0af4: Pulling fs layer
+2026-09-14T12:54:45.1379445Z f5703b642196: Pulling fs layer
+2026-09-14T12:54:45.1380749Z 35c18fec455d: Pulling fs layer
+2026-09-14T12:54:45.1381671Z ec3187676fa6: Pulling fs layer
+2026-09-14T12:54:45.1382486Z 2a2df1f368eb: Pulling fs layer
+2026-09-14T12:54:45.1383277Z e1ff04460a23: Pulling fs layer
+2026-09-14T12:54:45.1383882Z 052c01bf8f0e: Pulling fs layer
+2026-09-14T12:54:45.1384347Z 35c18fec455d: Waiting
+2026-09-14T12:54:45.1384867Z ec3187676fa6: Waiting
+2026-09-14T12:54:45.1385330Z 2a2df1f368eb: Waiting
+2026-09-14T12:54:45.1386155Z e1ff04460a23: Waiting
+2026-09-14T12:54:45.1386604Z 052c01bf8f0e: Waiting
+2026-09-14T12:54:45.1387028Z f5703b642196: Waiting
+2026-09-14T12:54:45.3536746Z 62f909f48b33: Verifying Checksum
+2026-09-14T12:54:45.3539052Z 62f909f48b33: Download complete
+2026-09-14T12:54:45.3620275Z 70d659eb9b53: Download complete
+2026-09-14T12:54:45.5554244Z 13c85306055e: Verifying Checksum
+2026-09-14T12:54:45.5555724Z 13c85306055e: Download complete
+2026-09-14T12:54:45.5808749Z f5703b642196: Verifying Checksum
+2026-09-14T12:54:45.5810220Z f5703b642196: Download complete
+2026-09-14T12:54:45.5892391Z 7c507b2b0af4: Verifying Checksum
+2026-09-14T12:54:45.5893058Z 7c507b2b0af4: Download complete
+2026-09-14T12:54:45.7745372Z 35c18fec455d: Verifying Checksum
+2026-09-14T12:54:45.7748328Z 35c18fec455d: Download complete
+2026-09-14T12:54:45.8062040Z 2a2df1f368eb: Verifying Checksum
+2026-09-14T12:54:45.8063661Z 2a2df1f368eb: Download complete
+2026-09-14T12:54:45.9745984Z ec3187676fa6: Verifying Checksum
+2026-09-14T12:54:45.9746695Z ec3187676fa6: Download complete
+2026-09-14T12:54:46.0226616Z 052c01bf8f0e: Verifying Checksum
+2026-09-14T12:54:46.0229074Z 052c01bf8f0e: Download complete
+2026-09-14T12:54:46.4361341Z e1ff04460a23: Verifying Checksum
+2026-09-14T12:54:46.4361940Z e1ff04460a23: Download complete
+2026-09-14T12:54:47.0007755Z 13c85306055e: Pull complete
+2026-09-14T12:54:50.0297007Z 62f909f48b33: Pull complete
+2026-09-14T12:54:50.0680983Z 70d659eb9b53: Pull complete
+2026-09-14T12:54:50.2737424Z 7c507b2b0af4: Pull complete
+2026-09-14T12:54:50.2882275Z f5703b642196: Pull complete
+2026-09-14T12:54:50.2980686Z 35c18fec455d: Pull complete
+2026-09-14T12:54:51.1158003Z ec3187676fa6: Pull complete
+2026-09-14T12:54:51.1278330Z 2a2df1f368eb: Pull complete
+2026-09-14T12:54:59.1192057Z e1ff04460a23: Pull complete
+2026-09-14T12:54:59.1304916Z 052c01bf8f0e: Pull complete
+2026-09-14T12:54:59.1348779Z Digest: sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+2026-09-14T12:54:59.1361490Z Status: Downloaded newer image for mysql:8.4
+2026-09-14T12:54:59.1369548Z docker.io/library/mysql:8.4
+2026-09-14T12:54:59.1431507Z ##[command]/usr/bin/docker create --name 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695 --label 6654b2 --network github_network_5359defb462346e7a7254dda244180ad --network-alias mysql -p 3306:3306 --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=5s --health-timeout=5s --health-retries=30 -e "MYSQL_DATABASE=vigilay_test" -e "MYSQL_USER=vigilay" -e "MYSQL_PASSWORD=ci_only_test_password" -e "MYSQL_ROOT_PASSWORD=ci_only_root_password" -e GITHUB_ACTIONS=true -e CI=true mysql:8.4
+2026-09-14T12:54:59.1768418Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.1792567Z ##[command]/usr/bin/docker start 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4055682Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4071226Z ##[command]/usr/bin/docker ps --all --filter id=1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-09-14T12:54:59.4214354Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd Up Less than a second (health: starting)
+2026-09-14T12:54:59.4258262Z ##[command]/usr/bin/docker port 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4415295Z 3306/tcp -> 0.0.0.0:3306
+2026-09-14T12:54:59.4415622Z 3306/tcp -> [::]:3306
+2026-09-14T12:54:59.4473714Z ##[endgroup]
+2026-09-14T12:54:59.4475613Z ##[group]Starting redis service container
+2026-09-14T12:54:59.4477182Z ##[command]/usr/bin/docker pull redis:7.4-alpine
+2026-09-14T12:55:00.3352862Z 7.4-alpine: Pulling from library/redis
+2026-09-14T12:55:00.6071770Z 897d797d2723: Pulling fs layer
+2026-09-14T12:55:00.6072576Z d85eda7b0b14: Pulling fs layer
+2026-09-14T12:55:00.6082593Z 9516b0cd89c9: Pulling fs layer
+2026-09-14T12:55:00.6083117Z de4b872bfdc3: Pulling fs layer
+2026-09-14T12:55:00.6083859Z 2c96e5a02ba0: Pulling fs layer
+2026-09-14T12:55:00.6084741Z 4f4fb700ef54: Pulling fs layer
+2026-09-14T12:55:00.6085139Z 41caa0265cb5: Pulling fs layer
+2026-09-14T12:55:00.6085550Z 2c96e5a02ba0: Waiting
+2026-09-14T12:55:00.6089538Z 41caa0265cb5: Waiting
+2026-09-14T12:55:00.6089927Z 4f4fb700ef54: Waiting
+2026-09-14T12:55:00.6090348Z de4b872bfdc3: Waiting
+2026-09-14T12:55:00.8235121Z d85eda7b0b14: Verifying Checksum
+2026-09-14T12:55:00.8243023Z d85eda7b0b14: Download complete
+2026-09-14T12:55:00.8414986Z 9516b0cd89c9: Verifying Checksum
+2026-09-14T12:55:00.8419073Z 9516b0cd89c9: Download complete
+2026-09-14T12:55:00.8461322Z 897d797d2723: Download complete
+2026-09-14T12:55:00.9722602Z 897d797d2723: Pull complete
+2026-09-14T12:55:00.9935837Z d85eda7b0b14: Pull complete
+2026-09-14T12:55:01.0640777Z 4f4fb700ef54: Verifying Checksum
+2026-09-14T12:55:01.0641756Z 4f4fb700ef54: Download complete
+2026-09-14T12:55:01.0650276Z 2c96e5a02ba0: Download complete
+2026-09-14T12:55:01.1084099Z de4b872bfdc3: Verifying Checksum
+2026-09-14T12:55:01.1084797Z de4b872bfdc3: Download complete
+2026-09-14T12:55:01.1548854Z 9516b0cd89c9: Pull complete
+2026-09-14T12:55:01.2879857Z 41caa0265cb5: Verifying Checksum
+2026-09-14T12:55:01.2880807Z 41caa0265cb5: Download complete
+2026-09-14T12:55:01.3456026Z de4b872bfdc3: Pull complete
+2026-09-14T12:55:01.3578322Z 2c96e5a02ba0: Pull complete
+2026-09-14T12:55:01.3653163Z 4f4fb700ef54: Pull complete
+2026-09-14T12:55:01.3747091Z 41caa0265cb5: Pull complete
+2026-09-14T12:55:01.3806614Z Digest: sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+2026-09-14T12:55:01.3818407Z Status: Downloaded newer image for redis:7.4-alpine
+2026-09-14T12:55:01.3825685Z docker.io/library/redis:7.4-alpine
+2026-09-14T12:55:01.3850582Z ##[command]/usr/bin/docker create --name 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56 --label 6654b2 --network github_network_5359defb462346e7a7254dda244180ad --network-alias redis -p 6379:6379 --health-cmd="redis-cli ping" --health-interval=5s --health-retries=20 -e GITHUB_ACTIONS=true -e CI=true redis:7.4-alpine
+2026-09-14T12:55:01.4100386Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.4114357Z ##[command]/usr/bin/docker start c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5526265Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5544545Z ##[command]/usr/bin/docker ps --all --filter id=c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-09-14T12:55:01.5674882Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615 Up Less than a second (health: starting)
+2026-09-14T12:55:01.5689892Z ##[command]/usr/bin/docker port c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5808379Z 6379/tcp -> 0.0.0.0:6379
+2026-09-14T12:55:01.5808991Z 6379/tcp -> [::]:6379
+2026-09-14T12:55:01.5821033Z ##[endgroup]
+2026-09-14T12:55:01.5831604Z ##[group]Waiting for all services to be ready
+2026-09-14T12:55:01.5845180Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:01.5958976Z starting
+2026-09-14T12:55:01.5980093Z mysql service is starting, waiting 2 seconds before checking again.
+2026-09-14T12:55:03.5982787Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:03.6150527Z starting
+2026-09-14T12:55:03.6170403Z mysql service is starting, waiting 4 seconds before checking again.
+2026-09-14T12:55:07.6691303Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:07.6817944Z starting
+2026-09-14T12:55:07.6830827Z mysql service is starting, waiting 7 seconds before checking again.
+2026-09-14T12:55:15.4167518Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:15.4292235Z healthy
+2026-09-14T12:55:15.4308470Z mysql service is healthy.
+2026-09-14T12:55:15.4309666Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:15.4427460Z healthy
+2026-09-14T12:55:15.4439206Z redis service is healthy.
+2026-09-14T12:55:15.4439937Z ##[endgroup]
+2026-09-14T12:55:15.4795184Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:55:15.4803883Z ##[group]Run actions/checkout@v4
+2026-09-14T12:55:15.4804344Z with:
+2026-09-14T12:55:15.4804576Z   repository: developerlhc/camara_ia
+2026-09-14T12:55:15.4807425Z   token: ***
+2026-09-14T12:55:15.4807635Z   ssh-strict: true
+2026-09-14T12:55:15.4807844Z   ssh-user: git
+2026-09-14T12:55:15.4808057Z   persist-credentials: true
+2026-09-14T12:55:15.4808292Z   clean: true
+2026-09-14T12:55:15.4808774Z   sparse-checkout-cone-mode: true
+2026-09-14T12:55:15.4809088Z   fetch-depth: 1
+2026-09-14T12:55:15.4809291Z   fetch-tags: false
+2026-09-14T12:55:15.4809505Z   show-progress: true
+2026-09-14T12:55:15.4809710Z   lfs: false
+2026-09-14T12:55:15.4809936Z   submodules: false
+2026-09-14T12:55:15.4810154Z   set-safe-directory: true
+2026-09-14T12:55:15.4810543Z   allow-unsafe-pr-checkout: false
+2026-09-14T12:55:15.4811111Z env:
+2026-09-14T12:55:15.4811710Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:15.4812205Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:15.4812611Z ##[endgroup]
+2026-09-14T12:55:15.5831778Z Syncing repository: developerlhc/camara_ia
+2026-09-14T12:55:15.5833832Z ##[group]Getting Git version info
+2026-09-14T12:55:15.5834458Z Working directory is '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:55:15.5835360Z [command]/usr/bin/git version
+2026-09-14T12:55:15.5946556Z git version 2.55.0
+2026-09-14T12:55:15.5971967Z ##[endgroup]
+2026-09-14T12:55:15.5989571Z Temporarily overriding HOME='/home/runner/work/_temp/7e61555a-4d4a-489f-8891-962b4fa7de34' before making global git config changes
+2026-09-14T12:55:15.5990911Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:55:15.5996367Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:55:15.6051413Z Deleting the contents of '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:55:15.6056386Z ##[group]Initializing the repository
+2026-09-14T12:55:15.6061537Z [command]/usr/bin/git init /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:55:15.6178018Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-14T12:55:15.6179305Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-14T12:55:15.6179935Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-14T12:55:15.6180607Z hint: call:
+2026-09-14T12:55:15.6180965Z hint:
+2026-09-14T12:55:15.6181502Z hint: 	git config --global init.defaultBranch <name>
+2026-09-14T12:55:15.6182136Z hint:
+2026-09-14T12:55:15.6182722Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-14T12:55:15.6183731Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-14T12:55:15.6184523Z hint:
+2026-09-14T12:55:15.6184952Z hint: 	git branch -m <name>
+2026-09-14T12:55:15.6185431Z hint:
+2026-09-14T12:55:15.6186067Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-14T12:55:15.6187181Z Initialized empty Git repository in /home/runner/work/camara_ia/camara_ia/.git/
+2026-09-14T12:55:15.6195612Z [command]/usr/bin/git remote add origin https://github.com/developerlhc/camara_ia
+2026-09-14T12:55:15.6297539Z ##[endgroup]
+2026-09-14T12:55:15.6298354Z ##[group]Disabling automatic garbage collection
+2026-09-14T12:55:15.6302891Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-14T12:55:15.6345678Z ##[endgroup]
+2026-09-14T12:55:15.6346635Z ##[group]Setting up auth
+2026-09-14T12:55:15.6352092Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:55:15.6390505Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:55:15.6764759Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:55:15.6802479Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:55:15.7034952Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:55:15.7073631Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:55:15.7301254Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-14T12:55:15.7342082Z ##[endgroup]
+2026-09-14T12:55:15.7342821Z ##[group]Fetching the repository
+2026-09-14T12:55:15.7352862Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f3b3fba671c5df44e063b94ad08d055b9d177e40:refs/remotes/origin/main
+2026-09-14T12:55:16.2137179Z From https://github.com/developerlhc/camara_ia
+2026-09-14T12:55:16.2138093Z  * [new ref]         f3b3fba671c5df44e063b94ad08d055b9d177e40 -> origin/main
+2026-09-14T12:55:16.2143847Z ##[endgroup]
+2026-09-14T12:55:16.2144745Z ##[group]Determining the checkout info
+2026-09-14T12:55:16.2147451Z ##[endgroup]
+2026-09-14T12:55:16.2154148Z [command]/usr/bin/git sparse-checkout disable
+2026-09-14T12:55:16.2210046Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-14T12:55:16.2244291Z ##[group]Checking out the ref
+2026-09-14T12:55:16.2247841Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-14T12:55:16.2375593Z Switched to a new branch 'main'
+2026-09-14T12:55:16.2381178Z branch 'main' set up to track 'origin/main'.
+2026-09-14T12:55:16.2387620Z ##[endgroup]
+2026-09-14T12:55:16.2433964Z [command]/usr/bin/git log -1 --format=%H
+2026-09-14T12:55:16.2460953Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:55:16.2713887Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:55:16.2715831Z ##[group]Run actions/setup-python@v5
+2026-09-14T12:55:16.2716105Z with:
+2026-09-14T12:55:16.2716310Z   python-version: 3.13
+2026-09-14T12:55:16.2716529Z   cache: pip
+2026-09-14T12:55:16.2716733Z   check-latest: false
+2026-09-14T12:55:16.2719735Z   token: ***
+2026-09-14T12:55:16.2719956Z   update-environment: true
+2026-09-14T12:55:16.2720204Z   allow-prereleases: false
+2026-09-14T12:55:16.2720433Z   freethreaded: false
+2026-09-14T12:55:16.2720645Z env:
+2026-09-14T12:55:16.2721170Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:16.2721700Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:16.2722104Z ##[endgroup]
+2026-09-14T12:55:16.4089599Z ##[group]Installed versions
+2026-09-14T12:55:16.4182821Z (node:3107) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:55:16.4184927Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:55:16.4185710Z Successfully set up CPython (3.13.15)
+2026-09-14T12:55:16.4186532Z ##[endgroup]
+2026-09-14T12:55:16.4914352Z [command]/opt/hostedtoolcache/Python/3.13.15/x64/bin/pip cache dir
+2026-09-14T12:55:18.0410607Z /home/runner/.cache/pip
+2026-09-14T12:55:18.3165471Z Cache hit for: setup-python-Linux-x64-24.04-Ubuntu-python-3.13.15-pip-d2a8ca36c9bddeb28b09e20636c5fa37522e465d3c3de858e8b4535a8b1be165
+2026-09-14T12:55:18.3276603Z (node:3107) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:55:19.6043773Z Received 4194304 of 42274706 (9.9%), 4.0 MBs/sec
+2026-09-14T12:55:20.0461288Z Received 42274706 of 42274706 (100.0%), 28.0 MBs/sec
+2026-09-14T12:55:20.0461993Z Cache Size: ~40 MB (42274706 B)
+2026-09-14T12:55:20.0577959Z [command]/usr/bin/tar -xf /home/runner/work/_temp/bc29a183-99de-49ad-97e4-8a200111656c/cache.tzst -P -C /home/runner/work/camara_ia/camara_ia --use-compress-program unzstd
+2026-09-14T12:55:20.1571505Z Cache restored successfully
+2026-09-14T12:55:20.1606027Z Cache restored from key: setup-python-Linux-x64-24.04-Ubuntu-python-3.13.15-pip-546c8c57622c2a2fd6e08662b81425386f2d7d23bd85b8118c6eedb85e5565dc
+2026-09-14T12:55:20.1764058Z ##[group]Run python -m pip install --upgrade pip && pip install -e '.[dev]'
+2026-09-14T12:55:20.1764676Z [36;1mpython -m pip install --upgrade pip && pip install -e '.[dev]'[0m
+2026-09-14T12:55:20.1808977Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:20.1809265Z env:
+2026-09-14T12:55:20.1809873Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:20.1810404Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:20.1810922Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:20.1811397Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:20.1811845Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:20.1812247Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:20.1812659Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:20.1813091Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:20.1813446Z ##[endgroup]
+2026-09-14T12:55:21.6495771Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages (26.2.1)
+2026-09-14T12:55:22.7210445Z Obtaining file:///home/runner/work/camara_ia/camara_ia
+2026-09-14T12:55:22.7227948Z   Installing build dependencies: started
+2026-09-14T12:55:23.4894967Z   Installing build dependencies: finished with status 'done'
+2026-09-14T12:55:23.4901241Z   Checking if build backend supports build_editable: started
+2026-09-14T12:55:23.8577644Z   Checking if build backend supports build_editable: finished with status 'done'
+2026-09-14T12:55:23.8585898Z   Getting requirements to build editable: started
+2026-09-14T12:55:24.2144533Z   Getting requirements to build editable: finished with status 'done'
+2026-09-14T12:55:24.2154711Z   Preparing editable metadata (pyproject.toml): started
+2026-09-14T12:55:24.4222052Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+2026-09-14T12:55:24.5132515Z Collecting fastapi<1,>=0.115 (from vigilay==0.1.0)
+2026-09-14T12:55:24.5146541Z   Using cached fastapi-0.141.1-py3-none-any.whl.metadata (27 kB)
+2026-09-14T12:55:24.5532219Z Collecting uvicorn<1,>=0.34 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:24.6018009Z   Downloading uvicorn-0.53.0-py3-none-any.whl.metadata (6.6 kB)
+2026-09-14T12:55:24.8662639Z Collecting sqlalchemy<2.1,>=2.0.38 (from vigilay==0.1.0)
+2026-09-14T12:55:24.8677861Z   Using cached sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (9.6 kB)
+2026-09-14T12:55:24.8884747Z Collecting alembic<2,>=1.14 (from vigilay==0.1.0)
+2026-09-14T12:55:24.8896939Z   Using cached alembic-1.20.0-py3-none-any.whl.metadata (7.3 kB)
+2026-09-14T12:55:24.9016058Z Collecting pymysql<2,>=1.1 (from pymysql[rsa]<2,>=1.1->vigilay==0.1.0)
+2026-09-14T12:55:24.9027405Z   Using cached pymysql-1.2.0-py3-none-any.whl.metadata (4.3 kB)
+2026-09-14T12:55:24.9146159Z Collecting pydantic-settings<3,>=2.7 (from vigilay==0.1.0)
+2026-09-14T12:55:24.9161504Z   Using cached pydantic_settings-2.15.0-py3-none-any.whl.metadata (3.9 kB)
+2026-09-14T12:55:24.9320985Z Collecting argon2-cffi<26,>=23.1 (from vigilay==0.1.0)
+2026-09-14T12:55:24.9332680Z   Using cached argon2_cffi-25.1.0-py3-none-any.whl.metadata (4.1 kB)
+2026-09-14T12:55:25.0922677Z Collecting cryptography<51,>=50.0.1 (from vigilay==0.1.0)
+2026-09-14T12:55:25.0937471Z   Using cached cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.3 kB)
+2026-09-14T12:55:25.1143745Z Collecting redis<7,>=5.2 (from vigilay==0.1.0)
+2026-09-14T12:55:25.1155935Z   Using cached redis-6.4.0-py3-none-any.whl.metadata (10 kB)
+2026-09-14T12:55:25.1305502Z Collecting httpx<1,>=0.28 (from vigilay==0.1.0)
+2026-09-14T12:55:25.1317410Z   Using cached httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-09-14T12:55:25.1436043Z Collecting email-validator<3,>=2.2 (from vigilay==0.1.0)
+2026-09-14T12:55:25.1448340Z   Using cached email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+2026-09-14T12:55:25.1543779Z Collecting onvif-zeep<1,>=0.2.12 (from vigilay==0.1.0)
+2026-09-14T12:55:25.1585187Z   Downloading onvif_zeep-0.2.12.tar.gz (163 kB)
+2026-09-14T12:55:25.2036308Z   Installing build dependencies: started
+2026-09-14T12:55:25.7326822Z   Installing build dependencies: finished with status 'done'
+2026-09-14T12:55:25.7337474Z   Getting requirements to build wheel: started
+2026-09-14T12:55:26.0842412Z   Getting requirements to build wheel: finished with status 'done'
+2026-09-14T12:55:26.0851393Z   Preparing metadata (pyproject.toml): started
+2026-09-14T12:55:26.2764206Z   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-09-14T12:55:26.3016102Z Collecting pytest<10,>=8.3 (from vigilay==0.1.0)
+2026-09-14T12:55:26.3029451Z   Using cached pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+2026-09-14T12:55:26.6068284Z Collecting ruff<1,>=0.11 (from vigilay==0.1.0)
+2026-09-14T12:55:26.6083739Z   Using cached ruff-0.16.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (20 kB)
+2026-09-14T12:55:26.6226232Z Collecting pip-audit<3,>=2.8 (from vigilay==0.1.0)
+2026-09-14T12:55:26.6238772Z   Using cached pip_audit-2.10.1-py3-none-any.whl.metadata (28 kB)
+2026-09-14T12:55:26.6418175Z Collecting Mako (from alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:55:26.6430629Z   Using cached mako-1.4.1-py3-none-any.whl.metadata (2.9 kB)
+2026-09-14T12:55:26.6569747Z Collecting typing-extensions>=4.12 (from alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:55:26.6582055Z   Using cached typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-09-14T12:55:26.6703061Z Collecting argon2-cffi-bindings (from argon2-cffi<26,>=23.1->vigilay==0.1.0)
+2026-09-14T12:55:26.6716335Z   Using cached argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (7.5 kB)
+2026-09-14T12:55:26.7841097Z Collecting cffi>=2.0.0 (from cryptography<51,>=50.0.1->vigilay==0.1.0)
+2026-09-14T12:55:26.7855013Z   Using cached cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-09-14T12:55:26.7963691Z Collecting dnspython>=2.0.0 (from email-validator<3,>=2.2->vigilay==0.1.0)
+2026-09-14T12:55:26.7975524Z   Using cached dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+2026-09-14T12:55:26.8099178Z Collecting idna>=2.0.0 (from email-validator<3,>=2.2->vigilay==0.1.0)
+2026-09-14T12:55:26.8111016Z   Using cached idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+2026-09-14T12:55:26.8318563Z Collecting starlette>=0.46.0 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:26.8330310Z   Using cached starlette-1.6.0-py3-none-any.whl.metadata (6.4 kB)
+2026-09-14T12:55:26.9261543Z Collecting pydantic>=2.9.0 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:26.9275334Z   Using cached pydantic-2.13.5-py3-none-any.whl.metadata (110 kB)
+2026-09-14T12:55:26.9398963Z Collecting typing-inspection>=0.4.2 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:26.9411362Z   Using cached typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+2026-09-14T12:55:26.9494840Z Collecting annotated-doc>=0.0.2 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:26.9506945Z   Using cached annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+2026-09-14T12:55:26.9689479Z Collecting anyio (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:55:26.9690290Z   Using cached anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+2026-09-14T12:55:26.9826048Z Collecting certifi (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:55:26.9837716Z   Using cached certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+2026-09-14T12:55:26.9958998Z Collecting httpcore==1.* (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:55:26.9970832Z   Using cached httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-09-14T12:55:27.0070428Z Collecting h11>=0.16 (from httpcore==1.*->httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:55:27.0081930Z   Using cached h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-09-14T12:55:27.0229664Z Collecting zeep>=3.0.0 (from onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:27.0257405Z   Downloading zeep-4.3.3-py3-none-any.whl.metadata (3.7 kB)
+2026-09-14T12:55:27.0381424Z Collecting CacheControl>=0.13.0 (from CacheControl[filecache]>=0.13.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.0392428Z   Using cached cachecontrol-0.14.4-py3-none-any.whl.metadata (3.1 kB)
+2026-09-14T12:55:27.0633012Z Collecting cyclonedx-python-lib<12,>=5 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.0644365Z   Using cached cyclonedx_python_lib-11.12.0-py3-none-any.whl.metadata (6.9 kB)
+2026-09-14T12:55:27.0769016Z Collecting packaging>=23.0.0 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.0780731Z   Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+2026-09-14T12:55:27.0890735Z Collecting pip-api>=0.0.28 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.0902281Z   Using cached pip_api-0.0.35-py3-none-any.whl.metadata (17 kB)
+2026-09-14T12:55:27.0995950Z Collecting pip-requirements-parser>=32.0.0 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1007586Z   Using cached pip_requirements_parser-32.0.1-py3-none-any.whl.metadata (9.3 kB)
+2026-09-14T12:55:27.1182435Z Collecting requests>=2.31.0 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1193889Z   Using cached requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-09-14T12:55:27.1441928Z Collecting rich>=12.4 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1454028Z   Using cached rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+2026-09-14T12:55:27.1670447Z Collecting tomli>=2.2.1 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1682692Z   Using cached tomli-2.4.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (10 kB)
+2026-09-14T12:55:27.1772215Z Collecting tomli-w>=1.2.0 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1783604Z   Using cached tomli_w-1.2.0-py3-none-any.whl.metadata (5.7 kB)
+2026-09-14T12:55:27.1951508Z Collecting platformdirs>=4.2.0 (from pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.1963127Z   Using cached platformdirs-4.11.8-py3-none-any.whl.metadata (5.5 kB)
+2026-09-14T12:55:27.2310275Z Collecting license-expression<31,>=30 (from cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2322176Z   Using cached license_expression-30.4.4-py3-none-any.whl.metadata (11 kB)
+2026-09-14T12:55:27.2483621Z Collecting packageurl-python<2,>=0.11 (from cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2494987Z   Using cached packageurl_python-0.17.6-py3-none-any.whl.metadata (5.1 kB)
+2026-09-14T12:55:27.2621118Z Collecting py-serializable<3.0.0,>=2.1.0 (from cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2632195Z   Using cached py_serializable-2.1.0-py3-none-any.whl.metadata (4.3 kB)
+2026-09-14T12:55:27.2725395Z Collecting sortedcontainers<3.0.0,>=2.4.0 (from cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2736520Z   Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)
+2026-09-14T12:55:27.2847968Z Collecting boolean.py>=4.0 (from license-expression<31,>=30->cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2859000Z   Using cached boolean_py-5.0-py3-none-any.whl.metadata (2.3 kB)
+2026-09-14T12:55:27.2962644Z Collecting defusedxml<0.8.0,>=0.7.1 (from py-serializable<3.0.0,>=2.1.0->cyclonedx-python-lib<12,>=5->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.2973560Z   Using cached defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)
+2026-09-14T12:55:27.3136899Z Collecting python-dotenv>=0.21.0 (from pydantic-settings<3,>=2.7->vigilay==0.1.0)
+2026-09-14T12:55:27.3148611Z   Using cached python_dotenv-1.2.3-py3-none-any.whl.metadata (29 kB)
+2026-09-14T12:55:27.3282434Z Collecting iniconfig>=1.0.1 (from pytest<10,>=8.3->vigilay==0.1.0)
+2026-09-14T12:55:27.3293871Z   Using cached iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+2026-09-14T12:55:27.3390352Z Collecting pluggy<2,>=1.5 (from pytest<10,>=8.3->vigilay==0.1.0)
+2026-09-14T12:55:27.3401700Z   Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+2026-09-14T12:55:27.3547015Z Collecting pygments>=2.7.2 (from pytest<10,>=8.3->vigilay==0.1.0)
+2026-09-14T12:55:27.3558758Z   Using cached pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+2026-09-14T12:55:27.4887057Z Collecting greenlet>=1 (from sqlalchemy<2.1,>=2.0.38->vigilay==0.1.0)
+2026-09-14T12:55:27.4901533Z   Using cached greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+2026-09-14T12:55:27.5059524Z Collecting click>=7.0 (from uvicorn<1,>=0.34->uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.5071690Z   Using cached click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+2026-09-14T12:55:27.5352557Z Collecting httptools>=0.8.0 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.5365058Z   Using cached httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+2026-09-14T12:55:27.5682977Z Collecting pyyaml>=5.1 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.5695473Z   Using cached pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-09-14T12:55:27.6080711Z Collecting uvloop>=0.15.1 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.6096133Z   Using cached uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.9 kB)
+2026-09-14T12:55:27.6782414Z Collecting watchfiles>=0.20 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.6796386Z   Using cached watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+2026-09-14T12:55:27.7800113Z Collecting websockets>=13.0 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:55:27.7814591Z   Using cached websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+2026-09-14T12:55:27.8554691Z Collecting msgpack<2.0.0,>=0.5.2 (from CacheControl>=0.13.0->CacheControl[filecache]>=0.13.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.8568237Z   Using cached msgpack-1.2.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (8.3 kB)
+2026-09-14T12:55:27.8774194Z Collecting filelock>=3.8.0 (from CacheControl[filecache]>=0.13.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.8786410Z   Using cached filelock-3.32.6-py3-none-any.whl.metadata (2.0 kB)
+2026-09-14T12:55:27.8878859Z Collecting pycparser (from cffi>=2.0.0->cryptography<51,>=50.0.1->vigilay==0.1.0)
+2026-09-14T12:55:27.8891027Z   Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-09-14T12:55:27.8972585Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages (from pip-api>=0.0.28->pip-audit<3,>=2.8->vigilay==0.1.0) (26.2.1)
+2026-09-14T12:55:27.9163935Z Collecting pyparsing (from pip-requirements-parser>=32.0.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:27.9175574Z   Using cached pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+2026-09-14T12:55:27.9267490Z Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:27.9279276Z   Using cached annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+2026-09-14T12:55:28.5348386Z Collecting pydantic-core==2.46.5 (from pydantic>=2.9.0->fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:55:28.5363681Z   Using cached pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+2026-09-14T12:55:28.6467778Z Collecting charset_normalizer<4,>=2 (from requests>=2.31.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:28.6483062Z   Using cached charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (45 kB)
+2026-09-14T12:55:28.6691399Z Collecting urllib3<3,>=1.26 (from requests>=2.31.0->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:28.6702901Z   Using cached urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-09-14T12:55:28.6865534Z Collecting markdown-it-py>=2.2.0 (from rich>=12.4->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:28.6877444Z   Using cached markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+2026-09-14T12:55:28.7016628Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=12.4->pip-audit<3,>=2.8->vigilay==0.1.0)
+2026-09-14T12:55:28.7027964Z   Using cached mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+2026-09-14T12:55:28.7279759Z Collecting attrs>=17.2.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:28.7306866Z   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+2026-09-14T12:55:28.7426427Z Collecting isodate>=0.5.4 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:28.7454415Z   Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+2026-09-14T12:55:28.9679663Z Collecting lxml>=4.6.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:28.9711159Z   Downloading lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.3 kB)
+2026-09-14T12:55:28.9856249Z Collecting requests-toolbelt>=0.7.1 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:28.9885298Z   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+2026-09-14T12:55:29.0002473Z Collecting requests-file>=1.5.1 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:55:29.0031182Z   Downloading requests_file-3.0.1-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-09-14T12:55:29.0561085Z Collecting MarkupSafe>=2.0 (from Mako->alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:55:29.0574236Z   Using cached markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-09-14T12:55:29.0639629Z Using cached alembic-1.20.0-py3-none-any.whl (268 kB)
+2026-09-14T12:55:29.0651935Z Using cached argon2_cffi-25.1.0-py3-none-any.whl (14 kB)
+2026-09-14T12:55:29.0663505Z Using cached cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+2026-09-14T12:55:29.0691648Z Using cached email_validator-2.3.0-py3-none-any.whl (35 kB)
+2026-09-14T12:55:29.0702964Z Using cached fastapi-0.141.1-py3-none-any.whl (131 kB)
+2026-09-14T12:55:29.0714518Z Using cached httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-09-14T12:55:29.0726281Z Using cached httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-09-14T12:55:29.0737616Z Using cached pip_audit-2.10.1-py3-none-any.whl (62 kB)
+2026-09-14T12:55:29.0750533Z Using cached cyclonedx_python_lib-11.12.0-py3-none-any.whl (529 kB)
+2026-09-14T12:55:29.0763500Z Using cached license_expression-30.4.4-py3-none-any.whl (120 kB)
+2026-09-14T12:55:29.0775017Z Using cached packageurl_python-0.17.6-py3-none-any.whl (36 kB)
+2026-09-14T12:55:29.0786062Z Using cached py_serializable-2.1.0-py3-none-any.whl (23 kB)
+2026-09-14T12:55:29.0797198Z Using cached defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)
+2026-09-14T12:55:29.0808355Z Using cached pydantic_settings-2.15.0-py3-none-any.whl (69 kB)
+2026-09-14T12:55:29.0819370Z Using cached pymysql-1.2.0-py3-none-any.whl (45 kB)
+2026-09-14T12:55:29.0830611Z Using cached pytest-9.1.1-py3-none-any.whl (386 kB)
+2026-09-14T12:55:29.0843091Z Using cached pluggy-1.6.0-py3-none-any.whl (20 kB)
+2026-09-14T12:55:29.0854153Z Using cached redis-6.4.0-py3-none-any.whl (279 kB)
+2026-09-14T12:55:29.0866565Z Using cached ruff-0.16.7-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (10.4 MB)
+2026-09-14T12:55:29.0923405Z Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)
+2026-09-14T12:55:29.0941777Z Using cached sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.3 MB)
+2026-09-14T12:55:29.0994345Z Downloading uvicorn-0.53.0-py3-none-any.whl (87 kB)
+2026-09-14T12:55:29.1032823Z Using cached annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+2026-09-14T12:55:29.1044537Z Using cached boolean_py-5.0-py3-none-any.whl (26 kB)
+2026-09-14T12:55:29.1055605Z Using cached cachecontrol-0.14.4-py3-none-any.whl (22 kB)
+2026-09-14T12:55:29.1067263Z Using cached msgpack-1.2.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (417 kB)
+2026-09-14T12:55:29.1080380Z Using cached cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+2026-09-14T12:55:29.1092224Z Using cached click-8.5.0-py3-none-any.whl (125 kB)
+2026-09-14T12:55:29.1103855Z Using cached dnspython-2.8.0-py3-none-any.whl (331 kB)
+2026-09-14T12:55:29.1116128Z Using cached filelock-3.32.6-py3-none-any.whl (100 kB)
+2026-09-14T12:55:29.1127900Z Using cached greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (623 kB)
+2026-09-14T12:55:29.1141743Z Using cached h11-0.16.0-py3-none-any.whl (37 kB)
+2026-09-14T12:55:29.1153908Z Using cached httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (486 kB)
+2026-09-14T12:55:29.1166402Z Using cached idna-3.19-py3-none-any.whl (68 kB)
+2026-09-14T12:55:29.1178038Z Using cached iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+2026-09-14T12:55:29.1189482Z Using cached packaging-26.3-py3-none-any.whl (129 kB)
+2026-09-14T12:55:29.1201035Z Using cached pip_api-0.0.35-py3-none-any.whl (123 kB)
+2026-09-14T12:55:29.1212812Z Using cached pip_requirements_parser-32.0.1-py3-none-any.whl (35 kB)
+2026-09-14T12:55:29.1224172Z Using cached platformdirs-4.11.8-py3-none-any.whl (24 kB)
+2026-09-14T12:55:29.1235778Z Using cached pydantic-2.13.5-py3-none-any.whl (472 kB)
+2026-09-14T12:55:29.1249344Z Using cached pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2026-09-14T12:55:29.1267608Z Using cached annotated_types-0.8.0-py3-none-any.whl (13 kB)
+2026-09-14T12:55:29.1278778Z Using cached pygments-2.21.0-py3-none-any.whl (1.3 MB)
+2026-09-14T12:55:29.1294655Z Using cached python_dotenv-1.2.3-py3-none-any.whl (22 kB)
+2026-09-14T12:55:29.1306489Z Using cached pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+2026-09-14T12:55:29.1320129Z Using cached requests-2.34.2-py3-none-any.whl (73 kB)
+2026-09-14T12:55:29.1332140Z Using cached charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (250 kB)
+2026-09-14T12:55:29.1343361Z Using cached urllib3-2.7.0-py3-none-any.whl (131 kB)
+2026-09-14T12:55:29.1354803Z Using cached certifi-2026.7.22-py3-none-any.whl (136 kB)
+2026-09-14T12:55:29.1366211Z Using cached rich-15.0.0-py3-none-any.whl (310 kB)
+2026-09-14T12:55:29.1378507Z Using cached markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+2026-09-14T12:55:29.1390032Z Using cached mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+2026-09-14T12:55:29.1401120Z Using cached starlette-1.6.0-py3-none-any.whl (75 kB)
+2026-09-14T12:55:29.1412381Z Using cached anyio-4.15.1-py3-none-any.whl (132 kB)
+2026-09-14T12:55:29.1424508Z Using cached tomli-2.4.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (251 kB)
+2026-09-14T12:55:29.1435765Z Using cached tomli_w-1.2.0-py3-none-any.whl (6.7 kB)
+2026-09-14T12:55:29.1446828Z Using cached typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-09-14T12:55:29.1457948Z Using cached typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+2026-09-14T12:55:29.1469876Z Using cached uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+2026-09-14T12:55:29.1496913Z Using cached watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (454 kB)
+2026-09-14T12:55:29.1509718Z Using cached websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (224 kB)
+2026-09-14T12:55:29.1541787Z Downloading zeep-4.3.3-py3-none-any.whl (102 kB)
+2026-09-14T12:55:29.1592908Z Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+2026-09-14T12:55:29.1641200Z Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+2026-09-14T12:55:29.1686143Z Downloading lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+2026-09-14T12:55:29.1919410Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 254.8 MB/s  0:00:00
+2026-09-14T12:55:29.1949634Z Downloading requests_file-3.0.1-py2.py3-none-any.whl (4.5 kB)
+2026-09-14T12:55:29.1995379Z Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+2026-09-14T12:55:29.2030536Z Using cached argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (26 kB)
+2026-09-14T12:55:29.2041661Z Using cached mako-1.4.1-py3-none-any.whl (80 kB)
+2026-09-14T12:55:29.2054125Z Using cached markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-09-14T12:55:29.2064697Z Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+2026-09-14T12:55:29.2076081Z Using cached pyparsing-3.3.2-py3-none-any.whl (122 kB)
+2026-09-14T12:55:29.4073315Z Building wheels for collected packages: vigilay, onvif-zeep
+2026-09-14T12:55:29.4082183Z   Building editable for vigilay (pyproject.toml): started
+2026-09-14T12:55:29.6292990Z   Building editable for vigilay (pyproject.toml): finished with status 'done'
+2026-09-14T12:55:29.6298845Z   Created wheel for vigilay: filename=vigilay-0.1.0-0.editable-py3-none-any.whl size=3271 sha256=a0ffc6e8a5d7041976e54593e8053bbe481413d020d89243d8851cf79ca32043
+2026-09-14T12:55:29.6300627Z   Stored in directory: /tmp/pip-ephem-wheel-cache-2nxraxj9/wheels/a5/45/aa/178072e6fe4da202a6aa7e5663adfd8d747c67d20420f04646
+2026-09-14T12:55:29.6322650Z   Building wheel for onvif-zeep (pyproject.toml): started
+2026-09-14T12:55:29.9109794Z   Building wheel for onvif-zeep (pyproject.toml): finished with status 'done'
+2026-09-14T12:55:29.9117834Z   Created wheel for onvif-zeep: filename=onvif_zeep-0.2.12-py3-none-any.whl size=192838 sha256=be083122790aaa254607bf666d5d6e4c3bd7f3694b32caef3b720442631fc736
+2026-09-14T12:55:29.9119397Z   Stored in directory: /home/runner/.cache/pip/wheels/ff/e9/40/df52d38621c3a379341eee310318d012597288e52ece7504c1
+2026-09-14T12:55:29.9141969Z Successfully built vigilay onvif-zeep
+2026-09-14T12:55:30.0382559Z Installing collected packages: sortedcontainers, boolean.py, websockets, uvloop, urllib3, typing-extensions, tomli-w, tomli, ruff, redis, pyyaml, python-dotenv, pyparsing, pymysql, pygments, pycparser, pluggy, platformdirs, pip-api, packaging, packageurl-python, msgpack, mdurl, MarkupSafe, lxml, license-expression, isodate, iniconfig, idna, httptools, h11, greenlet, filelock, dnspython, defusedxml, click, charset_normalizer, certifi, attrs, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, requests, pytest, pydantic-core, py-serializable, pip-requirements-parser, markdown-it-py, Mako, httpcore, email-validator, cffi, anyio, watchfiles, starlette, rich, requests-toolbelt, requests-file, pydantic, httpx, cyclonedx-python-lib, cryptography, CacheControl, argon2-cffi-bindings, alembic, zeep, pydantic-settings, fastapi, argon2-cffi, pip-audit, onvif-zeep, vigilay
+2026-09-14T12:55:36.2979784Z 
+2026-09-14T12:55:36.3054914Z Successfully installed CacheControl-0.14.4 Mako-1.4.1 MarkupSafe-3.0.3 alembic-1.20.0 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 argon2-cffi-25.1.0 argon2-cffi-bindings-26.1.0 attrs-26.1.0 boolean.py-5.0 certifi-2026.7.22 cffi-2.1.1 charset_normalizer-3.5.1 click-8.5.0 cryptography-50.0.1 cyclonedx-python-lib-11.12.0 defusedxml-0.7.1 dnspython-2.8.0 email-validator-2.3.0 fastapi-0.141.1 filelock-3.32.6 greenlet-3.5.5 h11-0.16.0 httpcore-1.0.9 httptools-0.8.0 httpx-0.28.1 idna-3.19 iniconfig-2.3.0 isodate-0.7.2 license-expression-30.4.4 lxml-6.1.3 markdown-it-py-4.2.0 mdurl-0.1.2 msgpack-1.2.2 onvif-zeep-0.2.12 packageurl-python-0.17.6 packaging-26.3 pip-api-0.0.35 pip-audit-2.10.1 pip-requirements-parser-32.0.1 platformdirs-4.11.8 pluggy-1.6.0 py-serializable-2.1.0 pycparser-3.0 pydantic-2.13.5 pydantic-core-2.46.5 pydantic-settings-2.15.0 pygments-2.21.0 pymysql-1.2.0 pyparsing-3.3.2 pytest-9.1.1 python-dotenv-1.2.3 pyyaml-6.0.3 redis-6.4.0 requests-2.34.2 requests-file-3.0.1 requests-toolbelt-1.0.0 rich-15.0.0 ruff-0.16.7 sortedcontainers-2.4.0 sqlalchemy-2.0.52 starlette-1.6.0 tomli-2.4.1 tomli-w-1.2.0 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.7.0 uvicorn-0.53.0 uvloop-0.22.1 vigilay-0.1.0 watchfiles-1.2.0 websockets-17.1 zeep-4.3.3
+2026-09-14T12:55:36.5467739Z ##[group]Run ruff check apps/api services/camera-adapters tests
+2026-09-14T12:55:36.5468273Z [36;1mruff check apps/api services/camera-adapters tests[0m
+2026-09-14T12:55:36.5506397Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:36.5506662Z env:
+2026-09-14T12:55:36.5507273Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:36.5507814Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:36.5508313Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5509033Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:36.5509480Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5509888Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5510278Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5510703Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:36.5511090Z ##[endgroup]
+2026-09-14T12:55:36.5680095Z All checks passed!
+2026-09-14T12:55:36.5710357Z ##[group]Run ruff format --check apps/api services/camera-adapters tests
+2026-09-14T12:55:36.5710910Z [36;1mruff format --check apps/api services/camera-adapters tests[0m
+2026-09-14T12:55:36.5747896Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:36.5748161Z env:
+2026-09-14T12:55:36.5749010Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:36.5749522Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:36.5750002Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5750431Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:36.5750860Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5751252Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5751636Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5752076Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:36.5752425Z ##[endgroup]
+2026-09-14T12:55:36.5923733Z 33 files already formatted
+2026-09-14T12:55:36.5958290Z ##[group]Run pytest
+2026-09-14T12:55:36.5958850Z [36;1mpytest[0m
+2026-09-14T12:55:36.5997244Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:36.5997502Z env:
+2026-09-14T12:55:36.5998097Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:36.5998970Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:36.5999488Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6000093Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:36.6000528Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6000918Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6001311Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.6001710Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:36.6002045Z ##[endgroup]
+2026-09-14T12:56:02.2381174Z ..........................................                               [100%]
+2026-09-14T12:56:02.2382208Z =============================== warnings summary ===============================
+2026-09-14T12:56:02.2383464Z ../../../../../opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/fastapi/testclient.py:1
+2026-09-14T12:56:02.2385707Z   /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+2026-09-14T12:56:02.2387775Z     from starlette.testclient import TestClient as TestClient  # noqa
+2026-09-14T12:56:02.2388282Z 
+2026-09-14T12:56:02.2389062Z ../../../../../opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/starlette/testclient.py:53
+2026-09-14T12:56:02.2390601Z   /opt/hostedtoolcache/Python/3.13.15/x64/lib/python3.13/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.
+2026-09-14T12:56:02.2392074Z     _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]
+2026-09-14T12:56:02.2392570Z 
+2026-09-14T12:56:02.2392855Z -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2026-09-14T12:56:02.2393389Z 42 passed, 2 warnings in 23.32s
+2026-09-14T12:56:02.4803155Z ##[group]Run pip-audit --local --skip-editable
+2026-09-14T12:56:02.4803569Z [36;1mpip-audit --local --skip-editable[0m
+2026-09-14T12:56:02.4840783Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:56:02.4841043Z env:
+2026-09-14T12:56:02.4841632Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:56:02.4842131Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:56:02.4842614Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4843055Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:56:02.4843509Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4843894Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4844308Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4844702Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:56:02.4845067Z ##[endgroup]
+2026-09-14T12:56:03.6656737Z No known vulnerabilities found
+2026-09-14T12:56:03.6665449Z Name    Skip Reason
+2026-09-14T12:56:03.6666044Z ------- -------------------------------
+2026-09-14T12:56:03.6666529Z vigilay distribution marked as editable
+2026-09-14T12:56:03.7203211Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:03.7204493Z Post job cleanup.
+2026-09-14T12:56:03.8435368Z (node:20733) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:03.8436728Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:03.8686254Z [command]/usr/bin/tar --posix -cf cache.tzst --exclude cache.tzst -P -C /home/runner/work/camara_ia/camara_ia --files-from manifest.txt --use-compress-program zstdmt
+2026-09-14T12:56:04.3019183Z (node:20733) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:56:05.2927195Z Sent 19726336 of 48789146 (40.4%), 18.8 MBs/sec
+2026-09-14T12:56:05.9545830Z Sent 48789146 of 48789146 (100.0%), 28.0 MBs/sec
+2026-09-14T12:56:06.2636564Z Cache saved with the key: setup-python-Linux-x64-24.04-Ubuntu-python-3.13.15-pip-d2a8ca36c9bddeb28b09e20636c5fa37522e465d3c3de858e8b4535a8b1be165
+2026-09-14T12:56:06.2805254Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:06.2806552Z Post job cleanup.
+2026-09-14T12:56:06.3663703Z [command]/usr/bin/git version
+2026-09-14T12:56:06.3711573Z git version 2.55.0
+2026-09-14T12:56:06.3754374Z Temporarily overriding HOME='/home/runner/work/_temp/59d26747-937d-4f17-b072-b037201b1b9f' before making global git config changes
+2026-09-14T12:56:06.3757922Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:56:06.3761597Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:06.3802959Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:56:06.3853088Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:56:06.4101258Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:56:06.4131483Z http.https://github.com/.extraheader
+2026-09-14T12:56:06.4144969Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-14T12:56:06.4185685Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:56:06.4463984Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:56:06.4504156Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:56:06.4885384Z Print service container logs: 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695
+2026-09-14T12:56:06.4890232Z ##[command]/usr/bin/docker logs --details 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.5023893Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-14T12:56:06.5026206Z  2026-09-14T12:54:59.815836Z 0 [System] [MY-015017] [Server] MySQL Server Initialization - start.
+2026-09-14T12:56:06.5027257Z  2026-09-14T12:54:59.817057Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.4.11) initializing of server in progress as process 81
+2026-09-14T12:56:06.5028032Z  2026-09-14T12:54:59.821512Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5028958Z  2026-09-14T12:54:59.925427Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5029961Z  2026-09-14T12:55:00.436324Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-09-14T12:56:06.5031064Z  2026-09-14T12:55:02.545746Z 0 [System] [MY-015018] [Server] MySQL Server Initialization - end.
+2026-09-14T12:56:06.5031639Z  2026-09-14T12:55:02.599642Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-14T12:56:06.5032251Z  2026-09-14T12:55:02.779199Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 122
+2026-09-14T12:56:06.5032899Z  2026-09-14T12:55:02.788660Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5033468Z  2026-09-14T12:55:02.904055Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5034057Z  2026-09-14T12:55:03.114485Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-14T12:56:06.5034894Z  2026-09-14T12:55:03.114524Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-14T12:56:06.5036100Z  2026-09-14T12:55:03.116491Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-14T12:56:06.5037170Z  2026-09-14T12:55:03.134538Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2026-09-14T12:56:06.5037824Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-09-14T12:56:06.5038403Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-14T12:56:06.5039303Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Initializing database files
+2026-09-14T12:56:06.5039786Z  2026-09-14 12:55:02+00:00 [Note] [Entrypoint]: Database files initialized
+2026-09-14T12:56:06.5040233Z  2026-09-14 12:55:02+00:00 [Note] [Entrypoint]: Starting temporary server
+2026-09-14T12:56:06.5041119Z  2026-09-14T12:55:03.134605Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5042187Z  2026-09-14T12:55:04.588931Z 13 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.4.11).
+2026-09-14T12:56:06.5043057Z  2026-09-14T12:55:05.509249Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.11)  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5043756Z  2026-09-14T12:55:05.509265Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+2026-09-14T12:56:06.5044256Z  2026-09-14T12:55:05.605818Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-14T12:56:06.5044846Z  2026-09-14T12:55:05.790673Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 1
+2026-09-14T12:56:06.5045706Z  2026-09-14T12:55:05.795646Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5046355Z  2026-09-14T12:55:05.907910Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5046945Z  2026-09-14T12:55:06.090399Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-14T12:56:06.5047770Z  2026-09-14T12:55:06.090437Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-14T12:56:06.5049247Z  2026-09-14T12:55:06.092080Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-14T12:56:06.5051079Z  2026-09-14T12:55:06.108898Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-09-14T12:56:06.5053099Z  2026-09-14T12:55:06.109019Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5053966Z  2026-09-14 12:55:03+00:00 [Note] [Entrypoint]: Temporary server started.
+2026-09-14T12:56:06.5054575Z  '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-09-14T12:56:06.5055022Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Creating database vigilay_test
+2026-09-14T12:56:06.5055470Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Creating user vigilay
+2026-09-14T12:56:06.5055960Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Giving user vigilay access to schema vigilay_test
+2026-09-14T12:56:06.5056387Z  
+2026-09-14T12:56:06.5056662Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Stopping temporary server
+2026-09-14T12:56:06.5057101Z  2026-09-14 12:55:05+00:00 [Note] [Entrypoint]: Temporary server stopped
+2026-09-14T12:56:06.5057443Z  
+2026-09-14T12:56:06.5057762Z  2026-09-14 12:55:05+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+2026-09-14T12:56:06.5058175Z  
+2026-09-14T12:56:06.5064648Z Stop and remove container: 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695
+2026-09-14T12:56:06.5071033Z ##[command]/usr/bin/docker rm --force 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.6653937Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.6675539Z Print service container logs: 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56
+2026-09-14T12:56:06.6676822Z ##[command]/usr/bin/docker logs --details c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.6813675Z  1:C 14 Sep 2026 12:55:01.560 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2026-09-14T12:56:06.6815732Z  1:C 14 Sep 2026 12:55:01.560 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2026-09-14T12:56:06.6816325Z  1:C 14 Sep 2026 12:55:01.560 * Redis version=7.4.11, bits=64, commit=00000000, modified=0, pid=1, just started
+2026-09-14T12:56:06.6817323Z  1:C 14 Sep 2026 12:55:01.560 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+2026-09-14T12:56:06.6818205Z  1:M 14 Sep 2026 12:55:01.560 * monotonic clock: POSIX clock_gettime
+2026-09-14T12:56:06.6818884Z  1:M 14 Sep 2026 12:55:01.561 * Running mode=standalone, port=6379.
+2026-09-14T12:56:06.6819398Z  1:M 14 Sep 2026 12:55:01.561 * Server initialized
+2026-09-14T12:56:06.6819757Z  1:M 14 Sep 2026 12:55:01.561 * Ready to accept connections tcp
+2026-09-14T12:56:06.6833431Z Stop and remove container: 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56
+2026-09-14T12:56:06.6834496Z ##[command]/usr/bin/docker rm --force c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.8043348Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.8076583Z Remove container network: github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:56:06.8083997Z ##[command]/usr/bin/docker network rm github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:56:06.9073192Z github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:56:06.9150081Z Cleaning up orphan processes
+2026-09-14T12:56:06.9539665Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,1451 @@
+﻿2026-09-14T12:56:12.7432830Z Current runner version: '2.337.0'
+2026-09-14T12:56:12.7459209Z ##[group]Runner Image Provisioner
+2026-09-14T12:56:12.7460184Z Hosted Compute Agent
+2026-09-14T12:56:12.7460782Z Version: 20260828.587
+2026-09-14T12:56:12.7461464Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-14T12:56:12.7462262Z Build Date: 2026-08-28T16:44:25Z
+2026-09-14T12:56:12.7462982Z Worker ID: {275daae3-253d-411d-9f41-c20737c6eb0b}
+2026-09-14T12:56:12.7463740Z Azure Region: eastus
+2026-09-14T12:56:12.7464334Z ##[endgroup]
+2026-09-14T12:56:12.7466805Z ##[group]Operating System
+2026-09-14T12:56:12.7467651Z Ubuntu
+2026-09-14T12:56:12.7468217Z 24.04.5
+2026-09-14T12:56:12.7468928Z LTS
+2026-09-14T12:56:12.7469457Z ##[endgroup]
+2026-09-14T12:56:12.7470011Z ##[group]Runner Image
+2026-09-14T12:56:12.7470686Z Image: ubuntu-24.04
+2026-09-14T12:56:12.7471299Z Version: 20260907.300.1
+2026-09-14T12:56:12.7472695Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-14T12:56:12.7474222Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-14T12:56:12.7475898Z ##[endgroup]
+2026-09-14T12:56:12.7477103Z ##[group]GITHUB_TOKEN Permissions
+2026-09-14T12:56:12.7479339Z Contents: read
+2026-09-14T12:56:12.7479942Z Metadata: read
+2026-09-14T12:56:12.7480627Z Packages: write
+2026-09-14T12:56:12.7481243Z ##[endgroup]
+2026-09-14T12:56:12.7483337Z Secret source: Actions
+2026-09-14T12:56:12.7484394Z Cache mode: write
+2026-09-14T12:56:12.7485324Z Prepare workflow directory
+2026-09-14T12:56:12.7826743Z Prepare all required actions
+2026-09-14T12:56:12.7875355Z Getting action download info
+2026-09-14T12:56:13.0443140Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-14T12:56:13.1696526Z Download action repository 'docker/setup-buildx-action@v3' (SHA:8d2750c68a42422c14e847fe6c8ac0403b4cbd6f)
+2026-09-14T12:56:13.3757330Z Download action repository 'docker/login-action@v3' (SHA:c94ce9fb468520275223c153574b00df6fe4bcc9)
+2026-09-14T12:56:13.6113085Z Download action repository 'docker/metadata-action@v5' (SHA:c299e40c65443455700f0fdfc63efafe5b349051)
+2026-09-14T12:56:13.8742142Z Download action repository 'docker/build-push-action@v6' (SHA:10e90e3645eae34f1e60eeb005ba3a3d33f178e8)
+2026-09-14T12:56:14.2515332Z Complete job name: images (api, ., infra/docker/api.Dockerfile)
+2026-09-14T12:56:14.3471158Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:14.3482689Z ##[group]Run actions/checkout@v4
+2026-09-14T12:56:14.3484218Z with:
+2026-09-14T12:56:14.3485236Z   repository: developerlhc/camara_ia
+2026-09-14T12:56:14.3494670Z   token: ***
+2026-09-14T12:56:14.3495898Z   ssh-strict: true
+2026-09-14T12:56:14.3496874Z   ssh-user: git
+2026-09-14T12:56:14.3497994Z   persist-credentials: true
+2026-09-14T12:56:14.3499114Z   clean: true
+2026-09-14T12:56:14.3500166Z   sparse-checkout-cone-mode: true
+2026-09-14T12:56:14.3501452Z   fetch-depth: 1
+2026-09-14T12:56:14.3502458Z   fetch-tags: false
+2026-09-14T12:56:14.3503512Z   show-progress: true
+2026-09-14T12:56:14.3504574Z   lfs: false
+2026-09-14T12:56:14.3505837Z   submodules: false
+2026-09-14T12:56:14.3506913Z   set-safe-directory: true
+2026-09-14T12:56:14.3508066Z   allow-unsafe-pr-checkout: false
+2026-09-14T12:56:14.3509628Z ##[endgroup]
+2026-09-14T12:56:14.4664166Z Syncing repository: developerlhc/camara_ia
+2026-09-14T12:56:14.4671335Z ##[group]Getting Git version info
+2026-09-14T12:56:14.4674758Z Working directory is '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:56:14.4680338Z [command]/usr/bin/git version
+2026-09-14T12:56:14.4788357Z git version 2.55.0
+2026-09-14T12:56:14.4870854Z ##[endgroup]
+2026-09-14T12:56:14.4900937Z Temporarily overriding HOME='/home/runner/work/_temp/d502e06c-c8e5-412d-836a-23a61d27cb9c' before making global git config changes
+2026-09-14T12:56:14.4907121Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:56:14.4911661Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:14.5007291Z Deleting the contents of '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:56:14.5011722Z ##[group]Initializing the repository
+2026-09-14T12:56:14.5019989Z [command]/usr/bin/git init /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:14.5147177Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-14T12:56:14.5151448Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-14T12:56:14.5158760Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-14T12:56:14.5161933Z hint: call:
+2026-09-14T12:56:14.5163701Z hint:
+2026-09-14T12:56:14.5165951Z hint: 	git config --global init.defaultBranch <name>
+2026-09-14T12:56:14.5168746Z hint:
+2026-09-14T12:56:14.5170938Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-14T12:56:14.5174310Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-14T12:56:14.5177560Z hint:
+2026-09-14T12:56:14.5179317Z hint: 	git branch -m <name>
+2026-09-14T12:56:14.5181090Z hint:
+2026-09-14T12:56:14.5183395Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-14T12:56:14.5186388Z Initialized empty Git repository in /home/runner/work/camara_ia/camara_ia/.git/
+2026-09-14T12:56:14.5227913Z [command]/usr/bin/git remote add origin https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:14.5244051Z ##[endgroup]
+2026-09-14T12:56:14.5247381Z ##[group]Disabling automatic garbage collection
+2026-09-14T12:56:14.5250826Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-14T12:56:14.5292452Z ##[endgroup]
+2026-09-14T12:56:14.5295344Z ##[group]Setting up auth
+2026-09-14T12:56:14.5299585Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:56:14.5345980Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:56:14.5791227Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:56:14.5862640Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:56:14.6099935Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:56:14.6136898Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:56:14.6368450Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-14T12:56:14.6407472Z ##[endgroup]
+2026-09-14T12:56:14.6416461Z ##[group]Fetching the repository
+2026-09-14T12:56:14.6419314Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f3b3fba671c5df44e063b94ad08d055b9d177e40:refs/remotes/origin/main
+2026-09-14T12:56:14.9453623Z From https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:14.9455854Z  * [new ref]         f3b3fba671c5df44e063b94ad08d055b9d177e40 -> origin/main
+2026-09-14T12:56:14.9461418Z ##[endgroup]
+2026-09-14T12:56:14.9463965Z ##[group]Determining the checkout info
+2026-09-14T12:56:14.9466653Z ##[endgroup]
+2026-09-14T12:56:14.9468359Z [command]/usr/bin/git sparse-checkout disable
+2026-09-14T12:56:14.9523063Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-14T12:56:14.9556653Z ##[group]Checking out the ref
+2026-09-14T12:56:14.9569747Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-14T12:56:14.9694028Z Switched to a new branch 'main'
+2026-09-14T12:56:14.9700242Z branch 'main' set up to track 'origin/main'.
+2026-09-14T12:56:14.9707178Z ##[endgroup]
+2026-09-14T12:56:14.9752214Z [command]/usr/bin/git log -1 --format=%H
+2026-09-14T12:56:14.9781421Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:15.0111909Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:15.0116799Z ##[group]Run docker/setup-buildx-action@v3
+2026-09-14T12:56:15.0117867Z with:
+2026-09-14T12:56:15.0118663Z   driver: docker-container
+2026-09-14T12:56:15.0119582Z   use: true
+2026-09-14T12:56:15.0120369Z   keep-state: false
+2026-09-14T12:56:15.0121222Z   cache-binary: true
+2026-09-14T12:56:15.0122118Z   cleanup: true
+2026-09-14T12:56:15.0122921Z   install: false
+2026-09-14T12:56:15.0123731Z ##[endgroup]
+2026-09-14T12:56:15.2652025Z (node:2267) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:15.2655192Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:15.2707611Z ##[group]Docker info
+2026-09-14T12:56:15.2733775Z [command]/usr/bin/docker version
+2026-09-14T12:56:15.3942490Z Client: Docker Engine - Community
+2026-09-14T12:56:15.3945152Z  Version:           28.0.4
+2026-09-14T12:56:15.3946671Z  API version:       1.48
+2026-09-14T12:56:15.3947681Z  Go version:        go1.23.7
+2026-09-14T12:56:15.3948672Z  Git commit:        b8034c0
+2026-09-14T12:56:15.3949695Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:15.3950874Z  OS/Arch:           linux/amd64
+2026-09-14T12:56:15.3951870Z  Context:           default
+2026-09-14T12:56:15.3952482Z 
+2026-09-14T12:56:15.3953435Z Server: Docker Engine - Community
+2026-09-14T12:56:15.3955301Z  Engine:
+2026-09-14T12:56:15.3956473Z   Version:          28.0.4
+2026-09-14T12:56:15.3957473Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T12:56:15.3958623Z   Go version:       go1.23.7
+2026-09-14T12:56:15.3959559Z   Git commit:       6430e49
+2026-09-14T12:56:15.3960565Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:15.3961640Z   OS/Arch:          linux/amd64
+2026-09-14T12:56:15.3962665Z   Experimental:     false
+2026-09-14T12:56:15.3963555Z  containerd:
+2026-09-14T12:56:15.3964353Z   Version:          v2.3.4
+2026-09-14T12:56:15.3965661Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:15.3966975Z  runc:
+2026-09-14T12:56:15.3967779Z   Version:          1.5.1
+2026-09-14T12:56:15.3968698Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T12:56:15.3969697Z  docker-init:
+2026-09-14T12:56:15.3970498Z   Version:          0.19.0
+2026-09-14T12:56:15.3971458Z   GitCommit:        de40ad0
+2026-09-14T12:56:15.3990715Z [command]/usr/bin/docker info
+2026-09-14T12:56:15.6452802Z Client: Docker Engine - Community
+2026-09-14T12:56:15.6455663Z  Version:    28.0.4
+2026-09-14T12:56:15.6457043Z  Context:    default
+2026-09-14T12:56:15.6458405Z  Debug Mode: false
+2026-09-14T12:56:15.6459710Z  Plugins:
+2026-09-14T12:56:15.6460619Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T12:56:15.6461673Z     Version:  v0.37.0
+2026-09-14T12:56:15.6462806Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T12:56:15.6464106Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T12:56:15.6465180Z     Version:  v2.38.2
+2026-09-14T12:56:15.6466589Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T12:56:15.6467487Z 
+2026-09-14T12:56:15.6467958Z Server:
+2026-09-14T12:56:15.6468815Z  Containers: 0
+2026-09-14T12:56:15.6469706Z   Running: 0
+2026-09-14T12:56:15.6470710Z   Paused: 0
+2026-09-14T12:56:15.6471628Z   Stopped: 0
+2026-09-14T12:56:15.6472516Z  Images: 6
+2026-09-14T12:56:15.6473869Z  Server Version: 28.0.4
+2026-09-14T12:56:15.6474840Z  Storage Driver: overlay2
+2026-09-14T12:56:15.6476492Z   Backing Filesystem: extfs
+2026-09-14T12:56:15.6478220Z   Supports d_type: true
+2026-09-14T12:56:15.6479819Z   Using metacopy: false
+2026-09-14T12:56:15.6481442Z   Native Overlay Diff: false
+2026-09-14T12:56:15.6483068Z   userxattr: false
+2026-09-14T12:56:15.6485354Z  Logging Driver: json-file
+2026-09-14T12:56:15.6487328Z  Cgroup Driver: systemd
+2026-09-14T12:56:15.6488941Z  Cgroup Version: 2
+2026-09-14T12:56:15.6490671Z  Plugins:
+2026-09-14T12:56:15.6492258Z   Volume: local
+2026-09-14T12:56:15.6494158Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T12:56:15.6497341Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T12:56:15.6500632Z  Swarm: inactive
+2026-09-14T12:56:15.6502454Z  Runtimes: runc io.containerd.runc.v2
+2026-09-14T12:56:15.6504556Z  Default Runtime: runc
+2026-09-14T12:56:15.6506625Z  Init Binary: docker-init
+2026-09-14T12:56:15.6508872Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:15.6511250Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T12:56:15.6513228Z  init version: de40ad0
+2026-09-14T12:56:15.6514934Z  Security Options:
+2026-09-14T12:56:15.6516702Z   apparmor
+2026-09-14T12:56:15.6518258Z   seccomp
+2026-09-14T12:56:15.6519674Z    Profile: builtin
+2026-09-14T12:56:15.6521253Z   cgroupns
+2026-09-14T12:56:15.6522898Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T12:56:15.6524512Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T12:56:15.6526289Z  OSType: linux
+2026-09-14T12:56:15.6527567Z  Architecture: x86_64
+2026-09-14T12:56:15.6528936Z  CPUs: 4
+2026-09-14T12:56:15.6530122Z  Total Memory: 15.62GiB
+2026-09-14T12:56:15.6531565Z  Name: runnervmlun5p
+2026-09-14T12:56:15.6532886Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T12:56:15.6533935Z  Docker Root Dir: /var/lib/docker
+2026-09-14T12:56:15.6534877Z  Debug Mode: false
+2026-09-14T12:56:15.6536024Z  Username: githubactions
+2026-09-14T12:56:15.6536937Z  Experimental: false
+2026-09-14T12:56:15.6537836Z  Insecure Registries:
+2026-09-14T12:56:15.6542493Z   ::1/128
+2026-09-14T12:56:15.6543791Z   127.0.0.0/8
+2026-09-14T12:56:15.6545224Z  Live Restore Enabled: false
+2026-09-14T12:56:15.6546531Z 
+2026-09-14T12:56:15.6547598Z ##[endgroup]
+2026-09-14T12:56:15.7121050Z ##[group]Buildx version
+2026-09-14T12:56:15.7148369Z [command]/usr/bin/docker buildx version
+2026-09-14T12:56:15.7649947Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T12:56:15.7681676Z ##[endgroup]
+2026-09-14T12:56:15.7844222Z ##[group]Inspecting default docker context
+2026-09-14T12:56:15.7987691Z [
+2026-09-14T12:56:15.7989175Z   {
+2026-09-14T12:56:15.7990482Z     "Name": "default",
+2026-09-14T12:56:15.7991955Z     "Metadata": {},
+2026-09-14T12:56:15.7993467Z     "Endpoints": {
+2026-09-14T12:56:15.7994966Z       "docker": {
+2026-09-14T12:56:15.7996850Z         "Host": "unix:///var/run/docker.sock",
+2026-09-14T12:56:15.7998790Z         "SkipTLSVerify": false
+2026-09-14T12:56:15.8000495Z       }
+2026-09-14T12:56:15.8001826Z     },
+2026-09-14T12:56:15.8003232Z     "TLSMaterial": {},
+2026-09-14T12:56:15.8004719Z     "Storage": {
+2026-09-14T12:56:15.8006485Z       "MetadataPath": "<IN MEMORY>",
+2026-09-14T12:56:15.8008313Z       "TLSPath": "<IN MEMORY>"
+2026-09-14T12:56:15.8009952Z     }
+2026-09-14T12:56:15.8011298Z   }
+2026-09-14T12:56:15.8012645Z ]
+2026-09-14T12:56:15.8015175Z ##[endgroup]
+2026-09-14T12:56:15.8017936Z ##[group]Creating a new builder instance
+2026-09-14T12:56:15.9249967Z [command]/usr/bin/docker buildx create --name builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0 --driver docker-container --buildkitd-flags --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host --use
+2026-09-14T12:56:15.9843668Z builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0
+2026-09-14T12:56:15.9877149Z ##[endgroup]
+2026-09-14T12:56:15.9878378Z ##[group]Booting builder
+2026-09-14T12:56:15.9916003Z [command]/usr/bin/docker buildx inspect --bootstrap --builder builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0
+2026-09-14T12:56:16.0405691Z #1 [internal] booting buildkit
+2026-09-14T12:56:16.1910072Z #1 pulling image moby/buildkit:buildx-stable-1
+2026-09-14T12:56:20.4535905Z #1 pulling image moby/buildkit:buildx-stable-1 4.4s done
+2026-09-14T12:56:20.6053407Z #1 creating container buildx_buildkit_builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00
+2026-09-14T12:56:20.7833159Z #1 creating container buildx_buildkit_builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00 0.3s done
+2026-09-14T12:56:20.8162981Z #1 DONE 4.7s
+2026-09-14T12:56:20.8500454Z Name:          builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0
+2026-09-14T12:56:20.8501349Z Driver:        docker-container
+2026-09-14T12:56:20.8501848Z Last Activity: 2026-09-14 12:56:15 +0000 UTC
+2026-09-14T12:56:20.8502207Z 
+2026-09-14T12:56:20.8502357Z Nodes:
+2026-09-14T12:56:20.8502809Z Name:                  builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00
+2026-09-14T12:56:20.8516484Z Endpoint:              unix:///var/run/docker.sock
+2026-09-14T12:56:20.8517118Z Status:                running
+2026-09-14T12:56:20.8518090Z BuildKit daemon flags: --allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host
+2026-09-14T12:56:20.8519053Z BuildKit version:      v0.32.2
+2026-09-14T12:56:20.8519727Z Platforms:             linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/386
+2026-09-14T12:56:20.8520378Z Labels:
+2026-09-14T12:56:20.8520875Z  org.mobyproject.buildkit.worker.executor:         oci
+2026-09-14T12:56:20.8521605Z  org.mobyproject.buildkit.worker.hostname:         6051a08194f3
+2026-09-14T12:56:20.8522325Z  org.mobyproject.buildkit.worker.network:          host
+2026-09-14T12:56:20.8523056Z  org.mobyproject.buildkit.worker.oci.process-mode: sandbox
+2026-09-14T12:56:20.8523842Z  org.mobyproject.buildkit.worker.selinux.enabled:  false
+2026-09-14T12:56:20.8524636Z  org.mobyproject.buildkit.worker.snapshotter:      overlayfs
+2026-09-14T12:56:20.8525269Z GC Policy rule#0:
+2026-09-14T12:56:20.8525871Z  All:            false
+2026-09-14T12:56:20.8526499Z  Filters:        type==source.local type==exec.cachemount type==source.git.checkout
+2026-09-14T12:56:20.8527212Z  Keep Duration:  48h0m0s
+2026-09-14T12:56:20.8527590Z  Max Used Space: 488.3MiB
+2026-09-14T12:56:20.8527964Z GC Policy rule#1:
+2026-09-14T12:56:20.8528317Z  All:            false
+2026-09-14T12:56:20.8528807Z  Keep Duration:  1440h0m0s
+2026-09-14T12:56:20.8529273Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:20.8529747Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:20.8530151Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:20.8530545Z GC Policy rule#2:
+2026-09-14T12:56:20.8530905Z  All:            false
+2026-09-14T12:56:20.8531282Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:20.8531707Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:20.8532078Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:20.8532516Z GC Policy rule#3:
+2026-09-14T12:56:20.8532887Z  All:            true
+2026-09-14T12:56:20.8533313Z  Reserved Space: 9.313GiB
+2026-09-14T12:56:20.8533701Z  Max Used Space: 93.13GiB
+2026-09-14T12:56:20.8534145Z  Min Free Space: 27.01GiB
+2026-09-14T12:56:20.8555782Z ##[endgroup]
+2026-09-14T12:56:20.9499861Z ##[group]Inspect builder
+2026-09-14T12:56:20.9506318Z {
+2026-09-14T12:56:20.9516276Z   "nodes": [
+2026-09-14T12:56:20.9516673Z     {
+2026-09-14T12:56:20.9517017Z       "name": "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00",
+2026-09-14T12:56:20.9517443Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T12:56:20.9517750Z       "status": "running",
+2026-09-14T12:56:20.9518301Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T12:56:20.9518970Z       "buildkit": "v0.32.2",
+2026-09-14T12:56:20.9519341Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T12:56:20.9519724Z       "features": {
+2026-09-14T12:56:20.9520063Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T12:56:20.9520470Z         "Cache export": true,
+2026-09-14T12:56:20.9520737Z         "Direct push": true,
+2026-09-14T12:56:20.9521269Z         "Docker exporter": true,
+2026-09-14T12:56:20.9521567Z         "Multi-platform build": true,
+2026-09-14T12:56:20.9521868Z         "OCI exporter": true
+2026-09-14T12:56:20.9522094Z       },
+2026-09-14T12:56:20.9522306Z       "labels": {
+2026-09-14T12:56:20.9522752Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T12:56:20.9523224Z         "org.mobyproject.buildkit.worker.hostname": "6051a08194f3",
+2026-09-14T12:56:20.9523675Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T12:56:20.9524147Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T12:56:20.9524637Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T12:56:20.9525152Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T12:56:20.9526035Z       },
+2026-09-14T12:56:20.9526256Z       "gcPolicy": [
+2026-09-14T12:56:20.9526479Z         {
+2026-09-14T12:56:20.9526688Z           "all": false,
+2026-09-14T12:56:20.9526934Z           "filter": [
+2026-09-14T12:56:20.9527288Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T12:56:20.9527700Z           ],
+2026-09-14T12:56:20.9527929Z           "keepDuration": "48h0m0s",
+2026-09-14T12:56:20.9528210Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T12:56:20.9528486Z         },
+2026-09-14T12:56:20.9528684Z         {
+2026-09-14T12:56:20.9528885Z           "all": false,
+2026-09-14T12:56:20.9529159Z           "keepDuration": "1440h0m0s",
+2026-09-14T12:56:20.9529456Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:20.9529765Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:20.9530070Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:20.9530330Z         },
+2026-09-14T12:56:20.9530511Z         {
+2026-09-14T12:56:20.9530713Z           "all": false,
+2026-09-14T12:56:20.9530964Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:20.9531264Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:20.9531550Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:20.9531843Z         },
+2026-09-14T12:56:20.9532042Z         {
+2026-09-14T12:56:20.9532267Z           "all": true,
+2026-09-14T12:56:20.9532533Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:20.9532865Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:20.9533194Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:20.9533517Z         }
+2026-09-14T12:56:20.9533736Z       ]
+2026-09-14T12:56:20.9533932Z     }
+2026-09-14T12:56:20.9534129Z   ],
+2026-09-14T12:56:20.9534403Z   "name": "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0",
+2026-09-14T12:56:20.9534795Z   "driver": "docker-container",
+2026-09-14T12:56:20.9535094Z   "lastActivity": "2026-09-14T12:56:15.000Z"
+2026-09-14T12:56:20.9535382Z }
+2026-09-14T12:56:20.9536409Z ##[endgroup]
+2026-09-14T12:56:20.9536849Z ##[group]BuildKit version
+2026-09-14T12:56:20.9537179Z builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00: v0.32.2
+2026-09-14T12:56:20.9537705Z ##[endgroup]
+2026-09-14T12:56:20.9711456Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:20.9712745Z ##[group]Run docker/login-action@v3
+2026-09-14T12:56:20.9713011Z with:
+2026-09-14T12:56:20.9713213Z   registry: ghcr.io
+2026-09-14T12:56:20.9713437Z   username: developerlhc
+2026-09-14T12:56:20.9716417Z   password: ***
+2026-09-14T12:56:20.9716648Z   logout: true
+2026-09-14T12:56:20.9716850Z ##[endgroup]
+2026-09-14T12:56:21.2859732Z Logging into ghcr.io...
+2026-09-14T12:56:21.2883276Z (node:2751) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:21.2884924Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:21.4535382Z Login Succeeded!
+2026-09-14T12:56:21.4738551Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:21.4739828Z ##[group]Run docker/metadata-action@v5
+2026-09-14T12:56:21.4740090Z with:
+2026-09-14T12:56:21.4740306Z   images: ghcr.io/developerlhc/vigilay-api
+2026-09-14T12:56:21.4740656Z   tags: type=raw,value=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:21.4740991Z   context: workflow
+2026-09-14T12:56:21.4743438Z   github-token: ***
+2026-09-14T12:56:21.4743646Z ##[endgroup]
+2026-09-14T12:56:21.8620954Z (node:2771) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:21.8622180Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:22.1138251Z ##[group]Context info
+2026-09-14T12:56:22.1138680Z eventName: push
+2026-09-14T12:56:22.1139182Z sha: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1139676Z ref: refs/heads/main
+2026-09-14T12:56:22.1140052Z workflow: Vigilay checks
+2026-09-14T12:56:22.1140430Z action: meta
+2026-09-14T12:56:22.1140824Z actor: developerlhc
+2026-09-14T12:56:22.1141176Z runNumber: 22
+2026-09-14T12:56:22.1141551Z runId: 34846028989
+2026-09-14T12:56:22.1142137Z commitDate: Mon Sep 14 2026 12:54:29 GMT+0000 (Coordinated Universal Time)
+2026-09-14T12:56:22.1143093Z ##[endgroup]
+2026-09-14T12:56:22.1157101Z ##[group]Processing images input
+2026-09-14T12:56:22.1157906Z name=ghcr.io/developerlhc/vigilay-api,enable=true
+2026-09-14T12:56:22.1158933Z ##[endgroup]
+2026-09-14T12:56:22.1159808Z ##[group]Processing tags input
+2026-09-14T12:56:22.1160764Z type=raw,value=f3b3fba671c5df44e063b94ad08d055b9d177e40,enable=true,priority=200
+2026-09-14T12:56:22.1162004Z ##[endgroup]
+2026-09-14T12:56:22.1162890Z ##[group]Processing flavor input
+2026-09-14T12:56:22.1163524Z latest=auto
+2026-09-14T12:56:22.1164076Z prefix=
+2026-09-14T12:56:22.1164593Z prefixLatest=false
+2026-09-14T12:56:22.1165131Z suffix=
+2026-09-14T12:56:22.1165868Z suffixLatest=false
+2026-09-14T12:56:22.1166706Z ##[endgroup]
+2026-09-14T12:56:22.1196484Z ##[group]Docker image version
+2026-09-14T12:56:22.1197158Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1198093Z ##[endgroup]
+2026-09-14T12:56:22.1201756Z ##[group]Docker tags
+2026-09-14T12:56:22.1202329Z ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1203218Z ##[endgroup]
+2026-09-14T12:56:22.1278293Z ##[group]Docker labels
+2026-09-14T12:56:22.1279143Z org.opencontainers.image.created=2026-09-14T12:56:22.115Z
+2026-09-14T12:56:22.1280356Z org.opencontainers.image.description=
+2026-09-14T12:56:22.1280884Z org.opencontainers.image.licenses=
+2026-09-14T12:56:22.1281580Z org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1282558Z org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:22.1283308Z org.opencontainers.image.title=camara_ia
+2026-09-14T12:56:22.1283962Z org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:22.1284850Z org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1286162Z ##[endgroup]
+2026-09-14T12:56:22.1286723Z ##[group]Annotations
+2026-09-14T12:56:22.1287254Z manifest:org.opencontainers.image.created=2026-09-14T12:56:22.115Z
+2026-09-14T12:56:22.1287964Z manifest:org.opencontainers.image.description=
+2026-09-14T12:56:22.1288540Z manifest:org.opencontainers.image.licenses=
+2026-09-14T12:56:22.1289316Z manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1290333Z manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:22.1291197Z manifest:org.opencontainers.image.title=camara_ia
+2026-09-14T12:56:22.1292576Z manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+2026-09-14T12:56:22.1293620Z manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1294605Z ##[endgroup]
+2026-09-14T12:56:22.1295200Z ##[group]JSON output
+2026-09-14T12:56:22.1295757Z {
+2026-09-14T12:56:22.1296046Z   "tags": [
+2026-09-14T12:56:22.1296599Z     "ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1297260Z   ],
+2026-09-14T12:56:22.1297550Z   "tag-names": [
+2026-09-14T12:56:22.1297927Z     "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1298384Z   ],
+2026-09-14T12:56:22.1298663Z   "labels": {
+2026-09-14T12:56:22.1299162Z     "org.opencontainers.image.created": "2026-09-14T12:56:22.115Z",
+2026-09-14T12:56:22.1299826Z     "org.opencontainers.image.description": "",
+2026-09-14T12:56:22.1300401Z     "org.opencontainers.image.licenses": "",
+2026-09-14T12:56:22.1301145Z     "org.opencontainers.image.revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:22.1302116Z     "org.opencontainers.image.source": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1302902Z     "org.opencontainers.image.title": "camara_ia",
+2026-09-14T12:56:22.1303644Z     "org.opencontainers.image.url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1304598Z     "org.opencontainers.image.version": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1305263Z   },
+2026-09-14T12:56:22.1305737Z   "annotations": [
+2026-09-14T12:56:22.1306273Z     "manifest:org.opencontainers.image.created=2026-09-14T12:56:22.115Z",
+2026-09-14T12:56:22.1307010Z     "manifest:org.opencontainers.image.description=",
+2026-09-14T12:56:22.1307622Z     "manifest:org.opencontainers.image.licenses=",
+2026-09-14T12:56:22.1308468Z     "manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:22.1309542Z     "manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1310501Z     "manifest:org.opencontainers.image.title=camara_ia",
+2026-09-14T12:56:22.1311337Z     "manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1312452Z     "manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1313244Z   ]
+2026-09-14T12:56:22.1313531Z }
+2026-09-14T12:56:22.1314211Z ##[endgroup]
+2026-09-14T12:56:22.1314935Z ##[group]Bake file definition (tags)
+2026-09-14T12:56:22.1315412Z {
+2026-09-14T12:56:22.1315942Z   "target": {
+2026-09-14T12:56:22.1316340Z     "docker-metadata-action": {
+2026-09-14T12:56:22.1316788Z       "tags": [
+2026-09-14T12:56:22.1317420Z         "ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1318190Z       ],
+2026-09-14T12:56:22.1318568Z       "args": {
+2026-09-14T12:56:22.1319100Z         "DOCKER_META_IMAGES": "ghcr.io/developerlhc/vigilay-api",
+2026-09-14T12:56:22.1319917Z         "DOCKER_META_VERSION": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1320616Z       }
+2026-09-14T12:56:22.1320936Z     }
+2026-09-14T12:56:22.1321249Z   }
+2026-09-14T12:56:22.1321529Z }
+2026-09-14T12:56:22.1322118Z ##[endgroup]
+2026-09-14T12:56:22.1323799Z ##[group]Bake file definition (labels)
+2026-09-14T12:56:22.1324278Z {
+2026-09-14T12:56:22.1324593Z   "target": {
+2026-09-14T12:56:22.1324961Z     "docker-metadata-action": {
+2026-09-14T12:56:22.1325420Z       "labels": {
+2026-09-14T12:56:22.1326164Z         "org.opencontainers.image.created": "2026-09-14T12:56:22.115Z",
+2026-09-14T12:56:22.1326918Z         "org.opencontainers.image.description": "",
+2026-09-14T12:56:22.1327543Z         "org.opencontainers.image.licenses": "",
+2026-09-14T12:56:22.1328402Z         "org.opencontainers.image.revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:22.1329485Z         "org.opencontainers.image.source": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1330632Z         "org.opencontainers.image.title": "camara_ia",
+2026-09-14T12:56:22.1331650Z         "org.opencontainers.image.url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1332778Z         "org.opencontainers.image.version": "f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1333686Z       }
+2026-09-14T12:56:22.1334024Z     }
+2026-09-14T12:56:22.1334332Z   }
+2026-09-14T12:56:22.1334629Z }
+2026-09-14T12:56:22.1335228Z ##[endgroup]
+2026-09-14T12:56:22.1336089Z ##[group]Bake file definition (annotations)
+2026-09-14T12:56:22.1336599Z {
+2026-09-14T12:56:22.1336910Z   "target": {
+2026-09-14T12:56:22.1337304Z     "docker-metadata-action": {
+2026-09-14T12:56:22.1337743Z       "annotations": [
+2026-09-14T12:56:22.1338366Z         "manifest:org.opencontainers.image.created=2026-09-14T12:56:22.115Z",
+2026-09-14T12:56:22.1339184Z         "manifest:org.opencontainers.image.description=",
+2026-09-14T12:56:22.1339882Z         "manifest:org.opencontainers.image.licenses=",
+2026-09-14T12:56:22.1340835Z         "manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:22.1342041Z         "manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1343015Z         "manifest:org.opencontainers.image.title=camara_ia",
+2026-09-14T12:56:22.1343932Z         "manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:22.1345074Z         "manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:22.1346109Z       ]
+2026-09-14T12:56:22.1346441Z     }
+2026-09-14T12:56:22.1346757Z   }
+2026-09-14T12:56:22.1347308Z }
+2026-09-14T12:56:22.1347973Z ##[endgroup]
+2026-09-14T12:56:22.1540498Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:22.1541787Z ##[group]Run docker/build-push-action@v6
+2026-09-14T12:56:22.1542055Z with:
+2026-09-14T12:56:22.1542240Z   context: .
+2026-09-14T12:56:22.1542445Z   file: infra/docker/api.Dockerfile
+2026-09-14T12:56:22.1542695Z   push: true
+2026-09-14T12:56:22.1543028Z   tags: ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1543443Z   cache-from: type=gha
+2026-09-14T12:56:22.1543670Z   cache-to: type=gha,mode=max
+2026-09-14T12:56:22.1543907Z   load: false
+2026-09-14T12:56:22.1544098Z   no-cache: false
+2026-09-14T12:56:22.1544294Z   pull: false
+2026-09-14T12:56:22.1546966Z   github-token: ***
+2026-09-14T12:56:22.1547218Z env:
+2026-09-14T12:56:22.1547522Z   DOCKER_METADATA_OUTPUT_VERSION: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1548120Z   DOCKER_METADATA_OUTPUT_TAGS: ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1548714Z   DOCKER_METADATA_OUTPUT_TAG_NAMES: f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1550735Z   DOCKER_METADATA_OUTPUT_LABELS: org.opencontainers.image.created=2026-09-14T12:56:22.115Z
+org.opencontainers.image.description=
+org.opencontainers.image.licenses=
+org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+org.opencontainers.image.title=camara_ia
+org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1554559Z   DOCKER_METADATA_OUTPUT_ANNOTATIONS: manifest:org.opencontainers.image.created=2026-09-14T12:56:22.115Z
+manifest:org.opencontainers.image.description=
+manifest:org.opencontainers.image.licenses=
+manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40
+manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia
+manifest:org.opencontainers.image.title=camara_ia
+manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia
+manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:56:22.1561391Z   DOCKER_METADATA_OUTPUT_JSON: {"tags":["ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40"],"tag-names":["f3b3fba671c5df44e063b94ad08d055b9d177e40"],"labels":{"org.opencontainers.image.created":"2026-09-14T12:56:22.115Z","org.opencontainers.image.description":"","org.opencontainers.image.licenses":"","org.opencontainers.image.revision":"f3b3fba671c5df44e063b94ad08d055b9d177e40","org.opencontainers.image.source":"https://github.com/developerlhc/camara_ia","org.opencontainers.image.title":"camara_ia","org.opencontainers.image.url":"https://github.com/developerlhc/camara_ia","org.opencontainers.image.version":"f3b3fba671c5df44e063b94ad08d055b9d177e40"},"annotations":["manifest:org.opencontainers.image.created=2026-09-14T12:56:22.115Z","manifest:org.opencontainers.image.description=","manifest:org.opencontainers.image.licenses=","manifest:org.opencontainers.image.revision=f3b3fba671c5df44e063b94ad08d055b9d177e40","manifest:org.opencontainers.image.source=https://github.com/developerlhc/camara_ia","manifest:org.opencontainers.image.title=camara_ia","manifest:org.opencontainers.image.url=https://github.com/developerlhc/camara_ia","manifest:org.opencontainers.image.version=f3b3fba671c5df44e063b94ad08d055b9d177e40"]}
+2026-09-14T12:56:22.1566608Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS: /home/runner/work/_temp/docker-actions-toolkit-HCyQAJ/docker-metadata-action-bake-tags.json
+2026-09-14T12:56:22.1567744Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS: /home/runner/work/_temp/docker-actions-toolkit-HCyQAJ/docker-metadata-action-bake-labels.json
+2026-09-14T12:56:22.1568723Z   DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS: /home/runner/work/_temp/docker-actions-toolkit-HCyQAJ/docker-metadata-action-bake-annotations.json
+2026-09-14T12:56:22.1569640Z   DOCKER_METADATA_OUTPUT_BAKE_FILE: /home/runner/work/_temp/docker-actions-toolkit-HCyQAJ/docker-metadata-action-bake.json
+2026-09-14T12:56:22.1570194Z ##[endgroup]
+2026-09-14T12:56:22.4061623Z (node:2783) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:22.4063098Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:22.4083128Z ##[group]GitHub Actions runtime token ACs
+2026-09-14T12:56:22.4091184Z refs/heads/main: read/write
+2026-09-14T12:56:22.4092348Z ##[endgroup]
+2026-09-14T12:56:22.4093049Z ##[group]Docker info
+2026-09-14T12:56:22.4142420Z [command]/usr/bin/docker version
+2026-09-14T12:56:22.4386284Z Client: Docker Engine - Community
+2026-09-14T12:56:22.4424675Z  Version:           28.0.4
+2026-09-14T12:56:22.4432781Z  API version:       1.48
+2026-09-14T12:56:22.4455217Z  Go version:        go1.23.7
+2026-09-14T12:56:22.4486333Z  Git commit:        b8034c0
+2026-09-14T12:56:22.4496532Z  Built:             Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:22.4516172Z  OS/Arch:           linux/amd64
+2026-09-14T12:56:22.4546367Z  Context:           default
+2026-09-14T12:56:22.4574749Z 
+2026-09-14T12:56:22.4575274Z Server: Docker Engine - Community
+2026-09-14T12:56:22.4576399Z  Engine:
+2026-09-14T12:56:22.4576900Z   Version:          28.0.4
+2026-09-14T12:56:22.4577742Z   API version:      1.48 (minimum version 1.24)
+2026-09-14T12:56:22.4578720Z   Go version:       go1.23.7
+2026-09-14T12:56:22.4579333Z   Git commit:       6430e49
+2026-09-14T12:56:22.4580170Z   Built:            Tue Mar 25 15:07:16 2025
+2026-09-14T12:56:22.4581029Z   OS/Arch:          linux/amd64
+2026-09-14T12:56:22.4581637Z   Experimental:     false
+2026-09-14T12:56:22.4582510Z  containerd:
+2026-09-14T12:56:22.4583044Z   Version:          v2.3.4
+2026-09-14T12:56:22.4584069Z   GitCommit:        db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:22.4585077Z  runc:
+2026-09-14T12:56:22.4585578Z   Version:          1.5.1
+2026-09-14T12:56:22.4586486Z   GitCommit:        v1.5.1-0-g8f2685a4
+2026-09-14T12:56:22.4587817Z  docker-init:
+2026-09-14T12:56:22.4588364Z   Version:          0.19.0
+2026-09-14T12:56:22.4588726Z   GitCommit:        de40ad0
+2026-09-14T12:56:22.4589775Z [command]/usr/bin/docker info
+2026-09-14T12:56:22.5088119Z Client: Docker Engine - Community
+2026-09-14T12:56:22.5126282Z  Version:    28.0.4
+2026-09-14T12:56:22.5146454Z  Context:    default
+2026-09-14T12:56:22.5174807Z  Debug Mode: false
+2026-09-14T12:56:22.5199750Z  Plugins:
+2026-09-14T12:56:22.5216382Z   buildx: Docker Buildx (Docker Inc.)
+2026-09-14T12:56:22.5243636Z     Version:  v0.37.0
+2026-09-14T12:56:22.5244708Z     Path:     /usr/libexec/docker/cli-plugins/docker-buildx
+2026-09-14T12:56:22.5245908Z   compose: Docker Compose (Docker Inc.)
+2026-09-14T12:56:22.5246708Z     Version:  v2.38.2
+2026-09-14T12:56:22.5247786Z     Path:     /usr/libexec/docker/cli-plugins/docker-compose
+2026-09-14T12:56:22.5248582Z 
+2026-09-14T12:56:22.5249255Z Server:
+2026-09-14T12:56:22.5249785Z  Containers: 1
+2026-09-14T12:56:22.5250377Z   Running: 1
+2026-09-14T12:56:22.5250995Z   Paused: 0
+2026-09-14T12:56:22.5251536Z   Stopped: 0
+2026-09-14T12:56:22.5252080Z  Images: 7
+2026-09-14T12:56:22.5252607Z  Server Version: 28.0.4
+2026-09-14T12:56:22.5253218Z  Storage Driver: overlay2
+2026-09-14T12:56:22.5253864Z   Backing Filesystem: extfs
+2026-09-14T12:56:22.5254523Z   Supports d_type: true
+2026-09-14T12:56:22.5255233Z   Using metacopy: false
+2026-09-14T12:56:22.5256230Z   Native Overlay Diff: false
+2026-09-14T12:56:22.5256982Z   userxattr: false
+2026-09-14T12:56:22.5257660Z  Logging Driver: json-file
+2026-09-14T12:56:22.5258365Z  Cgroup Driver: systemd
+2026-09-14T12:56:22.5259094Z  Cgroup Version: 2
+2026-09-14T12:56:22.5259740Z  Plugins:
+2026-09-14T12:56:22.5260772Z   Volume: local
+2026-09-14T12:56:22.5261464Z   Network: bridge host ipvlan macvlan null overlay
+2026-09-14T12:56:22.5262403Z   Log: awslogs fluentd gcplogs gelf journald json-file local splunk syslog
+2026-09-14T12:56:22.5263294Z  Swarm: inactive
+2026-09-14T12:56:22.5263878Z  Runtimes: io.containerd.runc.v2 runc
+2026-09-14T12:56:22.5264566Z  Default Runtime: runc
+2026-09-14T12:56:22.5265169Z  Init Binary: docker-init
+2026-09-14T12:56:22.5266232Z  containerd version: db8809540e1a7a9da5d518876894933ff55692ab
+2026-09-14T12:56:22.5267227Z  runc version: v1.5.1-0-g8f2685a4
+2026-09-14T12:56:22.5267950Z  init version: de40ad0
+2026-09-14T12:56:22.5268605Z  Security Options:
+2026-09-14T12:56:22.5269254Z   apparmor
+2026-09-14T12:56:22.5269819Z   seccomp
+2026-09-14T12:56:22.5270397Z    Profile: builtin
+2026-09-14T12:56:22.5270985Z   cgroupns
+2026-09-14T12:56:22.5271558Z  Kernel Version: 6.17.0-1022-azure
+2026-09-14T12:56:22.5272243Z  Operating System: Ubuntu 24.04.5 LTS
+2026-09-14T12:56:22.5272896Z  OSType: linux
+2026-09-14T12:56:22.5273443Z  Architecture: x86_64
+2026-09-14T12:56:22.5274025Z  CPUs: 4
+2026-09-14T12:56:22.5274533Z  Total Memory: 15.62GiB
+2026-09-14T12:56:22.5275129Z  Name: runnervmlun5p
+2026-09-14T12:56:22.5276091Z  ID: a4efb8b6-20f9-46f4-b827-91ac0547be3a
+2026-09-14T12:56:22.5276829Z  Docker Root Dir: /var/lib/docker
+2026-09-14T12:56:22.5277482Z  Debug Mode: false
+2026-09-14T12:56:22.5278035Z  Username: githubactions
+2026-09-14T12:56:22.5278654Z  Experimental: false
+2026-09-14T12:56:22.5279230Z  Insecure Registries:
+2026-09-14T12:56:22.5279834Z   ::1/128
+2026-09-14T12:56:22.5280349Z   127.0.0.0/8
+2026-09-14T12:56:22.5280885Z  Live Restore Enabled: false
+2026-09-14T12:56:22.5281477Z 
+2026-09-14T12:56:22.5282265Z ##[endgroup]
+2026-09-14T12:56:22.5283160Z ##[group]Proxy configuration
+2026-09-14T12:56:22.5283947Z No proxy configuration found
+2026-09-14T12:56:22.5284910Z ##[endgroup]
+2026-09-14T12:56:22.5906082Z ##[group]Buildx version
+2026-09-14T12:56:22.5933001Z [command]/usr/bin/docker buildx version
+2026-09-14T12:56:22.6409441Z github.com/docker/buildx v0.37.0 ac30b249211430b85fb8f37b6e7154b5c47ba0b6
+2026-09-14T12:56:22.6444015Z ##[endgroup]
+2026-09-14T12:56:22.6444737Z ##[group]Builder info
+2026-09-14T12:56:22.7373650Z {
+2026-09-14T12:56:22.7374008Z   "nodes": [
+2026-09-14T12:56:22.7374220Z     {
+2026-09-14T12:56:22.7374772Z       "name": "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00",
+2026-09-14T12:56:22.7375153Z       "endpoint": "unix:///var/run/docker.sock",
+2026-09-14T12:56:22.7375744Z       "status": "running",
+2026-09-14T12:56:22.7376502Z       "buildkitd-flags": "--allow-insecure-entitlement security.insecure --allow-insecure-entitlement network.host",
+2026-09-14T12:56:22.7377064Z       "buildkit": "v0.32.2",
+2026-09-14T12:56:22.7377422Z       "platforms": "linux/amd64,linux/amd64/v2,linux/amd64/v3,linux/386",
+2026-09-14T12:56:22.7377789Z       "features": {
+2026-09-14T12:56:22.7378099Z         "Automatically load images to the Docker Engine image store": true,
+2026-09-14T12:56:22.7378500Z         "Cache export": true,
+2026-09-14T12:56:22.7378744Z         "Direct push": true,
+2026-09-14T12:56:22.7378984Z         "Docker exporter": true,
+2026-09-14T12:56:22.7379246Z         "Multi-platform build": true,
+2026-09-14T12:56:22.7379509Z         "OCI exporter": true
+2026-09-14T12:56:22.7379729Z       },
+2026-09-14T12:56:22.7379913Z       "labels": {
+2026-09-14T12:56:22.7380175Z         "org.mobyproject.buildkit.worker.executor": "oci",
+2026-09-14T12:56:22.7380581Z         "org.mobyproject.buildkit.worker.hostname": "6051a08194f3",
+2026-09-14T12:56:22.7380982Z         "org.mobyproject.buildkit.worker.network": "host",
+2026-09-14T12:56:22.7381425Z         "org.mobyproject.buildkit.worker.oci.process-mode": "sandbox",
+2026-09-14T12:56:22.7381899Z         "org.mobyproject.buildkit.worker.selinux.enabled": "false",
+2026-09-14T12:56:22.7382349Z         "org.mobyproject.buildkit.worker.snapshotter": "overlayfs"
+2026-09-14T12:56:22.7382687Z       },
+2026-09-14T12:56:22.7382867Z       "gcPolicy": [
+2026-09-14T12:56:22.7383219Z         {
+2026-09-14T12:56:22.7383424Z           "all": false,
+2026-09-14T12:56:22.7383637Z           "filter": [
+2026-09-14T12:56:22.7383954Z             "type==source.local type==exec.cachemount type==source.git.checkout"
+2026-09-14T12:56:22.7384328Z           ],
+2026-09-14T12:56:22.7384540Z           "keepDuration": "48h0m0s",
+2026-09-14T12:56:22.7384804Z           "maxUsedSpace": "488.3MiB"
+2026-09-14T12:56:22.7385041Z         },
+2026-09-14T12:56:22.7385209Z         {
+2026-09-14T12:56:22.7385383Z           "all": false,
+2026-09-14T12:56:22.7385910Z           "keepDuration": "1440h0m0s",
+2026-09-14T12:56:22.7386323Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:22.7386583Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:22.7386829Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:22.7387062Z         },
+2026-09-14T12:56:22.7387230Z         {
+2026-09-14T12:56:22.7387403Z           "all": false,
+2026-09-14T12:56:22.7387645Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:22.7387905Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:22.7388154Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:22.7388389Z         },
+2026-09-14T12:56:22.7388558Z         {
+2026-09-14T12:56:22.7388770Z           "all": true,
+2026-09-14T12:56:22.7389004Z           "reservedSpace": "9.313GiB",
+2026-09-14T12:56:22.7389261Z           "maxUsedSpace": "93.13GiB",
+2026-09-14T12:56:22.7389505Z           "minFreeSpace": "27.01GiB"
+2026-09-14T12:56:22.7389736Z         }
+2026-09-14T12:56:22.7389910Z       ]
+2026-09-14T12:56:22.7390078Z     }
+2026-09-14T12:56:22.7390241Z   ],
+2026-09-14T12:56:22.7390495Z   "name": "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0",
+2026-09-14T12:56:22.7390825Z   "driver": "docker-container",
+2026-09-14T12:56:22.7391103Z   "lastActivity": "2026-09-14T12:56:15.000Z"
+2026-09-14T12:56:22.7391362Z }
+2026-09-14T12:56:22.7391768Z ##[endgroup]
+2026-09-14T12:56:22.8947568Z [command]/usr/bin/docker buildx build --cache-from type=gha --cache-to type=gha,mode=max --file infra/docker/api.Dockerfile --iidfile /home/runner/work/_temp/docker-actions-toolkit-dpwDhN/build-iidfile-3b2498d7ca.txt --attest type=provenance,mode=max,builder-id=https://github.com/developerlhc/camara_ia/actions/runs/34846028989/attempts/1 --tag ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40 --metadata-file /home/runner/work/_temp/docker-actions-toolkit-dpwDhN/build-metadata-9ad220370d.json --push .
+2026-09-14T12:56:23.2005249Z #0 building with "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0" instance using docker-container driver
+2026-09-14T12:56:23.2006359Z 
+2026-09-14T12:56:23.2006575Z #1 [internal] load build definition from api.Dockerfile
+2026-09-14T12:56:23.2007055Z #1 transferring dockerfile: 877B done
+2026-09-14T12:56:23.2007420Z #1 DONE 0.0s
+2026-09-14T12:56:23.2007583Z 
+2026-09-14T12:56:23.2007808Z #2 [auth] library/python:pull token for registry-1.docker.io
+2026-09-14T12:56:23.2008255Z #2 DONE 0.0s
+2026-09-14T12:56:23.2008407Z 
+2026-09-14T12:56:23.2008684Z #3 [internal] load metadata for docker.io/library/python:3.13-slim
+2026-09-14T12:56:23.3442116Z #3 DONE 0.3s
+2026-09-14T12:56:23.4446517Z 
+2026-09-14T12:56:23.4446958Z #4 [internal] load .dockerignore
+2026-09-14T12:56:23.4447454Z #4 transferring context: 208B done
+2026-09-14T12:56:23.4447902Z #4 DONE 0.0s
+2026-09-14T12:56:23.4448130Z 
+2026-09-14T12:56:23.4448820Z #5 [builder 1/6] FROM docker.io/library/python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
+2026-09-14T12:56:23.4449773Z #5 resolve docker.io/library/python:3.13-slim@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285 done
+2026-09-14T12:56:23.4450645Z #5 DONE 0.0s
+2026-09-14T12:56:23.4450861Z 
+2026-09-14T12:56:23.4451118Z #6 importing cache manifest from gha:80630892761998656
+2026-09-14T12:56:23.4451660Z #6 DONE 0.1s
+2026-09-14T12:56:23.4451876Z 
+2026-09-14T12:56:23.4452053Z #7 [internal] load build context
+2026-09-14T12:56:23.5527614Z #7 transferring context: 161.82kB 0.0s done
+2026-09-14T12:56:23.5528827Z #7 DONE 0.0s
+2026-09-14T12:56:23.5529499Z 
+2026-09-14T12:56:23.5529722Z #8 [builder 2/6] WORKDIR /src
+2026-09-14T12:56:23.5530550Z #8 sha256:9b83eae799b831086df12d4da65c2edb0e6c713caa4312455bc8ee4b1a256c39 249B / 249B 0.0s done
+2026-09-14T12:56:23.6689724Z #8 sha256:7af32f01d0a4113e23b99772235264c0fe49aeb79ec23cd9be83534797edd997 93B / 93B 0.1s done
+2026-09-14T12:56:23.6690699Z #8 sha256:5bbcb35ea63ee8dd9b96c06b0f78b33c9a32e06e5b14e1bfeb46b498a93edb5d 4.27MB / 4.27MB 0.1s done
+2026-09-14T12:56:23.6691607Z #8 sha256:237e12970bdcabcdd95dab0f8dc59cda22b450156ee0bd01c58e0cf3b9c43885 2.10MB / 11.91MB 0.2s
+2026-09-14T12:56:23.8536515Z #8 sha256:237e12970bdcabcdd95dab0f8dc59cda22b450156ee0bd01c58e0cf3b9c43885 11.91MB / 11.91MB 0.2s done
+2026-09-14T12:56:23.8537789Z #8 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 19.92MB / 29.79MB 0.3s
+2026-09-14T12:56:24.0719892Z #8 sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 29.79MB / 29.79MB 0.4s done
+2026-09-14T12:56:24.0721148Z #8 extracting sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be
+2026-09-14T12:56:24.5748767Z #8 extracting sha256:6310eb16bf4251731feab01e8f633bf5e2d75a657ccad97f420b1f83cce457be 0.7s done
+2026-09-14T12:56:24.5749650Z #8 DONE 1.1s
+2026-09-14T12:56:24.6884314Z 
+2026-09-14T12:56:24.6885517Z #8 [builder 2/6] WORKDIR /src
+2026-09-14T12:56:24.6887088Z #8 extracting sha256:5bbcb35ea63ee8dd9b96c06b0f78b33c9a32e06e5b14e1bfeb46b498a93edb5d 0.1s done
+2026-09-14T12:56:24.6887799Z #8 DONE 1.2s
+2026-09-14T12:56:24.8395374Z 
+2026-09-14T12:56:24.8399303Z #8 [builder 2/6] WORKDIR /src
+2026-09-14T12:56:24.8399823Z #8 extracting sha256:237e12970bdcabcdd95dab0f8dc59cda22b450156ee0bd01c58e0cf3b9c43885
+2026-09-14T12:56:25.0489169Z #8 extracting sha256:237e12970bdcabcdd95dab0f8dc59cda22b450156ee0bd01c58e0cf3b9c43885 0.4s done
+2026-09-14T12:56:25.0491325Z #8 DONE 1.6s
+2026-09-14T12:56:25.1692715Z 
+2026-09-14T12:56:25.1693218Z #8 [builder 2/6] WORKDIR /src
+2026-09-14T12:56:25.1694241Z #8 extracting sha256:9b83eae799b831086df12d4da65c2edb0e6c713caa4312455bc8ee4b1a256c39 done
+2026-09-14T12:56:25.1695630Z #8 extracting sha256:7af32f01d0a4113e23b99772235264c0fe49aeb79ec23cd9be83534797edd997 done
+2026-09-14T12:56:25.1696347Z #8 DONE 1.6s
+2026-09-14T12:56:25.1696527Z 
+2026-09-14T12:56:25.1696747Z #9 [builder 3/6] COPY pyproject.toml ./
+2026-09-14T12:56:25.1697471Z #9 DONE 0.1s
+2026-09-14T12:56:25.3473413Z 
+2026-09-14T12:56:25.3474117Z #10 [builder 4/6] COPY apps/api/src apps/api/src
+2026-09-14T12:56:25.3474970Z #10 DONE 0.0s
+2026-09-14T12:56:25.3475285Z 
+2026-09-14T12:56:25.3475775Z #11 [builder 5/6] COPY services/camera-adapters/src services/camera-adapters/src
+2026-09-14T12:56:25.3476827Z #11 DONE 0.0s
+2026-09-14T12:56:25.3476981Z 
+2026-09-14T12:56:25.3477210Z #12 [builder 6/6] RUN pip wheel --no-cache-dir --wheel-dir /wheels .
+2026-09-14T12:56:26.5594939Z #12 1.363 Processing ./.
+2026-09-14T12:56:26.7124411Z #12 1.365   Installing build dependencies: started
+2026-09-14T12:56:27.2251482Z #12 2.028   Installing build dependencies: finished with status 'done'
+2026-09-14T12:56:27.3768090Z #12 2.029   Getting requirements to build wheel: started
+2026-09-14T12:56:27.6935713Z #12 2.497   Getting requirements to build wheel: finished with status 'done'
+2026-09-14T12:56:27.8455548Z #12 2.498   Preparing metadata (pyproject.toml): started
+2026-09-14T12:56:27.8988714Z #12 2.702   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-09-14T12:56:28.0063133Z #12 2.781 Collecting fastapi<1,>=0.115 (from vigilay==0.1.0)
+2026-09-14T12:56:28.0063936Z #12 2.809   Downloading fastapi-0.141.1-py3-none-any.whl.metadata (27 kB)
+2026-09-14T12:56:28.1881076Z #12 2.836 Collecting uvicorn<1,>=0.34 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:28.1882017Z #12 2.840   Downloading uvicorn-0.53.0-py3-none-any.whl.metadata (6.6 kB)
+2026-09-14T12:56:28.2860181Z #12 3.089 Collecting sqlalchemy<2.1,>=2.0.38 (from vigilay==0.1.0)
+2026-09-14T12:56:28.5108087Z #12 3.093   Downloading sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (9.6 kB)
+2026-09-14T12:56:28.5109014Z #12 3.113 Collecting alembic<2,>=1.14 (from vigilay==0.1.0)
+2026-09-14T12:56:28.5109588Z #12 3.116   Downloading alembic-1.20.0-py3-none-any.whl.metadata (7.3 kB)
+2026-09-14T12:56:28.5110226Z #12 3.127 Collecting pymysql<2,>=1.1 (from pymysql[rsa]<2,>=1.1->vigilay==0.1.0)
+2026-09-14T12:56:28.5111247Z #12 3.130   Downloading pymysql-1.2.0-py3-none-any.whl.metadata (4.3 kB)
+2026-09-14T12:56:28.5111952Z #12 3.141 Collecting pydantic-settings<3,>=2.7 (from vigilay==0.1.0)
+2026-09-14T12:56:28.5112785Z #12 3.145   Downloading pydantic_settings-2.15.0-py3-none-any.whl.metadata (3.9 kB)
+2026-09-14T12:56:28.5113652Z #12 3.159 Collecting argon2-cffi<26,>=23.1 (from vigilay==0.1.0)
+2026-09-14T12:56:28.5114458Z #12 3.164   Downloading argon2_cffi-25.1.0-py3-none-any.whl.metadata (4.1 kB)
+2026-09-14T12:56:28.5146737Z #12 3.318 Collecting cryptography<51,>=50.0.1 (from vigilay==0.1.0)
+2026-09-14T12:56:28.7590893Z #12 3.322   Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl.metadata (4.3 kB)
+2026-09-14T12:56:28.7591857Z #12 3.341 Collecting redis<7,>=5.2 (from vigilay==0.1.0)
+2026-09-14T12:56:28.7592597Z #12 3.345   Downloading redis-6.4.0-py3-none-any.whl.metadata (10 kB)
+2026-09-14T12:56:28.7593383Z #12 3.358 Collecting httpx<1,>=0.28 (from vigilay==0.1.0)
+2026-09-14T12:56:28.7594111Z #12 3.361   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+2026-09-14T12:56:28.7594891Z #12 3.370 Collecting email-validator<3,>=2.2 (from vigilay==0.1.0)
+2026-09-14T12:56:28.7596010Z #12 3.374   Downloading email_validator-2.3.0-py3-none-any.whl.metadata (26 kB)
+2026-09-14T12:56:28.7596818Z #12 3.382 Collecting onvif-zeep<1,>=0.2.12 (from vigilay==0.1.0)
+2026-09-14T12:56:28.7597495Z #12 3.388   Downloading onvif_zeep-0.2.12.tar.gz (163 kB)
+2026-09-14T12:56:28.7598137Z #12 3.412   Installing build dependencies: started
+2026-09-14T12:56:29.1001760Z #12 3.903   Installing build dependencies: finished with status 'done'
+2026-09-14T12:56:29.2514393Z #12 3.904   Getting requirements to build wheel: started
+2026-09-14T12:56:29.4289060Z #12 4.232   Getting requirements to build wheel: finished with status 'done'
+2026-09-14T12:56:29.5805901Z #12 4.233   Preparing metadata (pyproject.toml): started
+2026-09-14T12:56:29.6176107Z #12 4.421   Preparing metadata (pyproject.toml): finished with status 'done'
+2026-09-14T12:56:29.7559116Z #12 4.435 Collecting Mako (from alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:56:29.7561672Z #12 4.439   Downloading mako-1.4.1-py3-none-any.whl.metadata (2.9 kB)
+2026-09-14T12:56:29.7562744Z #12 4.450 Collecting typing-extensions>=4.12 (from alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:56:29.7563693Z #12 4.454   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+2026-09-14T12:56:29.7564358Z #12 4.465 Collecting argon2-cffi-bindings (from argon2-cffi<26,>=23.1->vigilay==0.1.0)
+2026-09-14T12:56:29.7565068Z #12 4.468   Downloading argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (7.5 kB)
+2026-09-14T12:56:29.7566046Z #12 4.559 Collecting cffi>=2.0.0 (from cryptography<51,>=50.0.1->vigilay==0.1.0)
+2026-09-14T12:56:29.8979900Z #12 4.563   Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.5 kB)
+2026-09-14T12:56:29.8980997Z #12 4.572 Collecting dnspython>=2.0.0 (from email-validator<3,>=2.2->vigilay==0.1.0)
+2026-09-14T12:56:29.8981890Z #12 4.575   Downloading dnspython-2.8.0-py3-none-any.whl.metadata (5.7 kB)
+2026-09-14T12:56:29.8982438Z #12 4.586 Collecting idna>=2.0.0 (from email-validator<3,>=2.2->vigilay==0.1.0)
+2026-09-14T12:56:29.8982898Z #12 4.590   Downloading idna-3.19-py3-none-any.whl.metadata (9.2 kB)
+2026-09-14T12:56:29.8983373Z #12 4.608 Collecting starlette>=0.46.0 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:29.8983864Z #12 4.612   Downloading starlette-1.6.0-py3-none-any.whl.metadata (6.4 kB)
+2026-09-14T12:56:29.8984616Z #12 4.701 Collecting pydantic>=2.9.0 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:29.9999772Z #12 4.705   Downloading pydantic-2.13.5-py3-none-any.whl.metadata (110 kB)
+2026-09-14T12:56:30.0002287Z #12 4.717 Collecting typing-inspection>=0.4.2 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:30.0002920Z #12 4.721   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+2026-09-14T12:56:30.0003494Z #12 4.726 Collecting annotated-doc>=0.0.2 (from fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:30.0004003Z #12 4.730   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+2026-09-14T12:56:30.0004494Z #12 4.745 Collecting anyio (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:56:30.0004924Z #12 4.748   Downloading anyio-4.15.1-py3-none-any.whl.metadata (4.7 kB)
+2026-09-14T12:56:30.0005366Z #12 4.761 Collecting certifi (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:56:30.0006137Z #12 4.765   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+2026-09-14T12:56:30.0006620Z #12 4.775 Collecting httpcore==1.* (from httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:56:30.0007084Z #12 4.779   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+2026-09-14T12:56:30.0007570Z #12 4.787 Collecting h11>=0.16 (from httpcore==1.*->httpx<1,>=0.28->vigilay==0.1.0)
+2026-09-14T12:56:30.0008031Z #12 4.791   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+2026-09-14T12:56:30.0008485Z #12 4.803 Collecting zeep>=3.0.0 (from onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:30.1569293Z #12 4.807   Downloading zeep-4.3.3-py3-none-any.whl.metadata (3.7 kB)
+2026-09-14T12:56:30.1570328Z #12 4.821 Collecting python-dotenv>=0.21.0 (from pydantic-settings<3,>=2.7->vigilay==0.1.0)
+2026-09-14T12:56:30.1571277Z #12 4.825   Downloading python_dotenv-1.2.3-py3-none-any.whl.metadata (29 kB)
+2026-09-14T12:56:30.1572130Z #12 4.960 Collecting greenlet>=1 (from sqlalchemy<2.1,>=2.0.38->vigilay==0.1.0)
+2026-09-14T12:56:30.2722000Z #12 4.964   Downloading greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+2026-09-14T12:56:30.2723500Z #12 4.979 Collecting click>=7.0 (from uvicorn<1,>=0.34->uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.2724619Z #12 4.983   Downloading click-8.5.0-py3-none-any.whl.metadata (2.6 kB)
+2026-09-14T12:56:30.2726199Z #12 5.008 Collecting httptools>=0.8.0 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.2727196Z #12 5.012   Downloading httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+2026-09-14T12:56:30.2727907Z #12 5.042 Collecting pyyaml>=5.1 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.2728614Z #12 5.046   Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+2026-09-14T12:56:30.2729302Z #12 5.075 Collecting uvloop>=0.15.1 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.4402658Z #12 5.079   Downloading uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (4.9 kB)
+2026-09-14T12:56:30.4404056Z #12 5.144 Collecting watchfiles>=0.20 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.4404887Z #12 5.149   Downloading watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+2026-09-14T12:56:30.4405934Z #12 5.243 Collecting websockets>=13.0 (from uvicorn[standard]<1,>=0.34->vigilay==0.1.0)
+2026-09-14T12:56:30.6213520Z #12 5.248   Downloading websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+2026-09-14T12:56:30.6214899Z #12 5.257 Collecting pycparser (from cffi>=2.0.0->cryptography<51,>=50.0.1->vigilay==0.1.0)
+2026-09-14T12:56:30.6216263Z #12 5.260   Downloading pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+2026-09-14T12:56:30.6217120Z #12 5.270 Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:30.6218501Z #12 5.274   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+2026-09-14T12:56:31.0953559Z #12 5.898 Collecting pydantic-core==2.46.5 (from pydantic>=2.9.0->fastapi<1,>=0.115->vigilay==0.1.0)
+2026-09-14T12:56:31.2901558Z #12 5.903   Downloading pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+2026-09-14T12:56:31.2902915Z #12 5.925 Collecting attrs>=17.2.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.2903861Z #12 5.932   Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+2026-09-14T12:56:31.2904838Z #12 5.939 Collecting isodate>=0.5.4 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.2906080Z #12 5.943   Downloading isodate-0.7.2-py3-none-any.whl.metadata (11 kB)
+2026-09-14T12:56:31.3484004Z #12 6.152 Collecting lxml>=4.6.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.5180027Z #12 6.156   Downloading lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (3.3 kB)
+2026-09-14T12:56:31.5181809Z #12 6.170 Collecting platformdirs>=1.4.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.5183051Z #12 6.174   Downloading platformdirs-4.11.8-py3-none-any.whl.metadata (5.5 kB)
+2026-09-14T12:56:31.5184069Z #12 6.191 Collecting requests>=2.7.0 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.5185023Z #12 6.195   Downloading requests-2.34.2-py3-none-any.whl.metadata (4.8 kB)
+2026-09-14T12:56:31.5186147Z #12 6.203 Collecting requests-toolbelt>=0.7.1 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.5187043Z #12 6.206   Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl.metadata (14 kB)
+2026-09-14T12:56:31.5188035Z #12 6.214 Collecting requests-file>=1.5.1 (from zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.5188993Z #12 6.218   Downloading requests_file-3.0.1-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-09-14T12:56:31.5190002Z #12 6.321 Collecting charset_normalizer<4,>=2 (from requests>=2.7.0->zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.6183912Z #12 6.325   Downloading charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (45 kB)
+2026-09-14T12:56:31.6185803Z #12 6.344 Collecting urllib3<3,>=1.26 (from requests>=2.7.0->zeep>=3.0.0->onvif-zeep<1,>=0.2.12->vigilay==0.1.0)
+2026-09-14T12:56:31.6187031Z #12 6.348   Downloading urllib3-2.7.0-py3-none-any.whl.metadata (6.9 kB)
+2026-09-14T12:56:31.6188031Z #12 6.403 Collecting MarkupSafe>=2.0 (from Mako->alembic<2,>=1.14->vigilay==0.1.0)
+2026-09-14T12:56:31.6188988Z #12 6.407   Downloading markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-09-14T12:56:31.6189857Z #12 6.415 Downloading alembic-1.20.0-py3-none-any.whl (268 kB)
+2026-09-14T12:56:31.6190375Z #12 6.422 Downloading argon2_cffi-25.1.0-py3-none-any.whl (14 kB)
+2026-09-14T12:56:31.7191687Z #12 6.426 Downloading cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl (4.7 MB)
+2026-09-14T12:56:31.7193124Z #12 6.446    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.7/4.7 MB 277.1 MB/s  0:00:00
+2026-09-14T12:56:31.7193957Z #12 6.450 Downloading email_validator-2.3.0-py3-none-any.whl (35 kB)
+2026-09-14T12:56:31.7194785Z #12 6.454 Downloading fastapi-0.141.1-py3-none-any.whl (131 kB)
+2026-09-14T12:56:31.7195757Z #12 6.458 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+2026-09-14T12:56:31.7196465Z #12 6.462 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+2026-09-14T12:56:31.7197226Z #12 6.466 Downloading pydantic_settings-2.15.0-py3-none-any.whl (69 kB)
+2026-09-14T12:56:31.7198027Z #12 6.470 Downloading pymysql-1.2.0-py3-none-any.whl (45 kB)
+2026-09-14T12:56:31.7198703Z #12 6.474 Downloading redis-6.4.0-py3-none-any.whl (279 kB)
+2026-09-14T12:56:31.7199320Z #12 6.478 Downloading sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (3.3 MB)
+2026-09-14T12:56:31.7200369Z #12 6.510    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.3/3.3 MB 130.1 MB/s  0:00:00
+2026-09-14T12:56:31.7200799Z #12 6.515 Downloading uvicorn-0.53.0-py3-none-any.whl (87 kB)
+2026-09-14T12:56:31.7201202Z #12 6.519 Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+2026-09-14T12:56:31.7201741Z #12 6.523 Downloading cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (221 kB)
+2026-09-14T12:56:31.8212923Z #12 6.527 Downloading click-8.5.0-py3-none-any.whl (125 kB)
+2026-09-14T12:56:31.8214656Z #12 6.531 Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+2026-09-14T12:56:31.8216358Z #12 6.535 Downloading greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (623 kB)
+2026-09-14T12:56:31.8217772Z #12 6.538    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 623.9/623.9 kB 639.8 MB/s  0:00:00
+2026-09-14T12:56:31.8218655Z #12 6.542 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+2026-09-14T12:56:31.8219694Z #12 6.546 Downloading httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (486 kB)
+2026-09-14T12:56:31.8220332Z #12 6.551 Downloading idna-3.19-py3-none-any.whl (68 kB)
+2026-09-14T12:56:31.8220722Z #12 6.554 Downloading pydantic-2.13.5-py3-none-any.whl (472 kB)
+2026-09-14T12:56:31.8221293Z #12 6.559 Downloading pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+2026-09-14T12:56:31.8221999Z #12 6.565    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 468.7 MB/s  0:00:00
+2026-09-14T12:56:31.8222431Z #12 6.570 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+2026-09-14T12:56:31.8222857Z #12 6.574 Downloading python_dotenv-1.2.3-py3-none-any.whl (22 kB)
+2026-09-14T12:56:31.8223467Z #12 6.578 Downloading pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (801 kB)
+2026-09-14T12:56:31.8224162Z #12 6.581    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 801.6/801.6 kB 723.1 MB/s  0:00:00
+2026-09-14T12:56:31.8224591Z #12 6.584 Downloading starlette-1.6.0-py3-none-any.whl (75 kB)
+2026-09-14T12:56:31.8224988Z #12 6.588 Downloading anyio-4.15.1-py3-none-any.whl (132 kB)
+2026-09-14T12:56:31.8225390Z #12 6.592 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+2026-09-14T12:56:31.8226038Z #12 6.596 Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+2026-09-14T12:56:31.8226897Z #12 6.599 Downloading uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.4 MB)
+2026-09-14T12:56:31.8227595Z #12 6.611    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 421.0 MB/s  0:00:00
+2026-09-14T12:56:31.8228150Z #12 6.615 Downloading watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (454 kB)
+2026-09-14T12:56:31.8228880Z #12 6.620 Downloading websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (224 kB)
+2026-09-14T12:56:31.8229460Z #12 6.625 Downloading zeep-4.3.3-py3-none-any.whl (102 kB)
+2026-09-14T12:56:32.0476681Z #12 6.629 Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+2026-09-14T12:56:32.0477740Z #12 6.634 Downloading isodate-0.7.2-py3-none-any.whl (22 kB)
+2026-09-14T12:56:32.0478471Z #12 6.640 Downloading lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (5.2 MB)
+2026-09-14T12:56:32.0479809Z #12 6.677    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.2/5.2 MB 152.7 MB/s  0:00:00
+2026-09-14T12:56:32.0480599Z #12 6.681 Downloading platformdirs-4.11.8-py3-none-any.whl (24 kB)
+2026-09-14T12:56:32.0481087Z #12 6.685 Downloading requests-2.34.2-py3-none-any.whl (73 kB)
+2026-09-14T12:56:32.0481743Z #12 6.689 Downloading charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (250 kB)
+2026-09-14T12:56:32.0482410Z #12 6.693 Downloading urllib3-2.7.0-py3-none-any.whl (131 kB)
+2026-09-14T12:56:32.0482811Z #12 6.697 Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+2026-09-14T12:56:32.0483248Z #12 6.701 Downloading requests_file-3.0.1-py2.py3-none-any.whl (4.5 kB)
+2026-09-14T12:56:32.0483980Z #12 6.704 Downloading requests_toolbelt-1.0.0-py2.py3-none-any.whl (54 kB)
+2026-09-14T12:56:32.0484615Z #12 6.708 Downloading argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (26 kB)
+2026-09-14T12:56:32.0485174Z #12 6.714 Downloading mako-1.4.1-py3-none-any.whl (80 kB)
+2026-09-14T12:56:32.0485963Z #12 6.718 Downloading markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-09-14T12:56:32.0486574Z #12 6.721 Downloading pycparser-3.0-py3-none-any.whl (48 kB)
+2026-09-14T12:56:32.0486955Z #12 6.851 Saved /wheels/alembic-1.20.0-py3-none-any.whl
+2026-09-14T12:56:32.2331979Z #12 6.851 Saved /wheels/argon2_cffi-25.1.0-py3-none-any.whl
+2026-09-14T12:56:32.2333401Z #12 6.853 Saved /wheels/cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl
+2026-09-14T12:56:32.2334485Z #12 6.854 Saved /wheels/email_validator-2.3.0-py3-none-any.whl
+2026-09-14T12:56:32.2335225Z #12 6.854 Saved /wheels/fastapi-0.141.1-py3-none-any.whl
+2026-09-14T12:56:32.2336217Z #12 6.855 Saved /wheels/httpx-0.28.1-py3-none-any.whl
+2026-09-14T12:56:32.2336900Z #12 6.856 Saved /wheels/httpcore-1.0.9-py3-none-any.whl
+2026-09-14T12:56:32.2337604Z #12 6.856 Saved /wheels/pydantic_settings-2.15.0-py3-none-any.whl
+2026-09-14T12:56:32.2338315Z #12 6.857 Saved /wheels/pymysql-1.2.0-py3-none-any.whl
+2026-09-14T12:56:32.2338986Z #12 6.857 Saved /wheels/redis-6.4.0-py3-none-any.whl
+2026-09-14T12:56:32.2340040Z #12 6.859 Saved /wheels/sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2341125Z #12 6.860 Saved /wheels/uvicorn-0.53.0-py3-none-any.whl
+2026-09-14T12:56:32.2341797Z #12 6.860 Saved /wheels/annotated_doc-0.0.5-py3-none-any.whl
+2026-09-14T12:56:32.2342683Z #12 6.861 Saved /wheels/cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+2026-09-14T12:56:32.2343608Z #12 6.862 Saved /wheels/click-8.5.0-py3-none-any.whl
+2026-09-14T12:56:32.2344269Z #12 6.862 Saved /wheels/dnspython-2.8.0-py3-none-any.whl
+2026-09-14T12:56:32.2345138Z #12 6.863 Saved /wheels/greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2346275Z #12 6.863 Saved /wheels/h11-0.16.0-py3-none-any.whl
+2026-09-14T12:56:32.2347265Z #12 6.864 Saved /wheels/httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+2026-09-14T12:56:32.2348676Z #12 6.865 Saved /wheels/idna-3.19-py3-none-any.whl
+2026-09-14T12:56:32.2349316Z #12 6.866 Saved /wheels/pydantic-2.13.5-py3-none-any.whl
+2026-09-14T12:56:32.2350228Z #12 6.867 Saved /wheels/pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+2026-09-14T12:56:32.2351193Z #12 6.867 Saved /wheels/annotated_types-0.8.0-py3-none-any.whl
+2026-09-14T12:56:32.2351871Z #12 6.868 Saved /wheels/python_dotenv-1.2.3-py3-none-any.whl
+2026-09-14T12:56:32.2352858Z #12 6.869 Saved /wheels/pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2353865Z #12 6.869 Saved /wheels/starlette-1.6.0-py3-none-any.whl
+2026-09-14T12:56:32.2354508Z #12 6.870 Saved /wheels/anyio-4.15.1-py3-none-any.whl
+2026-09-14T12:56:32.2355200Z #12 6.870 Saved /wheels/typing_extensions-4.16.0-py3-none-any.whl
+2026-09-14T12:56:32.2356182Z #12 6.871 Saved /wheels/typing_inspection-0.4.4-py3-none-any.whl
+2026-09-14T12:56:32.2357232Z #12 6.873 Saved /wheels/uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2358459Z #12 6.874 Saved /wheels/watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+2026-09-14T12:56:32.2359706Z #12 6.874 Saved /wheels/websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+2026-09-14T12:56:32.2360722Z #12 6.875 Saved /wheels/zeep-4.3.3-py3-none-any.whl
+2026-09-14T12:56:32.2361328Z #12 6.875 Saved /wheels/attrs-26.1.0-py3-none-any.whl
+2026-09-14T12:56:32.2361942Z #12 6.876 Saved /wheels/isodate-0.7.2-py3-none-any.whl
+2026-09-14T12:56:32.2363032Z #12 6.878 Saved /wheels/lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2363951Z #12 6.879 Saved /wheels/platformdirs-4.11.8-py3-none-any.whl
+2026-09-14T12:56:32.2364628Z #12 6.879 Saved /wheels/requests-2.34.2-py3-none-any.whl
+2026-09-14T12:56:32.2365933Z #12 6.880 Saved /wheels/charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2367044Z #12 6.880 Saved /wheels/urllib3-2.7.0-py3-none-any.whl
+2026-09-14T12:56:32.2367650Z #12 6.881 Saved /wheels/certifi-2026.7.22-py3-none-any.whl
+2026-09-14T12:56:32.2368309Z #12 6.882 Saved /wheels/requests_file-3.0.1-py2.py3-none-any.whl
+2026-09-14T12:56:32.2369033Z #12 6.882 Saved /wheels/requests_toolbelt-1.0.0-py2.py3-none-any.whl
+2026-09-14T12:56:32.2370071Z #12 6.883 Saved /wheels/argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2371023Z #12 6.883 Saved /wheels/mako-1.4.1-py3-none-any.whl
+2026-09-14T12:56:32.2372021Z #12 6.884 Saved /wheels/markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:32.2373086Z #12 6.884 Saved /wheels/pycparser-3.0-py3-none-any.whl
+2026-09-14T12:56:32.2373792Z #12 6.885 Building wheels for collected packages: vigilay, onvif-zeep
+2026-09-14T12:56:32.2374573Z #12 6.886   Building wheel for vigilay (pyproject.toml): started
+2026-09-14T12:56:32.3160293Z #12 7.119   Building wheel for vigilay (pyproject.toml): finished with status 'done'
+2026-09-14T12:56:32.4705246Z #12 7.121   Created wheel for vigilay: filename=vigilay-0.1.0-py3-none-any.whl size=37644 sha256=729b0b7962c349f33f67ffce255bc7dd1f06fb0cbfd8699ecd8d71fb01abb68c
+2026-09-14T12:56:32.4707436Z #12 7.121   Stored in directory: /tmp/pip-ephem-wheel-cache-90pof20x/wheels/14/d6/fe/7512526be999d96b2cdef6d786f3fc4728e729375d4b2998a1
+2026-09-14T12:56:32.4708642Z #12 7.123   Building wheel for onvif-zeep (pyproject.toml): started
+2026-09-14T12:56:32.5899773Z #12 7.393   Building wheel for onvif-zeep (pyproject.toml): finished with status 'done'
+2026-09-14T12:56:32.7441128Z #12 7.394   Created wheel for onvif-zeep: filename=onvif_zeep-0.2.12-py3-none-any.whl size=192838 sha256=fcd415b0a727995daf1bd7e7b9768524f617bb3a0ba2ad05360679ce01daaa40
+2026-09-14T12:56:32.7443507Z #12 7.394   Stored in directory: /tmp/pip-ephem-wheel-cache-90pof20x/wheels/ff/e9/40/df52d38621c3a379341eee310318d012597288e52ece7504c1
+2026-09-14T12:56:32.7444608Z #12 7.397 Successfully built vigilay onvif-zeep
+2026-09-14T12:56:32.8056240Z #12 DONE 7.6s
+2026-09-14T12:56:32.9268510Z 
+2026-09-14T12:56:32.9269244Z #13 [runtime 2/6] WORKDIR /app
+2026-09-14T12:56:33.0346751Z #13 sha256:b54c5cdbf4e92d9024d9733e6d89814c86ea9ca8f2582dc633396d85509f8f4e 93B / 93B 0.0s done
+2026-09-14T12:56:33.0347988Z #13 extracting sha256:b54c5cdbf4e92d9024d9733e6d89814c86ea9ca8f2582dc633396d85509f8f4e done
+2026-09-14T12:56:33.0348802Z #13 DONE 0.1s
+2026-09-14T12:56:33.0349015Z 
+2026-09-14T12:56:33.0349271Z #14 [runtime 3/6] COPY --from=builder /wheels /wheels
+2026-09-14T12:56:33.0349770Z #14 DONE 0.0s
+2026-09-14T12:56:33.1863464Z 
+2026-09-14T12:56:33.1864674Z #15 [runtime 4/6] RUN pip install --no-cache-dir /wheels/* && useradd --create-home --uid 10001 vigilay
+2026-09-14T12:56:34.2734908Z #15 1.238 Processing /wheels/alembic-1.20.0-py3-none-any.whl
+2026-09-14T12:56:34.3758340Z #15 1.245 Processing /wheels/annotated_doc-0.0.5-py3-none-any.whl
+2026-09-14T12:56:34.3759649Z #15 1.247 Processing /wheels/annotated_types-0.8.0-py3-none-any.whl
+2026-09-14T12:56:34.3760650Z #15 1.249 Processing /wheels/anyio-4.15.1-py3-none-any.whl
+2026-09-14T12:56:34.3761447Z #15 1.252 Processing /wheels/argon2_cffi-25.1.0-py3-none-any.whl
+2026-09-14T12:56:34.3762503Z #15 1.254 Processing /wheels/argon2_cffi_bindings-26.1.0-cp310-abi3-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.3763552Z #15 1.256 Processing /wheels/attrs-26.1.0-py3-none-any.whl
+2026-09-14T12:56:34.3764861Z #15 1.258 Processing /wheels/certifi-2026.7.22-py3-none-any.whl
+2026-09-14T12:56:34.3766170Z #15 1.260 Processing /wheels/cffi-2.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+2026-09-14T12:56:34.3767579Z #15 1.262 Processing /wheels/charset_normalizer-3.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.3768752Z #15 1.266 Processing /wheels/click-8.5.0-py3-none-any.whl
+2026-09-14T12:56:34.3769628Z #15 1.267 Processing /wheels/cryptography-50.0.1-cp311-abi3-manylinux_2_34_x86_64.whl
+2026-09-14T12:56:34.3770497Z #15 1.275 Processing /wheels/dnspython-2.8.0-py3-none-any.whl
+2026-09-14T12:56:34.3771223Z #15 1.279 Processing /wheels/email_validator-2.3.0-py3-none-any.whl
+2026-09-14T12:56:34.3771964Z #15 1.282 Processing /wheels/fastapi-0.141.1-py3-none-any.whl
+2026-09-14T12:56:34.3772916Z #15 1.287 Processing /wheels/greenlet-3.5.5-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.3773830Z #15 1.290 Processing /wheels/h11-0.16.0-py3-none-any.whl
+2026-09-14T12:56:34.3774515Z #15 1.292 Processing /wheels/httpcore-1.0.9-py3-none-any.whl
+2026-09-14T12:56:34.3775820Z #15 1.295 Processing /wheels/httptools-0.8.0-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+2026-09-14T12:56:34.3776868Z #15 1.297 Processing /wheels/httpx-0.28.1-py3-none-any.whl
+2026-09-14T12:56:34.3777486Z #15 1.300 Processing /wheels/idna-3.19-py3-none-any.whl
+2026-09-14T12:56:34.3778091Z #15 1.303 Processing /wheels/isodate-0.7.2-py3-none-any.whl
+2026-09-14T12:56:34.3778941Z #15 1.305 Processing /wheels/lxml-6.1.3-cp313-cp313-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.3779782Z #15 1.313 Processing /wheels/mako-1.4.1-py3-none-any.whl
+2026-09-14T12:56:34.3780857Z #15 1.315 Processing /wheels/markupsafe-3.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.3781997Z #15 1.317 Processing /wheels/onvif_zeep-0.2.12-py3-none-any.whl
+2026-09-14T12:56:34.3782754Z #15 1.319 Processing /wheels/platformdirs-4.11.8-py3-none-any.whl
+2026-09-14T12:56:34.3783474Z #15 1.321 Processing /wheels/pycparser-3.0-py3-none-any.whl
+2026-09-14T12:56:34.3784183Z #15 1.323 Processing /wheels/pydantic-2.13.5-py3-none-any.whl
+2026-09-14T12:56:34.3785165Z #15 1.328 Processing /wheels/pydantic_core-2.46.5-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+2026-09-14T12:56:34.3787652Z #15 1.332 Processing /wheels/pydantic_settings-2.15.0-py3-none-any.whl
+2026-09-14T12:56:34.3788973Z #15 1.335 Processing /wheels/pymysql-1.2.0-py3-none-any.whl
+2026-09-14T12:56:34.3790149Z #15 1.337 Processing /wheels/python_dotenv-1.2.3-py3-none-any.whl
+2026-09-14T12:56:34.3791610Z #15 1.340 Processing /wheels/pyyaml-6.0.3-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.5784671Z #15 1.343 Processing /wheels/redis-6.4.0-py3-none-any.whl
+2026-09-14T12:56:34.5785863Z #15 1.347 Processing /wheels/requests-2.34.2-py3-none-any.whl
+2026-09-14T12:56:34.5789729Z #15 1.349 Processing /wheels/requests_file-3.0.1-py2.py3-none-any.whl
+2026-09-14T12:56:34.5790816Z #15 1.351 Processing /wheels/requests_toolbelt-1.0.0-py2.py3-none-any.whl
+2026-09-14T12:56:34.5792355Z #15 1.354 Processing /wheels/sqlalchemy-2.0.52-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.5793833Z #15 1.365 Processing /wheels/starlette-1.6.0-py3-none-any.whl
+2026-09-14T12:56:34.5794439Z #15 1.367 Processing /wheels/typing_extensions-4.16.0-py3-none-any.whl
+2026-09-14T12:56:34.5795077Z #15 1.369 Processing /wheels/typing_inspection-0.4.4-py3-none-any.whl
+2026-09-14T12:56:34.5796009Z #15 1.371 Processing /wheels/urllib3-2.7.0-py3-none-any.whl
+2026-09-14T12:56:34.5796543Z #15 1.374 Processing /wheels/uvicorn-0.53.0-py3-none-any.whl
+2026-09-14T12:56:34.5797169Z #15 1.377 Processing /wheels/uvloop-0.22.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+2026-09-14T12:56:34.5797800Z #15 1.384 Processing /wheels/vigilay-0.1.0-py3-none-any.whl
+2026-09-14T12:56:34.5798677Z #15 1.387 Processing /wheels/watchfiles-1.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+2026-09-14T12:56:34.5799457Z #15 1.389 Processing /wheels/websockets-17.1-cp313-cp313-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+2026-09-14T12:56:34.5800056Z #15 1.392 Processing /wheels/zeep-4.3.3-py3-none-any.whl
+2026-09-14T12:56:34.6093472Z #15 1.573 Installing collected packages: websockets, uvloop, urllib3, typing-extensions, redis, pyyaml, python-dotenv, pymysql, pycparser, platformdirs, markupsafe, lxml, isodate, idna, httptools, h11, greenlet, dnspython, click, charset-normalizer, certifi, attrs, annotated-types, annotated-doc, uvicorn, typing-inspection, sqlalchemy, requests, pydantic-core, mako, httpcore, email-validator, cffi, anyio, watchfiles, starlette, requests-toolbelt, requests-file, pydantic, httpx, cryptography, argon2-cffi-bindings, alembic, zeep, pydantic-settings, fastapi, argon2-cffi, onvif-zeep, vigilay
+2026-09-14T12:56:38.5310040Z #15 5.495 
+2026-09-14T12:56:38.6882845Z #15 5.501 Successfully installed alembic-1.20.0 annotated-doc-0.0.5 annotated-types-0.8.0 anyio-4.15.1 argon2-cffi-25.1.0 argon2-cffi-bindings-26.1.0 attrs-26.1.0 certifi-2026.7.22 cffi-2.1.1 charset-normalizer-3.5.1 click-8.5.0 cryptography-50.0.1 dnspython-2.8.0 email-validator-2.3.0 fastapi-0.141.1 greenlet-3.5.5 h11-0.16.0 httpcore-1.0.9 httptools-0.8.0 httpx-0.28.1 idna-3.19 isodate-0.7.2 lxml-6.1.3 mako-1.4.1 markupsafe-3.0.3 onvif-zeep-0.2.12 platformdirs-4.11.8 pycparser-3.0 pydantic-2.13.5 pydantic-core-2.46.5 pydantic-settings-2.15.0 pymysql-1.2.0 python-dotenv-1.2.3 pyyaml-6.0.3 redis-6.4.0 requests-2.34.2 requests-file-3.0.1 requests-toolbelt-1.0.0 sqlalchemy-2.0.52 starlette-1.6.0 typing-extensions-4.16.0 typing-inspection-0.4.4 urllib3-2.7.0 uvicorn-0.53.0 uvloop-0.22.1 vigilay-0.1.0 watchfiles-1.2.0 websockets-17.1 zeep-4.3.3
+2026-09-14T12:56:38.6888171Z #15 5.502 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+2026-09-14T12:56:38.7059201Z #15 DONE 5.7s
+2026-09-14T12:56:38.9119238Z 
+2026-09-14T12:56:38.9120030Z #16 [runtime 5/6] COPY alembic.ini ./
+2026-09-14T12:56:38.9120767Z #16 DONE 0.0s
+2026-09-14T12:56:38.9121114Z 
+2026-09-14T12:56:38.9121532Z #17 [runtime 6/6] COPY apps/api/migrations apps/api/migrations
+2026-09-14T12:56:38.9122387Z #17 DONE 0.0s
+2026-09-14T12:56:38.9122715Z 
+2026-09-14T12:56:38.9123009Z #18 exporting to image
+2026-09-14T12:56:38.9123507Z #18 exporting layers
+2026-09-14T12:56:42.5515763Z #18 exporting layers 3.8s done
+2026-09-14T12:56:42.7504861Z #18 ...
+2026-09-14T12:56:42.7505118Z 
+2026-09-14T12:56:42.7505668Z #19 [auth] developerlhc/vigilay-api:pull,push token for ghcr.io
+2026-09-14T12:56:42.7506253Z #19 DONE 0.0s
+2026-09-14T12:56:42.7506481Z 
+2026-09-14T12:56:42.7506626Z #18 exporting to image
+2026-09-14T12:56:42.7507337Z #18 exporting manifest sha256:25d0d9fc960eeb55b1583c2b39f197f20e4caa967865265d9153215ccf2badc0 done
+2026-09-14T12:56:42.7508475Z #18 exporting config sha256:a99841df34908b8b9a2c62eeceebb25d1d181cebae0a8e4acc8b844680995d49 done
+2026-09-14T12:56:42.7509694Z #18 exporting attestation manifest sha256:9a30c14d6ca639f38df42a1c9a536410bd6891cdc0ccf8d684d1c8145b3784bb done
+2026-09-14T12:56:42.7510965Z #18 exporting manifest list sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6 done
+2026-09-14T12:56:42.7511790Z #18 pushing layers
+2026-09-14T12:56:43.7645138Z #18 ...
+2026-09-14T12:56:43.7645677Z 
+2026-09-14T12:56:43.7645912Z #20 exporting to GitHub Actions Cache
+2026-09-14T12:56:43.7646433Z #20 preparing build cache for export 1.0s done
+2026-09-14T12:56:43.7646822Z #20 sending cache export
+2026-09-14T12:56:43.7647736Z #20 writing layer sha256:1618ae52e5bda21f44d2b370b9e1b6dcb3f642f0c2135411a80d4be5ea1b53d0
+2026-09-14T12:56:44.9369476Z #20 writing layer sha256:1618ae52e5bda21f44d2b370b9e1b6dcb3f642f0c2135411a80d4be5ea1b53d0 1.3s done
+2026-09-14T12:56:45.1360341Z #20 writing layer sha256:510e3e93d8d207f72779795b53ecf6b8893ff4edcec6cab9bd5c6b60317adb68
+2026-09-14T12:56:45.6903681Z #20 ...
+2026-09-14T12:56:45.6904041Z 
+2026-09-14T12:56:45.6904239Z #18 exporting to image
+2026-09-14T12:56:45.6904717Z #18 pushing layers 2.2s done
+2026-09-14T12:56:45.6906027Z #18 pushing manifest for ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40@sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6 0.9s done
+2026-09-14T12:56:45.6907102Z #18 DONE 6.9s
+2026-09-14T12:56:45.8409174Z 
+2026-09-14T12:56:45.8409754Z #20 exporting to GitHub Actions Cache
+2026-09-14T12:56:46.6392513Z #20 writing layer sha256:510e3e93d8d207f72779795b53ecf6b8893ff4edcec6cab9bd5c6b60317adb68 1.7s done
+2026-09-14T12:56:46.8412866Z #20 writing layer sha256:5fc163ce6d5e065a55f96730c39759475c90f73d789304e17d31657528381098
+2026-09-14T12:56:48.2427648Z #20 writing layer sha256:5fc163ce6d5e065a55f96730c39759475c90f73d789304e17d31657528381098 1.6s done
+2026-09-14T12:56:48.4142407Z #20 writing layer sha256:90e5e5db84355996faa8d78a300e2590885d433e6fe203f2ec4e2d06a5375118 0.1s done
+2026-09-14T12:56:48.5872352Z #20 writing layer sha256:9bc4811fbc98fb0b3eeedf63f3af8fbd7aae0c3d1cded437d985cda238492fc9 0.1s done
+2026-09-14T12:56:48.7248229Z #20 writing layer sha256:c160e5fc4ef7702b42bcfe91d8995fe79037fa4bef0236830a53b327e9a2e4d6 0.1s done
+2026-09-14T12:56:48.8573375Z #20 writing layer sha256:e93afbfa378b39fc43e793284b00ebe53e340927c2a52dbdd0d303a8a249e544 0.1s done
+2026-09-14T12:56:48.9778663Z #20 writing layer sha256:fe530f48b8440d7f855e4db5247c3d1cd84976c834ef036939ccd525516cbeec 0.1s done
+2026-09-14T12:56:49.1348772Z #20 sending cache export 5.5s done
+2026-09-14T12:56:49.1349206Z #20 DONE 6.6s
+2026-09-14T12:56:49.1646099Z 
+2026-09-14T12:56:49.1646823Z #21 resolving provenance for metadata file
+2026-09-14T12:56:49.1647215Z #21 DONE 0.0s
+2026-09-14T12:56:49.1724281Z ##[group]ImageID
+2026-09-14T12:56:49.1724880Z sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6
+2026-09-14T12:56:49.1726104Z ##[endgroup]
+2026-09-14T12:56:49.1726644Z ##[group]Digest
+2026-09-14T12:56:49.1727190Z sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6
+2026-09-14T12:56:49.1728614Z ##[endgroup]
+2026-09-14T12:56:49.1729162Z ##[group]Metadata
+2026-09-14T12:56:49.1729567Z {
+2026-09-14T12:56:49.1729896Z   "buildx.build.provenance": {
+2026-09-14T12:56:49.1730301Z     "builder": {
+2026-09-14T12:56:49.1730934Z       "id": "https://github.com/developerlhc/camara_ia/actions/runs/34846028989/attempts/1"
+2026-09-14T12:56:49.1731659Z     },
+2026-09-14T12:56:49.1732136Z     "buildType": "https://mobyproject.org/buildkit@v1",
+2026-09-14T12:56:49.1732707Z     "materials": [
+2026-09-14T12:56:49.1733031Z       {
+2026-09-14T12:56:49.1733488Z         "uri": "pkg:docker/python@3.13-slim?platform=linux%2Famd64",
+2026-09-14T12:56:49.1734063Z         "digest": {
+2026-09-14T12:56:49.1734653Z           "sha256": "9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285"
+2026-09-14T12:56:49.1735342Z         }
+2026-09-14T12:56:49.1736442Z       }
+2026-09-14T12:56:49.1736782Z     ],
+2026-09-14T12:56:49.1737091Z     "invocation": {
+2026-09-14T12:56:49.1737478Z       "configSource": {
+2026-09-14T12:56:49.1737873Z         "entryPoint": "api.Dockerfile"
+2026-09-14T12:56:49.1738323Z       },
+2026-09-14T12:56:49.1738631Z       "parameters": {
+2026-09-14T12:56:49.1739026Z         "frontend": "dockerfile.v0",
+2026-09-14T12:56:49.1739451Z         "locals": [
+2026-09-14T12:56:49.1739802Z           {
+2026-09-14T12:56:49.1740119Z             "name": "context"
+2026-09-14T12:56:49.1740492Z           },
+2026-09-14T12:56:49.1740790Z           {
+2026-09-14T12:56:49.1741104Z             "name": "dockerfile"
+2026-09-14T12:56:49.1741512Z           }
+2026-09-14T12:56:49.1741805Z         ],
+2026-09-14T12:56:49.1742103Z         "root": {
+2026-09-14T12:56:49.1742789Z           "configSource": {
+2026-09-14T12:56:49.1743228Z             "path": "api.Dockerfile"
+2026-09-14T12:56:49.1743634Z           },
+2026-09-14T12:56:49.1743944Z           "request": {
+2026-09-14T12:56:49.1744276Z             "args": {
+2026-09-14T12:56:49.1744636Z               "vcs:localdir:context": ".",
+2026-09-14T12:56:49.1745139Z               "vcs:localdir:dockerfile": "infra/docker",
+2026-09-14T12:56:49.1746035Z               "vcs:revision": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:49.1746756Z               "vcs:source": "https://github.com/developerlhc/camara_ia"
+2026-09-14T12:56:49.1747281Z             }
+2026-09-14T12:56:49.1747473Z           }
+2026-09-14T12:56:49.1747647Z         },
+2026-09-14T12:56:49.1747873Z         "compatibilityVersion": 30
+2026-09-14T12:56:49.1748114Z       },
+2026-09-14T12:56:49.1748302Z       "environment": {
+2026-09-14T12:56:49.1748521Z         "dockerfileVersion": "1.26.0",
+2026-09-14T12:56:49.1748787Z         "github_actor": "developerlhc",
+2026-09-14T12:56:49.1749057Z         "github_actor_id": "169218068",
+2026-09-14T12:56:49.1749310Z         "github_event_name": "push",
+2026-09-14T12:56:49.1749563Z         "github_event_payload": {
+2026-09-14T12:56:49.1749850Z           "after": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:49.1750206Z           "base_ref": null,
+2026-09-14T12:56:49.1750511Z           "before": "faafea0e588e57ff5826f22d5b98483ea1d5e764",
+2026-09-14T12:56:49.1750839Z           "commits": [
+2026-09-14T12:56:49.1751060Z             {
+2026-09-14T12:56:49.1751252Z               "author": {
+2026-09-14T12:56:49.1751491Z                 "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:56:49.1751787Z                 "name": "Luis Huaman Cortegana"
+2026-09-14T12:56:49.1752061Z               },
+2026-09-14T12:56:49.1752275Z               "committer": {
+2026-09-14T12:56:49.1752563Z                 "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:56:49.1752873Z                 "name": "Luis Huaman Cortegana"
+2026-09-14T12:56:49.1753156Z               },
+2026-09-14T12:56:49.1753388Z               "distinct": true,
+2026-09-14T12:56:49.1753685Z               "id": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:49.1754050Z               "message": "fix CI formatting for Vigilay deployment",
+2026-09-14T12:56:49.1754614Z               "timestamp": "2026-09-14T07:54:29-05:00",
+2026-09-14T12:56:49.1754976Z               "tree_id": "081ac9199daf898ac412942672babdfbc0c61939",
+2026-09-14T12:56:49.1755855Z               "url": "https://github.com/developerlhc/camara_ia/commit/f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:49.1756399Z             }
+2026-09-14T12:56:49.1756605Z           ],
+2026-09-14T12:56:49.1757035Z           "compare": "https://github.com/developerlhc/camara_ia/compare/faafea0e588e...f3b3fba671c5",
+2026-09-14T12:56:49.1757486Z           "created": false,
+2026-09-14T12:56:49.1757724Z           "deleted": false,
+2026-09-14T12:56:49.1757940Z           "forced": false,
+2026-09-14T12:56:49.1758159Z           "head_commit": {
+2026-09-14T12:56:49.1758374Z             "author": {
+2026-09-14T12:56:49.1758616Z               "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:56:49.1758906Z               "name": "Luis Huaman Cortegana"
+2026-09-14T12:56:49.1759182Z             },
+2026-09-14T12:56:49.1759413Z             "committer": {
+2026-09-14T12:56:49.1759719Z               "email": "lhuaman@ebizlatin.com",
+2026-09-14T12:56:49.1760072Z               "name": "Luis Huaman Cortegana"
+2026-09-14T12:56:49.1760380Z             },
+2026-09-14T12:56:49.1760635Z             "distinct": true,
+2026-09-14T12:56:49.1760933Z             "id": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:49.1761347Z             "message": "fix CI formatting for Vigilay deployment",
+2026-09-14T12:56:49.1761721Z             "timestamp": "2026-09-14T07:54:29-05:00",
+2026-09-14T12:56:49.1762072Z             "tree_id": "081ac9199daf898ac412942672babdfbc0c61939",
+2026-09-14T12:56:49.1762799Z             "url": "https://github.com/developerlhc/camara_ia/commit/f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:49.1763296Z           },
+2026-09-14T12:56:49.1763504Z           "pusher": {
+2026-09-14T12:56:49.1763764Z             "email": "luishuamancortegana@gmail.com",
+2026-09-14T12:56:49.1764077Z             "name": "developerlhc"
+2026-09-14T12:56:49.1764332Z           },
+2026-09-14T12:56:49.1764543Z           "ref": "refs/heads/main",
+2026-09-14T12:56:49.1764806Z           "repository": {
+2026-09-14T12:56:49.1765052Z             "allow_forking": true,
+2026-09-14T12:56:49.1765832Z             "archive_url": "https://api.github.com/repos/developerlhc/camara_ia/{archive_format}{/ref}",
+2026-09-14T12:56:49.1766382Z             "archived": false,
+2026-09-14T12:56:49.1766807Z             "assignees_url": "https://api.github.com/repos/developerlhc/camara_ia/assignees{/user}",
+2026-09-14T12:56:49.1767427Z             "blobs_url": "https://api.github.com/repos/developerlhc/camara_ia/git/blobs{/sha}",
+2026-09-14T12:56:49.1768048Z             "branches_url": "https://api.github.com/repos/developerlhc/camara_ia/branches{/branch}",
+2026-09-14T12:56:49.1768593Z             "clone_url": "https://github.com/developerlhc/camara_ia.git",
+2026-09-14T12:56:49.1769197Z             "collaborators_url": "https://api.github.com/repos/developerlhc/camara_ia/collaborators{/collaborator}",
+2026-09-14T12:56:49.1769930Z             "comments_url": "https://api.github.com/repos/developerlhc/camara_ia/comments{/number}",
+2026-09-14T12:56:49.1770537Z             "commits_url": "https://api.github.com/repos/developerlhc/camara_ia/commits{/sha}",
+2026-09-14T12:56:49.1771157Z             "compare_url": "https://api.github.com/repos/developerlhc/camara_ia/compare/{base}...{head}",
+2026-09-14T12:56:49.1771794Z             "contents_url": "https://api.github.com/repos/developerlhc/camara_ia/contents/{+path}",
+2026-09-14T12:56:49.1772434Z             "contributors_url": "https://api.github.com/repos/developerlhc/camara_ia/contributors",
+2026-09-14T12:56:49.1772900Z             "created_at": 1789183022,
+2026-09-14T12:56:49.1773171Z             "default_branch": "main",
+2026-09-14T12:56:49.1773594Z             "deployments_url": "https://api.github.com/repos/developerlhc/camara_ia/deployments",
+2026-09-14T12:56:49.1774045Z             "description": null,
+2026-09-14T12:56:49.1774475Z             "disabled": false,
+2026-09-14T12:56:49.1774871Z             "downloads_url": "https://api.github.com/repos/developerlhc/camara_ia/downloads",
+2026-09-14T12:56:49.1775669Z             "events_url": "https://api.github.com/repos/developerlhc/camara_ia/events",
+2026-09-14T12:56:49.1776064Z             "fork": false,
+2026-09-14T12:56:49.1776303Z             "forks": 0,
+2026-09-14T12:56:49.1776532Z             "forks_count": 0,
+2026-09-14T12:56:49.1776888Z             "forks_url": "https://api.github.com/repos/developerlhc/camara_ia/forks",
+2026-09-14T12:56:49.1777324Z             "full_name": "developerlhc/camara_ia",
+2026-09-14T12:56:49.1777811Z             "git_commits_url": "https://api.github.com/repos/developerlhc/camara_ia/git/commits{/sha}",
+2026-09-14T12:56:49.1778443Z             "git_refs_url": "https://api.github.com/repos/developerlhc/camara_ia/git/refs{/sha}",
+2026-09-14T12:56:49.1779027Z             "git_tags_url": "https://api.github.com/repos/developerlhc/camara_ia/git/tags{/sha}",
+2026-09-14T12:56:49.1779560Z             "git_url": "git://github.com/developerlhc/camara_ia.git",
+2026-09-14T12:56:49.1779919Z             "has_discussions": false,
+2026-09-14T12:56:49.1780197Z             "has_downloads": true,
+2026-09-14T12:56:49.1780459Z             "has_issues": true,
+2026-09-14T12:56:49.1780711Z             "has_pages": false,
+2026-09-14T12:56:49.1780965Z             "has_projects": true,
+2026-09-14T12:56:49.1781237Z             "has_pull_requests": true,
+2026-09-14T12:56:49.1781508Z             "has_wiki": true,
+2026-09-14T12:56:49.1781751Z             "homepage": null,
+2026-09-14T12:56:49.1782138Z             "hooks_url": "https://api.github.com/repos/developerlhc/camara_ia/hooks",
+2026-09-14T12:56:49.1782764Z             "html_url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:49.1783118Z             "id": 1366898650,
+2026-09-14T12:56:49.1783369Z             "is_template": false,
+2026-09-14T12:56:49.1783856Z             "issue_comment_url": "https://api.github.com/repos/developerlhc/camara_ia/issues/comments{/number}",
+2026-09-14T12:56:49.1784569Z             "issue_events_url": "https://api.github.com/repos/developerlhc/camara_ia/issues/events{/number}",
+2026-09-14T12:56:49.1785225Z             "issues_url": "https://api.github.com/repos/developerlhc/camara_ia/issues{/number}",
+2026-09-14T12:56:49.1786035Z             "keys_url": "https://api.github.com/repos/developerlhc/camara_ia/keys{/key_id}",
+2026-09-14T12:56:49.1786627Z             "labels_url": "https://api.github.com/repos/developerlhc/camara_ia/labels{/name}",
+2026-09-14T12:56:49.1787081Z             "language": "Python",
+2026-09-14T12:56:49.1787484Z             "languages_url": "https://api.github.com/repos/developerlhc/camara_ia/languages",
+2026-09-14T12:56:49.1787947Z             "license": null,
+2026-09-14T12:56:49.1788206Z             "master_branch": "main",
+2026-09-14T12:56:49.1788621Z             "merges_url": "https://api.github.com/repos/developerlhc/camara_ia/merges",
+2026-09-14T12:56:49.1789253Z             "milestones_url": "https://api.github.com/repos/developerlhc/camara_ia/milestones{/number}",
+2026-09-14T12:56:49.1789694Z             "mirror_url": null,
+2026-09-14T12:56:49.1789923Z             "name": "camara_ia",
+2026-09-14T12:56:49.1790186Z             "node_id": "R_kgDOUXk32g",
+2026-09-14T12:56:49.1790732Z             "notifications_url": "https://api.github.com/repos/developerlhc/camara_ia/notifications{?since,all,participating}",
+2026-09-14T12:56:49.1791271Z             "open_issues": 14,
+2026-09-14T12:56:49.1791504Z             "open_issues_count": 14,
+2026-09-14T12:56:49.1791763Z             "owner": {
+2026-09-14T12:56:49.1792105Z               "avatar_url": "https://avatars.githubusercontent.com/u/169218068?v=4",
+2026-09-14T12:56:49.1792680Z               "email": "luishuamancortegana@gmail.com",
+2026-09-14T12:56:49.1793345Z               "events_url": "https://api.github.com/users/developerlhc/events{/privacy}",
+2026-09-14T12:56:49.1793910Z               "followers_url": "https://api.github.com/users/developerlhc/followers",
+2026-09-14T12:56:49.1794657Z               "following_url": "https://api.github.com/users/developerlhc/following{/other_user}",
+2026-09-14T12:56:49.1795321Z               "gists_url": "https://api.github.com/users/developerlhc/gists{/gist_id}",
+2026-09-14T12:56:49.1796049Z               "gravatar_id": "",
+2026-09-14T12:56:49.1796339Z               "html_url": "https://github.com/developerlhc",
+2026-09-14T12:56:49.1796646Z               "id": 169218068,
+2026-09-14T12:56:49.1796882Z               "login": "developerlhc",
+2026-09-14T12:56:49.1797150Z               "name": "developerlhc",
+2026-09-14T12:56:49.1797405Z               "node_id": "U_kgDOChYQFA",
+2026-09-14T12:56:49.1797786Z               "organizations_url": "https://api.github.com/users/developerlhc/orgs",
+2026-09-14T12:56:49.1798316Z               "received_events_url": "https://api.github.com/users/developerlhc/received_events",
+2026-09-14T12:56:49.1798828Z               "repos_url": "https://api.github.com/users/developerlhc/repos",
+2026-09-14T12:56:49.1799187Z               "site_admin": false,
+2026-09-14T12:56:49.1799573Z               "starred_url": "https://api.github.com/users/developerlhc/starred{/owner}{/repo}",
+2026-09-14T12:56:49.1800119Z               "subscriptions_url": "https://api.github.com/users/developerlhc/subscriptions",
+2026-09-14T12:56:49.1800531Z               "type": "User",
+2026-09-14T12:56:49.1800809Z               "url": "https://api.github.com/users/developerlhc",
+2026-09-14T12:56:49.1801129Z               "user_view_type": "public"
+2026-09-14T12:56:49.1801374Z             },
+2026-09-14T12:56:49.1801567Z             "private": false,
+2026-09-14T12:56:49.1802021Z             "pull_request_creation_policy": "all",
+2026-09-14T12:56:49.1802464Z             "pulls_url": "https://api.github.com/repos/developerlhc/camara_ia/pulls{/number}",
+2026-09-14T12:56:49.1802886Z             "pushed_at": 1789390475,
+2026-09-14T12:56:49.1803281Z             "releases_url": "https://api.github.com/repos/developerlhc/camara_ia/releases{/id}",
+2026-09-14T12:56:49.1803732Z             "size": 208,
+2026-09-14T12:56:49.1804006Z             "ssh_url": "git@github.com:developerlhc/camara_ia.git",
+2026-09-14T12:56:49.1804321Z             "stargazers": 0,
+2026-09-14T12:56:49.1804550Z             "stargazers_count": 0,
+2026-09-14T12:56:49.1804933Z             "stargazers_url": "https://api.github.com/repos/developerlhc/camara_ia/stargazers",
+2026-09-14T12:56:49.1805713Z             "statuses_url": "https://api.github.com/repos/developerlhc/camara_ia/statuses/{sha}",
+2026-09-14T12:56:49.1806330Z             "subscribers_url": "https://api.github.com/repos/developerlhc/camara_ia/subscribers",
+2026-09-14T12:56:49.1806919Z             "subscription_url": "https://api.github.com/repos/developerlhc/camara_ia/subscription",
+2026-09-14T12:56:49.1807406Z             "svn_url": "https://github.com/developerlhc/camara_ia",
+2026-09-14T12:56:49.1807827Z             "tags_url": "https://api.github.com/repos/developerlhc/camara_ia/tags",
+2026-09-14T12:56:49.1808312Z             "teams_url": "https://api.github.com/repos/developerlhc/camara_ia/teams",
+2026-09-14T12:56:49.1808687Z             "topics": [],
+2026-09-14T12:56:49.1809050Z             "trees_url": "https://api.github.com/repos/developerlhc/camara_ia/git/trees{/sha}",
+2026-09-14T12:56:49.1809474Z             "updated_at": "2026-09-14T12:42:49Z",
+2026-09-14T12:56:49.1809822Z             "url": "https://api.github.com/repos/developerlhc/camara_ia",
+2026-09-14T12:56:49.1810172Z             "visibility": "public",
+2026-09-14T12:56:49.1810416Z             "watchers": 0,
+2026-09-14T12:56:49.1810638Z             "watchers_count": 0,
+2026-09-14T12:56:49.1810896Z             "web_commit_signoff_required": false
+2026-09-14T12:56:49.1811167Z           },
+2026-09-14T12:56:49.1811572Z           "sender": {
+2026-09-14T12:56:49.1812055Z             "avatar_url": "https://avatars.githubusercontent.com/u/169218068?v=4",
+2026-09-14T12:56:49.1812780Z             "events_url": "https://api.github.com/users/developerlhc/events{/privacy}",
+2026-09-14T12:56:49.1813829Z             "followers_url": "https://api.github.com/users/developerlhc/followers",
+2026-09-14T12:56:49.1814742Z             "following_url": "https://api.github.com/users/developerlhc/following{/other_user}",
+2026-09-14T12:56:49.1815876Z             "gists_url": "https://api.github.com/users/developerlhc/gists{/gist_id}",
+2026-09-14T12:56:49.1816533Z             "gravatar_id": "",
+2026-09-14T12:56:49.1816995Z             "html_url": "https://github.com/developerlhc",
+2026-09-14T12:56:49.1817499Z             "id": 169218068,
+2026-09-14T12:56:49.1817881Z             "login": "developerlhc",
+2026-09-14T12:56:49.1818314Z             "node_id": "U_kgDOChYQFA",
+2026-09-14T12:56:49.1818932Z             "organizations_url": "https://api.github.com/users/developerlhc/orgs",
+2026-09-14T12:56:49.1819857Z             "received_events_url": "https://api.github.com/users/developerlhc/received_events",
+2026-09-14T12:56:49.1850669Z             "repos_url": "https://api.github.com/users/developerlhc/repos",
+2026-09-14T12:56:49.1851289Z             "site_admin": false,
+2026-09-14T12:56:49.1852029Z             "starred_url": "https://api.github.com/users/developerlhc/starred{/owner}{/repo}",
+2026-09-14T12:56:49.1853015Z             "subscriptions_url": "https://api.github.com/users/developerlhc/subscriptions",
+2026-09-14T12:56:49.1853711Z             "type": "User",
+2026-09-14T12:56:49.1854193Z             "url": "https://api.github.com/users/developerlhc",
+2026-09-14T12:56:49.1854712Z             "user_view_type": "public"
+2026-09-14T12:56:49.1855109Z           }
+2026-09-14T12:56:49.1855307Z         },
+2026-09-14T12:56:49.1855903Z         "github_job": "images",
+2026-09-14T12:56:49.1856487Z         "github_ref": "refs/heads/main",
+2026-09-14T12:56:49.1856787Z         "github_ref_name": "main",
+2026-09-14T12:56:49.1857049Z         "github_ref_protected": "false",
+2026-09-14T12:56:49.1857311Z         "github_ref_type": "branch",
+2026-09-14T12:56:49.1857599Z         "github_repository": "developerlhc/camara_ia",
+2026-09-14T12:56:49.1857913Z         "github_repository_id": "1366898650",
+2026-09-14T12:56:49.1858207Z         "github_repository_owner": "developerlhc",
+2026-09-14T12:56:49.1858519Z         "github_repository_owner_id": "169218068",
+2026-09-14T12:56:49.1858801Z         "github_run_attempt": "1",
+2026-09-14T12:56:49.1859049Z         "github_run_id": "34846028989",
+2026-09-14T12:56:49.1859299Z         "github_run_number": "22",
+2026-09-14T12:56:49.1859546Z         "github_runner_arch": "X64",
+2026-09-14T12:56:49.1859827Z         "github_runner_environment": "github-hosted",
+2026-09-14T12:56:49.1860136Z         "github_runner_image_os": "ubuntu24",
+2026-09-14T12:56:49.1860446Z         "github_runner_image_version": "20260907.300.1",
+2026-09-14T12:56:49.1860778Z         "github_runner_name": "GitHub Actions 1000000081",
+2026-09-14T12:56:49.1861083Z         "github_runner_os": "Linux",
+2026-09-14T12:56:49.1861452Z         "github_runner_tracking_id": "github_eaf9e652-369c-4aea-87a6-eb7e613ca388",
+2026-09-14T12:56:49.1861893Z         "github_server_url": "https://github.com",
+2026-09-14T12:56:49.1862228Z         "github_triggering_actor": "developerlhc",
+2026-09-14T12:56:49.1862533Z         "github_workflow": "Vigilay checks",
+2026-09-14T12:56:49.1863022Z         "github_workflow_ref": "developerlhc/camara_ia/.github/workflows/ci.yml@refs/heads/main",
+2026-09-14T12:56:49.1863541Z         "github_workflow_sha": "f3b3fba671c5df44e063b94ad08d055b9d177e40",
+2026-09-14T12:56:49.1863902Z         "platform": "linux/amd64"
+2026-09-14T12:56:49.1864135Z       }
+2026-09-14T12:56:49.1864304Z     }
+2026-09-14T12:56:49.1864471Z   },
+2026-09-14T12:56:49.1865019Z   "buildx.build.ref": "builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0/builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00/jzoz8c4nfv0b2h2t37r4l83zr",
+2026-09-14T12:56:49.1865942Z   "containerimage.descriptor": {
+2026-09-14T12:56:49.1866279Z     "mediaType": "application/vnd.oci.image.index.v1+json",
+2026-09-14T12:56:49.1866750Z     "digest": "sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6",
+2026-09-14T12:56:49.1867310Z     "size": 856
+2026-09-14T12:56:49.1867497Z   },
+2026-09-14T12:56:49.1867878Z   "containerimage.digest": "sha256:544087927f051aab6c0769df404d0df1c81ccbf2701f67a3e694ede3fe2dffc6",
+2026-09-14T12:56:49.1868505Z   "image.name": "ghcr.io/developerlhc/vigilay-api:f3b3fba671c5df44e063b94ad08d055b9d177e40"
+2026-09-14T12:56:49.1868930Z }
+2026-09-14T12:56:49.1869324Z ##[endgroup]
+2026-09-14T12:56:49.1869678Z ##[group]Reference
+2026-09-14T12:56:49.1870180Z builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0/builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea00/jzoz8c4nfv0b2h2t37r4l83zr
+2026-09-14T12:56:49.1870851Z ##[endgroup]
+2026-09-14T12:56:49.1871183Z ##[group]Check build summary support
+2026-09-14T12:56:49.1871578Z Build summary supported!
+2026-09-14T12:56:49.1871916Z ##[endgroup]
+2026-09-14T12:56:49.1971602Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:49.1972878Z Post job cleanup.
+2026-09-14T12:56:49.4549157Z ##[group]Generating build summary
+2026-09-14T12:56:49.4554050Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-5OhY5X/export
+2026-09-14T12:56:49.4568580Z (node:3196) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:49.4569798Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:49.6549876Z [command]/usr/bin/docker buildx history export --builder builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0 --output /home/runner/work/_temp/docker-actions-toolkit-5OhY5X/export/developerlhc~camara_ia~JZOZ8C.dockerbuild jzoz8c4nfv0b2h2t37r4l83zr --finalize
+2026-09-14T12:56:49.8788499Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-5OhY5X/export/developerlhc~camara_ia~JZOZ8C.dockerbuild (53.55 KB)
+2026-09-14T12:56:49.8812018Z Uploading developerlhc~camara_ia~JZOZ8C.dockerbuild to blob storage
+2026-09-14T12:56:50.1045336Z Beginning upload of artifact content to blob storage
+2026-09-14T12:56:50.1146658Z (node:3196) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:56:50.1155269Z Uploaded bytes 54836
+2026-09-14T12:56:50.1667954Z Finished uploading artifact content to blob storage!
+2026-09-14T12:56:50.1672812Z SHA256 hash of uploaded artifact is 066f2d4e9e1d3a23cb3f744edc189822eb0d1a449c188b7c79d491901a62ba23
+2026-09-14T12:56:50.1674496Z Finalizing artifact upload
+2026-09-14T12:56:50.3988320Z Artifact successfully finalized (10348043774)
+2026-09-14T12:56:50.3990112Z Artifact download URL: https://github.com/developerlhc/camara_ia/actions/runs/34846028989/artifacts/10348043774
+2026-09-14T12:56:50.4016044Z Writing summary
+2026-09-14T12:56:50.4030651Z ##[endgroup]
+2026-09-14T12:56:50.4031606Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-dpwDhN
+2026-09-14T12:56:50.4033170Z ##[endgroup]
+2026-09-14T12:56:50.4034052Z ##[group]Post cache
+2026-09-14T12:56:50.4036064Z State not set
+2026-09-14T12:56:50.4037373Z ##[endgroup]
+2026-09-14T12:56:50.4204327Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:50.4205767Z Post job cleanup.
+2026-09-14T12:56:50.7349240Z ##[group]Logout from ghcr.io
+2026-09-14T12:56:50.7371901Z (node:3347) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:50.7373175Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:50.7422433Z [command]/usr/bin/docker logout ghcr.io
+2026-09-14T12:56:50.7563126Z Removing login credentials for ghcr.io
+2026-09-14T12:56:50.7601329Z ##[endgroup]
+2026-09-14T12:56:50.7602254Z ##[group]Post cache
+2026-09-14T12:56:50.7602802Z State not set
+2026-09-14T12:56:50.7603462Z ##[endgroup]
+2026-09-14T12:56:50.7802484Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:50.7804267Z Post job cleanup.
+2026-09-14T12:56:51.0378205Z ##[group]Removing builder
+2026-09-14T12:56:51.0387235Z (node:3367) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:56:51.0388756Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:56:51.1498258Z [command]/usr/bin/docker buildx rm builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0
+2026-09-14T12:56:51.5915829Z builder-b914dd5f-1c9f-411f-9dcb-2fd781338ea0 removed
+2026-09-14T12:56:51.5958706Z ##[endgroup]
+2026-09-14T12:56:51.5959918Z ##[group]Cleaning up certificates
+2026-09-14T12:56:51.5961689Z ##[endgroup]
+2026-09-14T12:56:51.5962666Z ##[group]Post cache
+2026-09-14T12:56:51.5965404Z State not set
+2026-09-14T12:56:51.5967452Z ##[endgroup]
+2026-09-14T12:56:51.6145050Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:56:51.6146637Z Post job cleanup.
+2026-09-14T12:56:51.6982921Z [command]/usr/bin/git version
+2026-09-14T12:56:51.7025778Z git version 2.55.0
+2026-09-14T12:56:51.7064619Z Temporarily overriding HOME='/home/runner/work/_temp/8d44b7e1-20dc-4300-8f62-f9477c16958b' before making global git config changes
+2026-09-14T12:56:51.7066186Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:56:51.7078253Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:56:51.7139002Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:56:51.7173868Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:56:51.7473460Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:56:51.7495287Z http.https://github.com/.extraheader
+2026-09-14T12:56:51.7509718Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-14T12:56:51.7557448Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:56:51.7816639Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:56:51.7859020Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:56:51.8249963Z Cleaning up orphan processes
+2026-09-14T12:56:51.8617967Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, docker/build-push-action@v6, docker/login-action@v3, docker/metadata-action@v5, docker/setup-buildx-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

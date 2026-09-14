@@ -1,0 +1,11 @@
+﻿2026-09-14T12:57:04.8734329Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:04.8735665Z Post job cleanup.
+2026-09-14T12:57:05.1875120Z ##[group]Logout from ghcr.io
+2026-09-14T12:57:05.1897360Z (node:3438) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:05.1898519Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:05.1921934Z [command]/usr/bin/docker logout ghcr.io
+2026-09-14T12:57:05.2092086Z Removing login credentials for ghcr.io
+2026-09-14T12:57:05.2125736Z ##[endgroup]
+2026-09-14T12:57:05.2126748Z ##[group]Post cache
+2026-09-14T12:57:05.2128622Z State not set
+2026-09-14T12:57:05.2129371Z ##[endgroup]

@@ -1,0 +1,248 @@
+﻿2026-09-14T12:54:41.8406795Z Current runner version: '2.337.0'
+2026-09-14T12:54:41.8427628Z ##[group]Runner Image Provisioner
+2026-09-14T12:54:41.8428734Z Hosted Compute Agent
+2026-09-14T12:54:41.8429381Z Version: 20260828.587
+2026-09-14T12:54:41.8430632Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-14T12:54:41.8431473Z Build Date: 2026-08-28T16:44:25Z
+2026-09-14T12:54:41.8432027Z Worker ID: {5e81121c-8879-4e62-978b-0161d531ae93}
+2026-09-14T12:54:41.8432621Z Azure Region: centralus
+2026-09-14T12:54:41.8433222Z ##[endgroup]
+2026-09-14T12:54:41.8434808Z ##[group]Operating System
+2026-09-14T12:54:41.8435310Z Ubuntu
+2026-09-14T12:54:41.8435728Z 24.04.5
+2026-09-14T12:54:41.8436144Z LTS
+2026-09-14T12:54:41.8436566Z ##[endgroup]
+2026-09-14T12:54:41.8436978Z ##[group]Runner Image
+2026-09-14T12:54:41.8437496Z Image: ubuntu-24.04
+2026-09-14T12:54:41.8437937Z Version: 20260907.300.1
+2026-09-14T12:54:41.8439010Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260907.300/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-14T12:54:41.8440551Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260907.300
+2026-09-14T12:54:41.8441324Z ##[endgroup]
+2026-09-14T12:54:41.8442176Z ##[group]GITHUB_TOKEN Permissions
+2026-09-14T12:54:41.8444321Z Contents: read
+2026-09-14T12:54:41.8444785Z Metadata: read
+2026-09-14T12:54:41.8445243Z ##[endgroup]
+2026-09-14T12:54:41.8446924Z Secret source: Actions
+2026-09-14T12:54:41.8448066Z Cache mode: write
+2026-09-14T12:54:41.8448616Z Prepare workflow directory
+2026-09-14T12:54:41.8799716Z Prepare all required actions
+2026-09-14T12:54:41.8844200Z Getting action download info
+2026-09-14T12:54:42.1194264Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-14T12:54:42.5356200Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-09-14T12:54:42.8784565Z Complete job name: web
+2026-09-14T12:54:42.9412065Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:54:42.9420367Z ##[group]Run actions/checkout@v4
+2026-09-14T12:54:42.9421434Z with:
+2026-09-14T12:54:42.9422167Z   repository: developerlhc/camara_ia
+2026-09-14T12:54:42.9428919Z   token: ***
+2026-09-14T12:54:42.9429833Z   ssh-strict: true
+2026-09-14T12:54:42.9430595Z   ssh-user: git
+2026-09-14T12:54:42.9431349Z   persist-credentials: true
+2026-09-14T12:54:42.9432156Z   clean: true
+2026-09-14T12:54:42.9432885Z   sparse-checkout-cone-mode: true
+2026-09-14T12:54:42.9433759Z   fetch-depth: 1
+2026-09-14T12:54:42.9434482Z   fetch-tags: false
+2026-09-14T12:54:42.9435216Z   show-progress: true
+2026-09-14T12:54:42.9436016Z   lfs: false
+2026-09-14T12:54:42.9436864Z   submodules: false
+2026-09-14T12:54:42.9437605Z   set-safe-directory: true
+2026-09-14T12:54:42.9438459Z   allow-unsafe-pr-checkout: false
+2026-09-14T12:54:42.9439666Z ##[endgroup]
+2026-09-14T12:54:43.0215597Z Syncing repository: developerlhc/camara_ia
+2026-09-14T12:54:43.0218571Z ##[group]Getting Git version info
+2026-09-14T12:54:43.0219992Z Working directory is '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:54:43.0221766Z [command]/usr/bin/git version
+2026-09-14T12:54:43.5712659Z git version 2.55.0
+2026-09-14T12:54:43.5730039Z ##[endgroup]
+2026-09-14T12:54:43.5742228Z Temporarily overriding HOME='/home/runner/work/_temp/cd31bf9f-204a-4f1a-a3f3-95e2b2b9e781' before making global git config changes
+2026-09-14T12:54:43.5743160Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:54:43.5747063Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:54:43.5800849Z Deleting the contents of '/home/runner/work/camara_ia/camara_ia'
+2026-09-14T12:54:43.5804812Z ##[group]Initializing the repository
+2026-09-14T12:54:43.5808102Z [command]/usr/bin/git init /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:54:43.6058569Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-14T12:54:43.6059351Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-14T12:54:43.6060210Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-14T12:54:43.6060709Z hint: call:
+2026-09-14T12:54:43.6061181Z hint:
+2026-09-14T12:54:43.6061732Z hint: 	git config --global init.defaultBranch <name>
+2026-09-14T12:54:43.6062093Z hint:
+2026-09-14T12:54:43.6062468Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-14T12:54:43.6062986Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-14T12:54:43.6063445Z hint:
+2026-09-14T12:54:43.6063824Z hint: 	git branch -m <name>
+2026-09-14T12:54:43.6064213Z hint:
+2026-09-14T12:54:43.6064651Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-14T12:54:43.6065134Z Initialized empty Git repository in /home/runner/work/camara_ia/camara_ia/.git/
+2026-09-14T12:54:43.6068122Z [command]/usr/bin/git remote add origin https://github.com/developerlhc/camara_ia
+2026-09-14T12:54:43.6121986Z ##[endgroup]
+2026-09-14T12:54:43.6122756Z ##[group]Disabling automatic garbage collection
+2026-09-14T12:54:43.6125667Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-14T12:54:43.6213857Z ##[endgroup]
+2026-09-14T12:54:43.6214475Z ##[group]Setting up auth
+2026-09-14T12:54:43.6219164Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:54:43.6243390Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:54:43.6555662Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:54:43.6577946Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:54:43.6729898Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:54:43.6753238Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:54:43.6901148Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-14T12:54:43.7105209Z ##[endgroup]
+2026-09-14T12:54:43.7105787Z ##[group]Fetching the repository
+2026-09-14T12:54:43.7112730Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +f3b3fba671c5df44e063b94ad08d055b9d177e40:refs/remotes/origin/main
+2026-09-14T12:54:45.0247694Z From https://github.com/developerlhc/camara_ia
+2026-09-14T12:54:45.0248641Z  * [new ref]         f3b3fba671c5df44e063b94ad08d055b9d177e40 -> origin/main
+2026-09-14T12:54:45.0250383Z ##[endgroup]
+2026-09-14T12:54:45.0250916Z ##[group]Determining the checkout info
+2026-09-14T12:54:45.0251671Z ##[endgroup]
+2026-09-14T12:54:45.0258480Z [command]/usr/bin/git sparse-checkout disable
+2026-09-14T12:54:45.0304595Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-14T12:54:45.0326801Z ##[group]Checking out the ref
+2026-09-14T12:54:45.0331075Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-09-14T12:54:45.0406693Z Switched to a new branch 'main'
+2026-09-14T12:54:45.0410435Z branch 'main' set up to track 'origin/main'.
+2026-09-14T12:54:45.0415233Z ##[endgroup]
+2026-09-14T12:54:45.0444490Z [command]/usr/bin/git log -1 --format=%H
+2026-09-14T12:54:45.0461954Z f3b3fba671c5df44e063b94ad08d055b9d177e40
+2026-09-14T12:54:45.0656348Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:54:45.0657703Z ##[group]Run actions/setup-node@v4
+2026-09-14T12:54:45.0657986Z with:
+2026-09-14T12:54:45.0658193Z   node-version: 22
+2026-09-14T12:54:45.0658395Z   cache: npm
+2026-09-14T12:54:45.0658680Z   cache-dependency-path: apps/web/package-lock.json
+2026-09-14T12:54:45.0658969Z   always-auth: false
+2026-09-14T12:54:45.0659252Z   check-latest: false
+2026-09-14T12:54:45.0661525Z   token: ***
+2026-09-14T12:54:45.0661736Z ##[endgroup]
+2026-09-14T12:54:45.2434646Z (node:2034) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:54:45.2435773Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:54:45.2437184Z Found in cache @ /opt/hostedtoolcache/node/22.23.2/x64
+2026-09-14T12:54:45.2438259Z ##[group]Environment details
+2026-09-14T12:54:52.0323782Z node: v22.23.2
+2026-09-14T12:54:52.0324502Z npm: 10.9.8
+2026-09-14T12:54:52.0325428Z yarn: 1.22.22
+2026-09-14T12:54:52.0326367Z ##[endgroup]
+2026-09-14T12:54:52.0355607Z [command]/opt/hostedtoolcache/node/22.23.2/x64/bin/npm config get cache
+2026-09-14T12:54:52.7930357Z /home/runner/.npm
+2026-09-14T12:54:52.9927260Z Cache hit for: node-cache-Linux-x64-npm-a6c22f20188c554fbe69fa257f0ee709830b0c294bf094e0c7d36ae643c133ec
+2026-09-14T12:54:52.9999722Z (node:2034) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:54:53.6611369Z Received 20037375 of 20037375 (100.0%), 38.4 MBs/sec
+2026-09-14T12:54:53.6612048Z Cache Size: ~19 MB (20037375 B)
+2026-09-14T12:54:53.6632570Z [command]/usr/bin/tar -xf /home/runner/work/_temp/59a69749-870d-4a19-9c69-ac7c4f1a4a85/cache.tzst -P -C /home/runner/work/camara_ia/camara_ia --use-compress-program unzstd
+2026-09-14T12:54:53.7092034Z Cache restored successfully
+2026-09-14T12:54:53.7101462Z Cache restored from key: node-cache-Linux-x64-npm-a6c22f20188c554fbe69fa257f0ee709830b0c294bf094e0c7d36ae643c133ec
+2026-09-14T12:54:53.7213486Z ##[group]Run npm ci
+2026-09-14T12:54:53.7213835Z [36;1mnpm ci[0m
+2026-09-14T12:54:53.7474987Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:54:53.7475267Z ##[endgroup]
+2026-09-14T12:55:03.3214601Z 
+2026-09-14T12:55:03.3224200Z added 79 packages, and audited 80 packages in 9s
+2026-09-14T12:55:03.3225247Z 
+2026-09-14T12:55:03.3225890Z 11 packages are looking for funding
+2026-09-14T12:55:03.3226250Z   run `npm fund` for details
+2026-09-14T12:55:03.3226528Z 
+2026-09-14T12:55:03.3226674Z found 0 vulnerabilities
+2026-09-14T12:55:03.3442100Z ##[group]Run npm run check && npm run build && npm audit
+2026-09-14T12:55:03.3442506Z [36;1mnpm run check && npm run build && npm audit[0m
+2026-09-14T12:55:03.3462572Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:03.3462897Z ##[endgroup]
+2026-09-14T12:55:03.4340044Z 
+2026-09-14T12:55:03.4340449Z > vigilay-web@0.1.0 check
+2026-09-14T12:55:03.4341049Z > svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+2026-09-14T12:55:03.4341307Z 
+2026-09-14T12:55:08.6803973Z Loading svelte-check in workspace: /home/runner/work/camara_ia/camara_ia/apps/web
+2026-09-14T12:55:08.6804748Z Getting Svelte diagnostics...
+2026-09-14T12:55:08.6805001Z 
+2026-09-14T12:55:08.6817701Z [32msvelte-check found 0 errors and 0 warnings
+2026-09-14T12:55:08.7599339Z [39m
+2026-09-14T12:55:08.7599940Z > vigilay-web@0.1.0 build
+2026-09-14T12:55:08.7600215Z > vite build
+2026-09-14T12:55:08.7600380Z 
+2026-09-14T12:55:09.3821476Z [36mvite v6.4.3 [32mbuilding SSR bundle for production...[36m[39m
+2026-09-14T12:55:09.4578956Z transforming...
+2026-09-14T12:55:10.2267864Z [32m✓[39m 156 modules transformed.
+2026-09-14T12:55:10.2996635Z rendering chunks...
+2026-09-14T12:55:10.9159652Z [36mvite v6.4.3 [32mbuilding for production...[36m[39m
+2026-09-14T12:55:10.9193539Z transforming...
+2026-09-14T12:55:11.6604570Z [32m✓[39m 168 modules transformed.
+2026-09-14T12:55:11.7210283Z rendering chunks...
+2026-09-14T12:55:11.7518110Z computing gzip size...
+2026-09-14T12:55:11.8435331Z [2m.svelte-kit/output/client/[22m[32m_app/version.json                       [39m[1m[2m 0.03 kB[22m[1m[22m[2m │ gzip:  0.05 kB[22m
+2026-09-14T12:55:11.8436402Z [2m.svelte-kit/output/client/[22m[32m.vite/manifest.json                     [39m[1m[2m 5.61 kB[22m[1m[22m[2m │ gzip:  0.88 kB[22m
+2026-09-14T12:55:11.8437161Z [2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/3.B4tCP_NU.css    [39m[1m[2m 4.89 kB[22m[1m[22m[2m │ gzip:  1.21 kB[22m
+2026-09-14T12:55:11.8438118Z [2m.svelte-kit/output/client/[22m[35m_app/immutable/assets/0.DA1nlDLJ.css    [39m[1m[2m 9.14 kB[22m[1m[22m[2m │ gzip:  2.85 kB[22m
+2026-09-14T12:55:11.8439015Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DNtpPyip.js       [39m[1m[2m 0.04 kB[22m[1m[22m[2m │ gzip:  0.06 kB[22m
+2026-09-14T12:55:11.8440177Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/PcDygV3d.js       [39m[1m[2m 0.15 kB[22m[1m[22m[2m │ gzip:  0.13 kB[22m
+2026-09-14T12:55:11.8440947Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/DKZ4DsWN.js       [39m[1m[2m 0.32 kB[22m[1m[22m[2m │ gzip:  0.25 kB[22m
+2026-09-14T12:55:11.8441733Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/0.CwvZwD4z.js      [39m[1m[2m 0.33 kB[22m[1m[22m[2m │ gzip:  0.24 kB[22m
+2026-09-14T12:55:11.8442610Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/1.CvJuXipY.js      [39m[1m[2m 0.42 kB[22m[1m[22m[2m │ gzip:  0.28 kB[22m
+2026-09-14T12:55:11.8443336Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/z6vCDTMR.js       [39m[1m[2m 0.47 kB[22m[1m[22m[2m │ gzip:  0.32 kB[22m
+2026-09-14T12:55:11.8444292Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/PglIXXgm.js       [39m[1m[2m 0.51 kB[22m[1m[22m[2m │ gzip:  0.37 kB[22m
+2026-09-14T12:55:11.8445054Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/4.BWolC2VX.js      [39m[1m[2m 0.75 kB[22m[1m[22m[2m │ gzip:  0.49 kB[22m
+2026-09-14T12:55:11.8445797Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CG_OOD36.js       [39m[1m[2m 1.33 kB[22m[1m[22m[2m │ gzip:  0.73 kB[22m
+2026-09-14T12:55:11.8446545Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/wbPk3Yxo.js       [39m[1m[2m 1.37 kB[22m[1m[22m[2m │ gzip:  0.66 kB[22m
+2026-09-14T12:55:11.8447323Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CYZXEYR5.js       [39m[1m[2m 1.44 kB[22m[1m[22m[2m │ gzip:  0.80 kB[22m
+2026-09-14T12:55:11.8448401Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/6.Db3p0waX.js      [39m[1m[2m 1.44 kB[22m[1m[22m[2m │ gzip:  0.83 kB[22m
+2026-09-14T12:55:11.8449125Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/5.C5fmq0_g.js      [39m[1m[2m 2.05 kB[22m[1m[22m[2m │ gzip:  1.17 kB[22m
+2026-09-14T12:55:11.8450105Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/C5CBdfNc.js       [39m[1m[2m 2.24 kB[22m[1m[22m[2m │ gzip:  0.98 kB[22m
+2026-09-14T12:55:11.8450852Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/5AbnCP9i.js       [39m[1m[2m 2.53 kB[22m[1m[22m[2m │ gzip:  1.32 kB[22m
+2026-09-14T12:55:11.8451585Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/CHfS_sbl.js       [39m[1m[2m 6.90 kB[22m[1m[22m[2m │ gzip:  3.12 kB[22m
+2026-09-14T12:55:11.8452357Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/entry/app.DtwmkDuT.js    [39m[1m[2m 7.07 kB[22m[1m[22m[2m │ gzip:  3.12 kB[22m
+2026-09-14T12:55:11.8453109Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BP8rzWiu.js       [39m[1m[2m 8.72 kB[22m[1m[22m[2m │ gzip:  3.66 kB[22m
+2026-09-14T12:55:11.8453853Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/chunks/BFuiSmvQ.js       [39m[1m[2m29.02 kB[22m[1m[22m[2m │ gzip: 11.05 kB[22m
+2026-09-14T12:55:11.8454704Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/entry/start.BrKFzEck.js  [39m[1m[2m29.52 kB[22m[1m[22m[2m │ gzip: 11.21 kB[22m
+2026-09-14T12:55:11.8456054Z [2m.svelte-kit/output/client/[22m[36m_app/immutable/nodes/3.Bt7df7kr.js      [39m[1m[2m61.12 kB[22m[1m[22m[2m │ gzip: 20.70 kB[22m
+2026-09-14T12:55:11.8456574Z [32m✓ built in 928ms[39m
+2026-09-14T12:55:12.4129764Z [2m.svelte-kit/output/server/[22m[32m.vite/manifest.json                            [39m[1m[2m  4.36 kB[22m[1m[22m
+2026-09-14T12:55:12.4131273Z [2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_page.CHIcwCQe.css       [39m[1m[2m  4.85 kB[22m[1m[22m
+2026-09-14T12:55:12.4132416Z [2m.svelte-kit/output/server/[22m[35m_app/immutable/assets/_layout.BGGduIA5.css     [39m[1m[2m  9.09 kB[22m[1m[22m
+2026-09-14T12:55:12.4133784Z [2m.svelte-kit/output/server/[22m[36mentries/pages/_page.server.ts.js               [39m[1m[2m  0.11 kB[22m[1m[22m
+2026-09-14T12:55:12.4135192Z [2m.svelte-kit/output/server/[22m[36mentries/pages/_layout.svelte.js                [39m[1m[2m  0.17 kB[22m[1m[22m
+2026-09-14T12:55:12.4139889Z [2m.svelte-kit/output/server/[22m[36menv.js                                         [39m[1m[2m  0.23 kB[22m[1m[22m
+2026-09-14T12:55:12.4141019Z [2m.svelte-kit/output/server/[22m[36mchunks/shared-server.js                        [39m[1m[2m  0.28 kB[22m[1m[22m
+2026-09-14T12:55:12.4142043Z [2m.svelte-kit/output/server/[22m[36mentries/fallbacks/error.svelte.js              [39m[1m[2m  0.35 kB[22m[1m[22m
+2026-09-14T12:55:12.4143016Z [2m.svelte-kit/output/server/[22m[36minternal.js                                    [39m[1m[2m  0.41 kB[22m[1m[22m
+2026-09-14T12:55:12.4144001Z [2m.svelte-kit/output/server/[22m[36mchunks/server.js                               [39m[1m[2m  0.62 kB[22m[1m[22m
+2026-09-14T12:55:12.4145028Z [2m.svelte-kit/output/server/[22m[36mentries/pages/forgot-password/_page.svelte.js  [39m[1m[2m  0.76 kB[22m[1m[22m
+2026-09-14T12:55:12.4146190Z [2m.svelte-kit/output/server/[22m[36mchunks/index2.js                               [39m[1m[2m  0.81 kB[22m[1m[22m
+2026-09-14T12:55:12.4147266Z [2m.svelte-kit/output/server/[22m[36mentries/pages/reset-password/_page.svelte.js   [39m[1m[2m  1.00 kB[22m[1m[22m
+2026-09-14T12:55:12.4148212Z [2m.svelte-kit/output/server/[22m[36mchunks/utils2.js                               [39m[1m[2m  1.09 kB[22m[1m[22m
+2026-09-14T12:55:12.4149202Z [2m.svelte-kit/output/server/[22m[36mentries/endpoints/api/_...path_/_server.ts.js  [39m[1m[2m  1.59 kB[22m[1m[22m
+2026-09-14T12:55:12.4181265Z [2m.svelte-kit/output/server/[22m[36mentries/pages/login/_page.svelte.js            [39m[1m[2m  1.59 kB[22m[1m[22m
+2026-09-14T12:55:12.4182312Z [2m.svelte-kit/output/server/[22m[36mchunks/internal.js                             [39m[1m[2m  3.10 kB[22m[1m[22m
+2026-09-14T12:55:12.4183500Z [2m.svelte-kit/output/server/[22m[36mentries/pages/_...section_/_page.svelte.js     [39m[1m[2m  4.51 kB[22m[1m[22m
+2026-09-14T12:55:12.4184483Z [2m.svelte-kit/output/server/[22m[36mchunks/exports.js                              [39m[1m[2m  5.54 kB[22m[1m[22m
+2026-09-14T12:55:12.4185448Z [2m.svelte-kit/output/server/[22m[36mchunks/utils.js                                [39m[1m[2m 34.22 kB[22m[1m[22m
+2026-09-14T12:55:12.4186387Z [2m.svelte-kit/output/server/[22m[36mremote-entry.js                                [39m[1m[2m 36.81 kB[22m[1m[22m
+2026-09-14T12:55:12.4187298Z [2m.svelte-kit/output/server/[22m[36mchunks/index.js                                [39m[1m[2m 41.12 kB[22m[1m[22m
+2026-09-14T12:55:12.4188292Z [2m.svelte-kit/output/server/[22m[36mchunks/root.js                                 [39m[1m[2m 88.77 kB[22m[1m[22m
+2026-09-14T12:55:12.4189171Z [2m.svelte-kit/output/server/[22m[36mindex.js                                       [39m[1m[2m132.29 kB[22m[1m[22m
+2026-09-14T12:55:12.4190841Z [32m✓ built in 3.03s[39m
+2026-09-14T12:55:12.4191091Z 
+2026-09-14T12:55:12.4191421Z Run npm run preview to preview your production build locally.
+2026-09-14T12:55:12.4191763Z 
+2026-09-14T12:55:12.4191976Z > Using @sveltejs/adapter-node
+2026-09-14T12:55:13.0053214Z   ✔ done
+2026-09-14T12:55:13.4125715Z found 0 vulnerabilities
+2026-09-14T12:55:13.4252565Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:55:13.4253476Z Post job cleanup.
+2026-09-14T12:55:13.5174316Z (node:2224) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:55:13.5175085Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:55:13.5176125Z Cache hit occurred on the primary key node-cache-Linux-x64-npm-a6c22f20188c554fbe69fa257f0ee709830b0c294bf094e0c7d36ae643c133ec, not saving cache.
+2026-09-14T12:55:13.5286821Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:55:13.5287754Z Post job cleanup.
+2026-09-14T12:55:13.5885094Z [command]/usr/bin/git version
+2026-09-14T12:55:13.5913648Z git version 2.55.0
+2026-09-14T12:55:13.5938317Z Temporarily overriding HOME='/home/runner/work/_temp/2dda3f70-3ebe-487f-9ad1-b57e5bd07938' before making global git config changes
+2026-09-14T12:55:13.5939313Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-14T12:55:13.5942510Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/camara_ia/camara_ia
+2026-09-14T12:55:13.5969331Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-14T12:55:13.5992872Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-14T12:55:13.6147338Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-14T12:55:13.6164920Z http.https://github.com/.extraheader
+2026-09-14T12:55:13.6172603Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-14T12:55:13.6192954Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-14T12:55:13.6355578Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-14T12:55:13.6378038Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-14T12:55:13.6632440Z Cleaning up orphan processes
+2026-09-14T12:55:13.6813520Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

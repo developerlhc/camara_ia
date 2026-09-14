@@ -1,0 +1,65 @@
+﻿2026-09-14T12:56:06.4885370Z Print service container logs: 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695
+2026-09-14T12:56:06.4890221Z ##[command]/usr/bin/docker logs --details 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.5023872Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-14T12:56:06.5026186Z  2026-09-14T12:54:59.815836Z 0 [System] [MY-015017] [Server] MySQL Server Initialization - start.
+2026-09-14T12:56:06.5027253Z  2026-09-14T12:54:59.817057Z 0 [System] [MY-013169] [Server] /usr/sbin/mysqld (mysqld 8.4.11) initializing of server in progress as process 81
+2026-09-14T12:56:06.5028025Z  2026-09-14T12:54:59.821512Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5028952Z  2026-09-14T12:54:59.925427Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5029910Z  2026-09-14T12:55:00.436324Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+2026-09-14T12:56:06.5031060Z  2026-09-14T12:55:02.545746Z 0 [System] [MY-015018] [Server] MySQL Server Initialization - end.
+2026-09-14T12:56:06.5031636Z  2026-09-14T12:55:02.599642Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-14T12:56:06.5032248Z  2026-09-14T12:55:02.779199Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 122
+2026-09-14T12:56:06.5032897Z  2026-09-14T12:55:02.788660Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5033466Z  2026-09-14T12:55:02.904055Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5034054Z  2026-09-14T12:55:03.114485Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-14T12:56:06.5034886Z  2026-09-14T12:55:03.114524Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-14T12:56:06.5036097Z  2026-09-14T12:55:03.116491Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-14T12:56:06.5037167Z  2026-09-14T12:55:03.134538Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Socket: /var/run/mysqld/mysqlx.sock
+2026-09-14T12:56:06.5037821Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Switching to dedicated user 'mysql'
+2026-09-14T12:56:06.5038400Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Entrypoint script for MySQL Server 8.4.11-1.el9 started.
+2026-09-14T12:56:06.5039298Z  2026-09-14 12:54:59+00:00 [Note] [Entrypoint]: Initializing database files
+2026-09-14T12:56:06.5039783Z  2026-09-14 12:55:02+00:00 [Note] [Entrypoint]: Database files initialized
+2026-09-14T12:56:06.5040231Z  2026-09-14 12:55:02+00:00 [Note] [Entrypoint]: Starting temporary server
+2026-09-14T12:56:06.5041110Z  2026-09-14T12:55:03.134605Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 0  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5042184Z  2026-09-14T12:55:04.588931Z 13 [System] [MY-013172] [Server] Received SHUTDOWN from user root. Shutting down mysqld (Version: 8.4.11).
+2026-09-14T12:56:06.5043054Z  2026-09-14T12:55:05.509249Z 0 [System] [MY-010910] [Server] /usr/sbin/mysqld: Shutdown complete (mysqld 8.4.11)  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5043753Z  2026-09-14T12:55:05.509265Z 0 [System] [MY-015016] [Server] MySQL Server - end.
+2026-09-14T12:56:06.5044254Z  2026-09-14T12:55:05.605818Z 0 [System] [MY-015015] [Server] MySQL Server - start.
+2026-09-14T12:56:06.5044844Z  2026-09-14T12:55:05.790673Z 0 [System] [MY-010116] [Server] /usr/sbin/mysqld (mysqld 8.4.11) starting as process 1
+2026-09-14T12:56:06.5045488Z  2026-09-14T12:55:05.795646Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-09-14T12:56:06.5046352Z  2026-09-14T12:55:05.907910Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-09-14T12:56:06.5046942Z  2026-09-14T12:55:06.090399Z 0 [Warning] [MY-010068] [Server] CA certificate ca.pem is self signed.
+2026-09-14T12:56:06.5047767Z  2026-09-14T12:55:06.090437Z 0 [System] [MY-013602] [Server] Channel mysql_main configured to support TLS. Encrypted connections are now supported for this channel.
+2026-09-14T12:56:06.5049242Z  2026-09-14T12:55:06.092080Z 0 [Warning] [MY-011810] [Server] Insecure configuration for --pid-file: Location '/var/run/mysqld' in the path is accessible to all OS users. Consider choosing a different directory.
+2026-09-14T12:56:06.5051072Z  2026-09-14T12:55:06.108898Z 0 [System] [MY-011323] [Server] X Plugin ready for connections. Bind-address: '::' port: 33060, socket: /var/run/mysqld/mysqlx.sock
+2026-09-14T12:56:06.5053087Z  2026-09-14T12:55:06.109019Z 0 [System] [MY-010931] [Server] /usr/sbin/mysqld: ready for connections. Version: '8.4.11'  socket: '/var/run/mysqld/mysqld.sock'  port: 3306  MySQL Community Server - GPL.
+2026-09-14T12:56:06.5053963Z  2026-09-14 12:55:03+00:00 [Note] [Entrypoint]: Temporary server started.
+2026-09-14T12:56:06.5054572Z  '/var/lib/mysql/mysql.sock' -> '/var/run/mysqld/mysqld.sock'
+2026-09-14T12:56:06.5055018Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Creating database vigilay_test
+2026-09-14T12:56:06.5055467Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Creating user vigilay
+2026-09-14T12:56:06.5055958Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Giving user vigilay access to schema vigilay_test
+2026-09-14T12:56:06.5056384Z  
+2026-09-14T12:56:06.5056660Z  2026-09-14 12:55:04+00:00 [Note] [Entrypoint]: Stopping temporary server
+2026-09-14T12:56:06.5057099Z  2026-09-14 12:55:05+00:00 [Note] [Entrypoint]: Temporary server stopped
+2026-09-14T12:56:06.5057441Z  
+2026-09-14T12:56:06.5057759Z  2026-09-14 12:55:05+00:00 [Note] [Entrypoint]: MySQL init process done. Ready for start up.
+2026-09-14T12:56:06.5058168Z  
+2026-09-14T12:56:06.5064637Z Stop and remove container: 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695
+2026-09-14T12:56:06.5071022Z ##[command]/usr/bin/docker rm --force 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.6653911Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:56:06.6675524Z Print service container logs: 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56
+2026-09-14T12:56:06.6676816Z ##[command]/usr/bin/docker logs --details c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.6813633Z  1:C 14 Sep 2026 12:55:01.560 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+2026-09-14T12:56:06.6815728Z  1:C 14 Sep 2026 12:55:01.560 * oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+2026-09-14T12:56:06.6816322Z  1:C 14 Sep 2026 12:55:01.560 * Redis version=7.4.11, bits=64, commit=00000000, modified=0, pid=1, just started
+2026-09-14T12:56:06.6817319Z  1:C 14 Sep 2026 12:55:01.560 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+2026-09-14T12:56:06.6818202Z  1:M 14 Sep 2026 12:55:01.560 * monotonic clock: POSIX clock_gettime
+2026-09-14T12:56:06.6818879Z  1:M 14 Sep 2026 12:55:01.561 * Running mode=standalone, port=6379.
+2026-09-14T12:56:06.6819394Z  1:M 14 Sep 2026 12:55:01.561 * Server initialized
+2026-09-14T12:56:06.6819754Z  1:M 14 Sep 2026 12:55:01.561 * Ready to accept connections tcp
+2026-09-14T12:56:06.6833423Z Stop and remove container: 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56
+2026-09-14T12:56:06.6834280Z ##[command]/usr/bin/docker rm --force c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.8043302Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:56:06.8076562Z Remove container network: github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:56:06.8083978Z ##[command]/usr/bin/docker network rm github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:56:06.9073166Z github_network_5359defb462346e7a7254dda244180ad

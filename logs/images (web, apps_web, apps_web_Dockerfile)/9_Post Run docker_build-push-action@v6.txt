@@ -1,0 +1,24 @@
+﻿2026-09-14T12:57:03.0338232Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:57:03.0339560Z Post job cleanup.
+2026-09-14T12:57:03.2773842Z ##[group]Generating build summary
+2026-09-14T12:57:03.2778697Z exporting build record to /home/runner/work/_temp/docker-actions-toolkit-06rkso/export
+2026-09-14T12:57:03.2791798Z (node:3284) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:57:03.2792923Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:57:03.4881159Z [command]/usr/bin/docker buildx history export --builder builder-fda69ab9-d997-4b88-a9c7-71774e660d9b --output /home/runner/work/_temp/docker-actions-toolkit-06rkso/export/developerlhc~camara_ia~JH502I.dockerbuild jh502ig84q3adk4crbwdagi3e --finalize
+2026-09-14T12:57:03.7026776Z Build record written to /home/runner/work/_temp/docker-actions-toolkit-06rkso/export/developerlhc~camara_ia~JH502I.dockerbuild (47.88 KB)
+2026-09-14T12:57:03.7052588Z Uploading developerlhc~camara_ia~JH502I.dockerbuild to blob storage
+2026-09-14T12:57:04.0757201Z Beginning upload of artifact content to blob storage
+2026-09-14T12:57:04.0845696Z (node:3284) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:57:04.0854246Z Uploaded bytes 49034
+2026-09-14T12:57:04.4618211Z Finished uploading artifact content to blob storage!
+2026-09-14T12:57:04.4622351Z SHA256 hash of uploaded artifact is 865607eb88f87087bf4b3d8fc34b64a4494330da85f4a6fb1d43031b64073730
+2026-09-14T12:57:04.4623904Z Finalizing artifact upload
+2026-09-14T12:57:04.8529056Z Artifact successfully finalized (10348227788)
+2026-09-14T12:57:04.8531353Z Artifact download URL: https://github.com/developerlhc/camara_ia/actions/runs/34846028989/artifacts/10348227788
+2026-09-14T12:57:04.8557891Z Writing summary
+2026-09-14T12:57:04.8573196Z ##[endgroup]
+2026-09-14T12:57:04.8574091Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-D0718C
+2026-09-14T12:57:04.8575947Z ##[endgroup]
+2026-09-14T12:57:04.8576612Z ##[group]Post cache
+2026-09-14T12:57:04.8578932Z State not set
+2026-09-14T12:57:04.8579611Z ##[endgroup]

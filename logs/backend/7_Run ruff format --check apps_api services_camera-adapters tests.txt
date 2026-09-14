@@ -1,0 +1,14 @@
+﻿2026-09-14T12:55:36.5710349Z ##[group]Run ruff format --check apps/api services/camera-adapters tests
+2026-09-14T12:55:36.5710907Z [36;1mruff format --check apps/api services/camera-adapters tests[0m
+2026-09-14T12:55:36.5747889Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:55:36.5748159Z env:
+2026-09-14T12:55:36.5749007Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:36.5749519Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:36.5749999Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5750428Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:55:36.5750854Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5751250Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5751633Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:55:36.5752025Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:55:36.5752422Z ##[endgroup]
+2026-09-14T12:55:36.5923701Z 33 files already formatted

@@ -1,0 +1,17 @@
+﻿2026-09-14T12:56:02.4803143Z ##[group]Run pip-audit --local --skip-editable
+2026-09-14T12:56:02.4803566Z [36;1mpip-audit --local --skip-editable[0m
+2026-09-14T12:56:02.4840777Z shell: /usr/bin/bash -e {0}
+2026-09-14T12:56:02.4841040Z env:
+2026-09-14T12:56:02.4841629Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:56:02.4842129Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:56:02.4842612Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4843053Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib/pkgconfig
+2026-09-14T12:56:02.4843506Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4843891Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4844306Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.15/x64
+2026-09-14T12:56:02.4844700Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.15/x64/lib
+2026-09-14T12:56:02.4845035Z ##[endgroup]
+2026-09-14T12:56:03.6656699Z No known vulnerabilities found
+2026-09-14T12:56:03.6665429Z Name    Skip Reason
+2026-09-14T12:56:03.6666036Z ------- -------------------------------
+2026-09-14T12:56:03.6666525Z vigilay distribution marked as editable

@@ -1,0 +1,140 @@
+﻿2026-09-14T12:54:43.7638243Z ##[group]Checking docker version
+2026-09-14T12:54:43.7652001Z ##[command]/usr/bin/docker version --format '{{.Server.APIVersion}}'
+2026-09-14T12:54:43.8784335Z '1.48'
+2026-09-14T12:54:43.8796191Z Docker daemon API version: '1.48'
+2026-09-14T12:54:43.8797013Z ##[command]/usr/bin/docker version --format '{{.Client.APIVersion}}'
+2026-09-14T12:54:43.8984309Z '1.48'
+2026-09-14T12:54:43.8997945Z Docker client API version: '1.48'
+2026-09-14T12:54:43.9003108Z ##[endgroup]
+2026-09-14T12:54:43.9006138Z ##[group]Clean up resources from previous jobs
+2026-09-14T12:54:43.9012192Z ##[command]/usr/bin/docker ps --all --quiet --no-trunc --filter "label=6654b2"
+2026-09-14T12:54:43.9174442Z ##[command]/usr/bin/docker network prune --force --filter "label=6654b2"
+2026-09-14T12:54:43.9321204Z ##[endgroup]
+2026-09-14T12:54:43.9321783Z ##[group]Create local container network
+2026-09-14T12:54:43.9332471Z ##[command]/usr/bin/docker network create --label 6654b2 github_network_5359defb462346e7a7254dda244180ad
+2026-09-14T12:54:43.9869969Z 14c01ce9aea5eab01e7f750ae310cdfd05cf0d77248f50a6e96b99502f219140
+2026-09-14T12:54:43.9892199Z ##[endgroup]
+2026-09-14T12:54:43.9917622Z ##[group]Starting mysql service container
+2026-09-14T12:54:43.9939795Z ##[command]/usr/bin/docker pull mysql:8.4
+2026-09-14T12:54:44.8714310Z 8.4: Pulling from library/mysql
+2026-09-14T12:54:45.1373453Z 13c85306055e: Pulling fs layer
+2026-09-14T12:54:45.1375177Z 62f909f48b33: Pulling fs layer
+2026-09-14T12:54:45.1375810Z 70d659eb9b53: Pulling fs layer
+2026-09-14T12:54:45.1377971Z 7c507b2b0af4: Pulling fs layer
+2026-09-14T12:54:45.1379404Z f5703b642196: Pulling fs layer
+2026-09-14T12:54:45.1380727Z 35c18fec455d: Pulling fs layer
+2026-09-14T12:54:45.1381647Z ec3187676fa6: Pulling fs layer
+2026-09-14T12:54:45.1382470Z 2a2df1f368eb: Pulling fs layer
+2026-09-14T12:54:45.1383263Z e1ff04460a23: Pulling fs layer
+2026-09-14T12:54:45.1383875Z 052c01bf8f0e: Pulling fs layer
+2026-09-14T12:54:45.1384341Z 35c18fec455d: Waiting
+2026-09-14T12:54:45.1384802Z ec3187676fa6: Waiting
+2026-09-14T12:54:45.1385325Z 2a2df1f368eb: Waiting
+2026-09-14T12:54:45.1386137Z e1ff04460a23: Waiting
+2026-09-14T12:54:45.1386597Z 052c01bf8f0e: Waiting
+2026-09-14T12:54:45.1387023Z f5703b642196: Waiting
+2026-09-14T12:54:45.3536678Z 62f909f48b33: Verifying Checksum
+2026-09-14T12:54:45.3539024Z 62f909f48b33: Download complete
+2026-09-14T12:54:45.3620237Z 70d659eb9b53: Download complete
+2026-09-14T12:54:45.5554177Z 13c85306055e: Verifying Checksum
+2026-09-14T12:54:45.5555600Z 13c85306055e: Download complete
+2026-09-14T12:54:45.5808406Z f5703b642196: Verifying Checksum
+2026-09-14T12:54:45.5810195Z f5703b642196: Download complete
+2026-09-14T12:54:45.5892320Z 7c507b2b0af4: Verifying Checksum
+2026-09-14T12:54:45.5893050Z 7c507b2b0af4: Download complete
+2026-09-14T12:54:45.7745284Z 35c18fec455d: Verifying Checksum
+2026-09-14T12:54:45.7748298Z 35c18fec455d: Download complete
+2026-09-14T12:54:45.8061827Z 2a2df1f368eb: Verifying Checksum
+2026-09-14T12:54:45.8063608Z 2a2df1f368eb: Download complete
+2026-09-14T12:54:45.9745908Z ec3187676fa6: Verifying Checksum
+2026-09-14T12:54:45.9746688Z ec3187676fa6: Download complete
+2026-09-14T12:54:46.0226555Z 052c01bf8f0e: Verifying Checksum
+2026-09-14T12:54:46.0229027Z 052c01bf8f0e: Download complete
+2026-09-14T12:54:46.4361285Z e1ff04460a23: Verifying Checksum
+2026-09-14T12:54:46.4361925Z e1ff04460a23: Download complete
+2026-09-14T12:54:47.0007691Z 13c85306055e: Pull complete
+2026-09-14T12:54:50.0296961Z 62f909f48b33: Pull complete
+2026-09-14T12:54:50.0680938Z 70d659eb9b53: Pull complete
+2026-09-14T12:54:50.2737378Z 7c507b2b0af4: Pull complete
+2026-09-14T12:54:50.2882115Z f5703b642196: Pull complete
+2026-09-14T12:54:50.2980657Z 35c18fec455d: Pull complete
+2026-09-14T12:54:51.1157963Z ec3187676fa6: Pull complete
+2026-09-14T12:54:51.1278298Z 2a2df1f368eb: Pull complete
+2026-09-14T12:54:59.1192025Z e1ff04460a23: Pull complete
+2026-09-14T12:54:59.1304888Z 052c01bf8f0e: Pull complete
+2026-09-14T12:54:59.1348017Z Digest: sha256:85b9bf2e29cf836ecb8c2a15a935d4ba0c606631dff1dd79531a11983c638f2a
+2026-09-14T12:54:59.1361475Z Status: Downloaded newer image for mysql:8.4
+2026-09-14T12:54:59.1369534Z docker.io/library/mysql:8.4
+2026-09-14T12:54:59.1431488Z ##[command]/usr/bin/docker create --name 96c1480a3b744c7f91204ec0cae11873_mysql84_c02695 --label 6654b2 --network github_network_5359defb462346e7a7254dda244180ad --network-alias mysql -p 3306:3306 --health-cmd="mysqladmin ping -h 127.0.0.1" --health-interval=5s --health-timeout=5s --health-retries=30 -e "MYSQL_DATABASE=vigilay_test" -e "MYSQL_USER=vigilay" -e "MYSQL_PASSWORD=ci_only_test_password" -e "MYSQL_ROOT_PASSWORD=ci_only_root_password" -e GITHUB_ACTIONS=true -e CI=true mysql:8.4
+2026-09-14T12:54:59.1768381Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.1792553Z ##[command]/usr/bin/docker start 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4055640Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4071191Z ##[command]/usr/bin/docker ps --all --filter id=1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-09-14T12:54:59.4214333Z 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd Up Less than a second (health: starting)
+2026-09-14T12:54:59.4258246Z ##[command]/usr/bin/docker port 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:54:59.4415270Z 3306/tcp -> 0.0.0.0:3306
+2026-09-14T12:54:59.4415619Z 3306/tcp -> [::]:3306
+2026-09-14T12:54:59.4473680Z ##[endgroup]
+2026-09-14T12:54:59.4475607Z ##[group]Starting redis service container
+2026-09-14T12:54:59.4477174Z ##[command]/usr/bin/docker pull redis:7.4-alpine
+2026-09-14T12:55:00.3352824Z 7.4-alpine: Pulling from library/redis
+2026-09-14T12:55:00.6071730Z 897d797d2723: Pulling fs layer
+2026-09-14T12:55:00.6072564Z d85eda7b0b14: Pulling fs layer
+2026-09-14T12:55:00.6082574Z 9516b0cd89c9: Pulling fs layer
+2026-09-14T12:55:00.6083080Z de4b872bfdc3: Pulling fs layer
+2026-09-14T12:55:00.6083852Z 2c96e5a02ba0: Pulling fs layer
+2026-09-14T12:55:00.6084736Z 4f4fb700ef54: Pulling fs layer
+2026-09-14T12:55:00.6085133Z 41caa0265cb5: Pulling fs layer
+2026-09-14T12:55:00.6085545Z 2c96e5a02ba0: Waiting
+2026-09-14T12:55:00.6089525Z 41caa0265cb5: Waiting
+2026-09-14T12:55:00.6089922Z 4f4fb700ef54: Waiting
+2026-09-14T12:55:00.6090342Z de4b872bfdc3: Waiting
+2026-09-14T12:55:00.8235076Z d85eda7b0b14: Verifying Checksum
+2026-09-14T12:55:00.8243002Z d85eda7b0b14: Download complete
+2026-09-14T12:55:00.8414960Z 9516b0cd89c9: Verifying Checksum
+2026-09-14T12:55:00.8419055Z 9516b0cd89c9: Download complete
+2026-09-14T12:55:00.8461304Z 897d797d2723: Download complete
+2026-09-14T12:55:00.9722563Z 897d797d2723: Pull complete
+2026-09-14T12:55:00.9935797Z d85eda7b0b14: Pull complete
+2026-09-14T12:55:01.0640745Z 4f4fb700ef54: Verifying Checksum
+2026-09-14T12:55:01.0641745Z 4f4fb700ef54: Download complete
+2026-09-14T12:55:01.0650260Z 2c96e5a02ba0: Download complete
+2026-09-14T12:55:01.1084041Z de4b872bfdc3: Verifying Checksum
+2026-09-14T12:55:01.1084786Z de4b872bfdc3: Download complete
+2026-09-14T12:55:01.1548829Z 9516b0cd89c9: Pull complete
+2026-09-14T12:55:01.2879817Z 41caa0265cb5: Verifying Checksum
+2026-09-14T12:55:01.2880792Z 41caa0265cb5: Download complete
+2026-09-14T12:55:01.3455994Z de4b872bfdc3: Pull complete
+2026-09-14T12:55:01.3578288Z 2c96e5a02ba0: Pull complete
+2026-09-14T12:55:01.3653133Z 4f4fb700ef54: Pull complete
+2026-09-14T12:55:01.3747066Z 41caa0265cb5: Pull complete
+2026-09-14T12:55:01.3806586Z Digest: sha256:ff02b58f971e7d7d156a1267e283fcbbeee91773b6aa36c49dac28ecfe28eadf
+2026-09-14T12:55:01.3818387Z Status: Downloaded newer image for redis:7.4-alpine
+2026-09-14T12:55:01.3825671Z docker.io/library/redis:7.4-alpine
+2026-09-14T12:55:01.3850252Z ##[command]/usr/bin/docker create --name 856ebc3570b94f8b948222238a247de7_redis74alpine_33bb56 --label 6654b2 --network github_network_5359defb462346e7a7254dda244180ad --network-alias redis -p 6379:6379 --health-cmd="redis-cli ping" --health-interval=5s --health-retries=20 -e GITHUB_ACTIONS=true -e CI=true redis:7.4-alpine
+2026-09-14T12:55:01.4100358Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.4114346Z ##[command]/usr/bin/docker start c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5526100Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5544531Z ##[command]/usr/bin/docker ps --all --filter id=c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615 --filter status=running --no-trunc --format "{{.ID}} {{.Status}}"
+2026-09-14T12:55:01.5674869Z c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615 Up Less than a second (health: starting)
+2026-09-14T12:55:01.5689877Z ##[command]/usr/bin/docker port c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:01.5808360Z 6379/tcp -> 0.0.0.0:6379
+2026-09-14T12:55:01.5808986Z 6379/tcp -> [::]:6379
+2026-09-14T12:55:01.5821012Z ##[endgroup]
+2026-09-14T12:55:01.5831592Z ##[group]Waiting for all services to be ready
+2026-09-14T12:55:01.5845169Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:01.5958962Z starting
+2026-09-14T12:55:01.5980083Z mysql service is starting, waiting 2 seconds before checking again.
+2026-09-14T12:55:03.5982752Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:03.6150503Z starting
+2026-09-14T12:55:03.6170386Z mysql service is starting, waiting 4 seconds before checking again.
+2026-09-14T12:55:07.6691272Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:07.6817926Z starting
+2026-09-14T12:55:07.6830802Z mysql service is starting, waiting 7 seconds before checking again.
+2026-09-14T12:55:15.4167484Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" 1cc4886b3c961ecadf96422402b0c7bf2c81bb5616b158b11dc979fd30f2d9fd
+2026-09-14T12:55:15.4292211Z healthy
+2026-09-14T12:55:15.4308459Z mysql service is healthy.
+2026-09-14T12:55:15.4309656Z ##[command]/usr/bin/docker inspect --format="{{if .Config.Healthcheck}}{{print .State.Health.Status}}{{end}}" c9aacb5b20d814f967908870d5ddb6fbcdba523b145417f71cc2a3040a656615
+2026-09-14T12:55:15.4427442Z healthy
+2026-09-14T12:55:15.4439198Z redis service is healthy.
+2026-09-14T12:55:15.4439932Z ##[endgroup]

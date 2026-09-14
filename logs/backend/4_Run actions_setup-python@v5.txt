@@ -1,0 +1,29 @@
+﻿2026-09-14T12:55:16.2713873Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-09-14T12:55:16.2715827Z ##[group]Run actions/setup-python@v5
+2026-09-14T12:55:16.2716103Z with:
+2026-09-14T12:55:16.2716308Z   python-version: 3.13
+2026-09-14T12:55:16.2716527Z   cache: pip
+2026-09-14T12:55:16.2716731Z   check-latest: false
+2026-09-14T12:55:16.2719732Z   token: ***
+2026-09-14T12:55:16.2719953Z   update-environment: true
+2026-09-14T12:55:16.2720201Z   allow-prereleases: false
+2026-09-14T12:55:16.2720431Z   freethreaded: false
+2026-09-14T12:55:16.2720643Z env:
+2026-09-14T12:55:16.2721168Z   TEST_DATABASE_URL: ***127.0.0.1:3306/vigilay_test?charset=utf8mb4
+2026-09-14T12:55:16.2721659Z   CREDENTIAL_ENCRYPTION_KEY: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+2026-09-14T12:55:16.2722102Z ##[endgroup]
+2026-09-14T12:55:16.4089561Z ##[group]Installed versions
+2026-09-14T12:55:16.4182805Z (node:3107) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-14T12:55:16.4184904Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-14T12:55:16.4185703Z Successfully set up CPython (3.13.15)
+2026-09-14T12:55:16.4186526Z ##[endgroup]
+2026-09-14T12:55:16.4914326Z [command]/opt/hostedtoolcache/Python/3.13.15/x64/bin/pip cache dir
+2026-09-14T12:55:18.0410569Z /home/runner/.cache/pip
+2026-09-14T12:55:18.3165444Z Cache hit for: setup-python-Linux-x64-24.04-Ubuntu-python-3.13.15-pip-d2a8ca36c9bddeb28b09e20636c5fa37522e465d3c3de858e8b4535a8b1be165
+2026-09-14T12:55:18.3276565Z (node:3107) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-14T12:55:19.6043731Z Received 4194304 of 42274706 (9.9%), 4.0 MBs/sec
+2026-09-14T12:55:20.0461247Z Received 42274706 of 42274706 (100.0%), 28.0 MBs/sec
+2026-09-14T12:55:20.0461986Z Cache Size: ~40 MB (42274706 B)
+2026-09-14T12:55:20.0577939Z [command]/usr/bin/tar -xf /home/runner/work/_temp/bc29a183-99de-49ad-97e4-8a200111656c/cache.tzst -P -C /home/runner/work/camara_ia/camara_ia --use-compress-program unzstd
+2026-09-14T12:55:20.1571462Z Cache restored successfully
+2026-09-14T12:55:20.1606003Z Cache restored from key: setup-python-Linux-x64-24.04-Ubuntu-python-3.13.15-pip-546c8c57622c2a2fd6e08662b81425386f2d7d23bd85b8118c6eedb85e5565dc

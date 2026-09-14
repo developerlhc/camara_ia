@@ -1,0 +1,8 @@
+2026-09-14T12:56:10.4750000Z Evaluating images.if
+2026-09-14T12:56:10.4750000Z Evaluating: success()
+2026-09-14T12:56:10.4750000Z Result: true
+2026-09-14T12:56:10.4790000Z Requested labels: ubuntu-latest
+2026-09-14T12:56:10.4790000Z Job defined at: developerlhc/camara_ia/.github/workflows/ci.yml@refs/heads/main
+2026-09-14T12:56:10.4790000Z Waiting for a runner to pick up this job...
+2026-09-14T12:56:10.7190000Z Job is waiting for a hosted runner to come online.
+2026-09-14T12:56:10.7190000Z Job is about to start running on the hosted runner: GitHub Actions 1000000081
