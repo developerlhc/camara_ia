@@ -24,7 +24,7 @@ class FakeFrigate:
     def camera_names(self):
         return {"camera_a", "camera_b"}
 
-    def events(self, *, limit=200):
+    def events(self, *, limit=200, after=None, before=None):
         return [
             {"id": "event-a", "camera": "camera_a", "label": "person", "has_snapshot": True},
             {"id": "event-b", "camera": "camera_b", "label": "car", "has_snapshot": True},
@@ -73,7 +73,7 @@ def test_frigate_events_release_database_connection_before_calling_frigate(
         def for_site(cls, db, tenant_id, site_id, *, client=None):
             return cls()
 
-        def events(self, *, limit=200):
+        def events(self, *, limit=200, after=None, before=None):
             checked_out_during_call.append(engine().pool.checkedout())
             return [{"id": "event-a", "camera": "camera_a", "label": "person"}]
 
@@ -87,6 +87,36 @@ def test_frigate_events_release_database_connection_before_calling_frigate(
     assert response.status_code == 200
     assert len(response.json()) == 1
     assert checked_out_during_call == [0]
+
+
+def test_frigate_events_forward_date_range_and_validate_it(monkeypatch, clients, cameras):
+    received = {}
+
+    class DateRangeFrigate:
+        @classmethod
+        def for_site(cls, db, tenant_id, site_id, *, client=None):
+            return cls()
+
+        def events(self, *, limit=200, after=None, before=None):
+            received["after"] = after
+            received["before"] = before
+            return []
+
+    monkeypatch.setattr(frigate_routes, "FrigateService", DateRangeFrigate)
+    with system_session() as db:
+        camera_a = db.get(Camera, cameras["a"]["id"])
+        camera_a.frigate_camera_name = "camera_a"
+        db.commit()
+
+    response = clients["a"].get("/api/v1/frigate/events?after=1000&before=2000")
+    assert response.status_code == 200
+    assert received == {"after": 1000, "before": 2000}
+
+    invalid_order = clients["a"].get("/api/v1/frigate/events?after=2000&before=1000")
+    assert invalid_order.status_code == 422
+
+    too_wide = clients["a"].get("/api/v1/frigate/events?after=0&before=8000000")
+    assert too_wide.status_code == 422
 
 
 def test_vigilay_local_frigate_catalog_requires_private_key(monkeypatch, clients, cameras):

@@ -37,6 +37,7 @@
   let frigateCameraId = $state(''); let mediaUrl = $state(''); let mediaTitle = $state(''); let mediaKind = $state('video');
   let recordingTenant = $state(''); let recordingSite = $state(''); let recordingPage = $state(1); let recordingPageSize = $state(10);
   let eventsTenant = $state(''); let eventsPage = $state(1); let eventsPageSize = $state(12);
+  let eventsCameraId = $state(''); let eventsAfter = $state(''); let eventsBefore = $state('');
   let mediaQueue = $state<Row[]>([]); let mediaIndex = $state(-1);
   let liveTimer: ReturnType<typeof setTimeout> | undefined;
   let realtimeSocket: WebSocket | undefined; let realtimeRetry: ReturnType<typeof setTimeout> | undefined;
@@ -46,9 +47,26 @@
   let recordingCameras = $derived(records.filter(row => row.frigate_camera_name && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite)));
   let recordingPages = $derived(Math.max(1, Math.ceil(recordings.length / recordingPageSize)));
   let pagedRecordings = $derived(recordings.slice((recordingPage - 1) * recordingPageSize, recordingPage * recordingPageSize));
-  let filteredEvents = $derived(frigateEvents.filter(item => !eventsTenant || item.tenant_id === eventsTenant));
+  let eventsCameras = $derived(records.filter(row => row.frigate_camera_name && (!eventsTenant || row.tenant_id === eventsTenant)));
+  let filteredEvents = $derived(frigateEvents.filter(item => (!eventsTenant || item.tenant_id === eventsTenant) && (!eventsCameraId || item.camera_id === eventsCameraId)));
   let eventsPages = $derived(Math.max(1, Math.ceil(filteredEvents.length / eventsPageSize)));
   let pagedEvents = $derived(filteredEvents.slice((eventsPage - 1) * eventsPageSize, eventsPage * eventsPageSize));
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const toLocalInput = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+  function setEventsRange(daysAgoStart: number, daysAgoEnd: number) {
+    const end = new Date(); end.setHours(23, 59, 59, 0); end.setDate(end.getDate() - daysAgoEnd);
+    const start = new Date(); start.setHours(0, 0, 0, 0); start.setDate(start.getDate() - daysAgoStart);
+    eventsAfter = toLocalInput(start); eventsBefore = toLocalInput(end);
+    void action(refresh, 'Eventos actualizados.');
+  }
+  function clearEventsRange() { eventsAfter = ''; eventsBefore = ''; void action(refresh, 'Eventos actualizados.'); }
+  function mediaFileName(item: Row, prefix: string) {
+    const camera = String(item.camera_name || 'camara').replace(/[^a-zA-Z0-9-]+/g, '_');
+    const label = String(item.label || '').replace(/[^a-zA-Z0-9-]+/g, '_');
+    const seconds = Number(item.start_time ?? item.start ?? 0);
+    const when = (seconds ? new Date(seconds * 1000) : new Date()).toISOString().replace(/[:.]/g, '-');
+    return `${prefix}-${camera}${label ? '-' + label : ''}-${when}.mp4`;
+  }
   const display = (value: unknown) => value === null || value === undefined ? '—' : String(value);
   const nameOf = (rows: Row[], id: unknown) => display(rows.find(r => r.id === id)?.name || '—');
   const can = (key: string) => user?.permissions.includes(key) || false;
@@ -93,7 +111,8 @@
     commandWaiters.get(command.id)?.(command);
   }
   function connectRealtime(target = realtimeTarget()) {
-    if (!target || realtimeStopping || typeof WebSocket === 'undefined') return;
+    if (!target || typeof WebSocket === 'undefined') return;
+    realtimeStopping = false;
     if (realtimeSocket?.readyState === WebSocket.OPEN) { subscribeRealtime(); return; }
     if (realtimeSocket?.readyState === WebSocket.CONNECTING) return;
     clearTimeout(realtimeRetry);
@@ -177,7 +196,10 @@
         api<Row[]>('/frigate/events?limit=6').catch(() => []),
       ]);
     } else if (section === 'events') {
-      [records, frigateEvents] = await Promise.all([api('/cameras'), api('/frigate/events?limit=200')]);
+      const eventsParams = new URLSearchParams({ limit: '200' });
+      if (eventsAfter) eventsParams.set('after', String(Math.floor(new Date(eventsAfter).getTime() / 1000)));
+      if (eventsBefore) eventsParams.set('before', String(Math.floor(new Date(eventsBefore).getTime() / 1000)));
+      [records, frigateEvents] = await Promise.all([api('/cameras'), api(`/frigate/events?${eventsParams}`)]);
       eventsPage = 1;
     } else if (section === 'recordings') {
       records = await api('/cameras');
@@ -191,6 +213,7 @@
     }
     else if (endpoints[section]) await loadRecords();
   }
+  let initialized = $state(false); let bootstrapFailed = $state(false);
   onMount(() => {
     const stopOnExit = () => { if (liveOpen) void closeLive(); };
     window.addEventListener('pagehide', stopOnExit);
@@ -199,11 +222,23 @@
         user = await api<Me>('/me'); setCsrf(user.csrf_token);
         [tenants, sites] = await Promise.all([api('/tenants'), api('/sites')]);
         tenantId = user.tenant_id || tenants[0]?.id || '';
-        await refresh();
-        if (cameraId) connectRealtime(cameraId);
-      } catch(e) { error = (e as Error).message; } finally { loading = false; }
+      } catch(e) { error = (e as Error).message; loading = false; bootstrapFailed = true; }
+      initialized = true;
     })();
     return () => { disconnectRealtime(); clearTimeout(searchTimer); window.removeEventListener('pagehide', stopOnExit); stopOnExit(); };
+  });
+  // Client-side navigation (no full page reload): re-run the section's data load
+  // whenever the URL section changes, instead of only once at mount.
+  $effect(() => {
+    const currentSection = section;
+    if (!initialized || bootstrapFailed) return;
+    loading = true;
+    void refresh().catch(e => error = e.message).finally(() => { loading = false; });
+  });
+  $effect(() => {
+    const target = cameraId;
+    if (!initialized || bootstrapFailed) return;
+    if (target) connectRealtime(target); else disconnectRealtime();
   });
 
   async function loadFrigateCatalog(targetSite: string) {
@@ -337,21 +372,21 @@
 <svelte:head><title>{title} · Vigilay</title></svelte:head>
 <div class="app-shell">
   <aside class="sidebar">
-    <a href="/dashboard" class="brand" data-sveltekit-reload><span class="brand-symbol">V</span> vigilay<span class="brand-dot">.</span></a>
+    <a href="/dashboard" class="brand"><span class="brand-symbol">V</span> vigilay<span class="brand-dot">.</span></a>
     <span class="workspace-label">CENTRO DE CONTROL</span>
     <nav aria-label="Navegación principal">
-      <a href="/dashboard" class:active={section === 'dashboard'} data-sveltekit-reload><span>◫</span> Resumen general</a>
-      <a href="/cameras" class:active={section.startsWith('cameras')} data-sveltekit-reload><span>▣</span> Cámaras</a>
-      <a href="/events" class:active={section === 'events'} data-sveltekit-reload><span>⚑</span> Eventos de IA</a>
-      <a href="/recordings" class:active={section === 'recordings'} data-sveltekit-reload><span>◉</span> Grabaciones</a>
+      <a href="/dashboard" class:active={section === 'dashboard'}><span>◫</span> Resumen general</a>
+      <a href="/cameras" class:active={section.startsWith('cameras')}><span>▣</span> Cámaras</a>
+      <a href="/events" class:active={section === 'events'}><span>⚑</span> Eventos de IA</a>
+      <a href="/recordings" class:active={section === 'recordings'}><span>◉</span> Grabaciones</a>
       <span class="workspace-label">ADMINISTRACIÓN</span>
-      {#if can('tenants.manage')}<a href="/admin/customers" class:active={section === 'admin/customers'} data-sveltekit-reload><span>▦</span> Clientes</a>{/if}
-      {#if can('sites.manage')}<a href="/admin/sites" class:active={section === 'admin/sites'} data-sveltekit-reload><span>⌂</span> Sedes</a>{/if}
-      {#if can('users.manage')}<a href="/admin/users" class:active={section === 'admin/users'} data-sveltekit-reload><span>♙</span> Usuarios</a>{/if}
-      {#if can('audit.read')}<a href="/admin/audit" class:active={section === 'admin/audit'} data-sveltekit-reload><span>≡</span> Auditoría</a>{/if}
-      {#if can('system.read')}<a href="/admin/system" class:active={section === 'admin/system'} data-sveltekit-reload><span>◉</span> Sistema</a>{/if}
+      {#if can('tenants.manage')}<a href="/admin/customers" class:active={section === 'admin/customers'}><span>▦</span> Clientes</a>{/if}
+      {#if can('sites.manage')}<a href="/admin/sites" class:active={section === 'admin/sites'}><span>⌂</span> Sedes</a>{/if}
+      {#if can('users.manage')}<a href="/admin/users" class:active={section === 'admin/users'}><span>♙</span> Usuarios</a>{/if}
+      {#if can('audit.read')}<a href="/admin/audit" class:active={section === 'admin/audit'}><span>≡</span> Auditoría</a>{/if}
+      {#if can('system.read')}<a href="/admin/system" class:active={section === 'admin/system'}><span>◉</span> Sistema</a>{/if}
     </nav>
-    <div class="sidebar-bottom"><span class="avatar">{user?.first_name?.[0] || 'V'}</span><div><a href="/profile" data-sveltekit-reload>{user?.first_name || 'Mi perfil'}</a><small>{roleLabel(user?.role || '')}</small></div></div>
+    <div class="sidebar-bottom"><span class="avatar">{user?.first_name?.[0] || 'V'}</span><div><a href="/profile">{user?.first_name || 'Mi perfil'}</a><small>{roleLabel(user?.role || '')}</small></div></div>
   </aside>
   <div class="main-area">
     <header class="topbar"><span>Espacio de trabajo <span class="separator">/</span> {user?.tenant_id ? nameOf(tenants, user.tenant_id) : 'Administración central'}</span>
@@ -370,11 +405,11 @@
             <article><span>{label}</span><strong>{metrics[key] ?? 0}</strong><small>{key === 'cameras_online' ? 'Incluye simuladores identificados' : 'Registros de tu espacio'}</small></article>
           {/each}
         </div>
-        <section class="panel"><div class="panel-heading"><h2>Tus cámaras</h2><a href="/cameras" data-sveltekit-reload>Ver todas →</a></div>
-          {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>Tu centro de control comienza aquí</h3><p>Crea un cliente y una sede, luego registra tu primera cámara.</p>{#if can('tenants.manage')}<a class="button primary" href="/admin/customers" data-sveltekit-reload>Crear primer cliente →</a>{/if}</div>
-          {:else}<div class="camera-grid">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}" data-sveltekit-reload>Configuración y detalle →</a></div></article>{/each}</div>{/if}
+        <section class="panel"><div class="panel-heading"><h2>Tus cámaras</h2><a href="/cameras">Ver todas →</a></div>
+          {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>Tu centro de control comienza aquí</h3><p>Crea un cliente y una sede, luego registra tu primera cámara.</p>{#if can('tenants.manage')}<a class="button primary" href="/admin/customers">Crear primer cliente →</a>{/if}</div>
+          {:else}<div class="camera-grid">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}">Configuración y detalle →</a></div></article>{/each}</div>{/if}
         </section>
-        <section class="panel"><div class="panel-heading"><h2>Notificaciones recientes de Frigate <span class="count">{frigateEvents.length}</span></h2><a href="/events" data-sveltekit-reload>Ver todos los eventos →</a></div>{#if !frigateEvents.length}<div class="empty"><p>No hay alertas de IA disponibles para tus cámaras.</p></div>{:else}<div class="dashboard-events">{#each frigateEvents as item}<a href="/events" data-sveltekit-reload><img src={display(item.thumbnail_url)} alt="" /><span><strong>{eventLabel(item.label)}</strong><small>{display(item.camera_name)} · {new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</small></span></a>{/each}</div>{/if}</section>
+        <section class="panel"><div class="panel-heading"><h2>Notificaciones recientes de Frigate <span class="count">{frigateEvents.length}</span></h2><a href="/events">Ver todos los eventos →</a></div>{#if !frigateEvents.length}<div class="empty"><p>No hay alertas de IA disponibles para tus cámaras.</p></div>{:else}<div class="dashboard-events">{#each frigateEvents as item}<a href="/events"><img src={display(item.thumbnail_url)} alt="" /><span><strong>{eventLabel(item.label)}</strong><small>{display(item.camera_name)} · {new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</small></span></a>{/each}</div>{/if}</section>
       {:else if cameraId && camera}
         <div class="detail-title"><h2>{display(camera.name)}</h2><span class="badge">{stateLabel(camera.status)}</span><span class="badge">{camera.integration_type === 'SIMULATOR' ? 'Simulador' : 'RTSP'}</span>{#if camera.integration_type !== 'SIMULATOR'}<button class="primary live-button" disabled={busy} onclick={() => openLive()}>▶ Ver en vivo</button>{/if}</div>
         <p class="message">{camera.integration_type === 'SIMULATOR' ? 'Este dispositivo simula configuración y conectividad. No genera video ni detecciones de personas.' : 'La transmisión Cloudflare se inicia bajo demanda y se detiene cuando ya no quedan espectadores.'}</p>
@@ -387,7 +422,7 @@
               </form>{/if}{/each}
             {#each settings as setting}<div class="setting-row"><strong>Sensibilidad de movimiento</strong><span>Deseado: {display(setting.desired)}</span><span>Reportado: {display(setting.reported)}</span><span class="badge">{stateLabel(setting.status)}</span></div>{/each}
           </section>
-          <section class="panel"><div class="panel-heading"><h2>Historial de comandos</h2><small>Actualización cada 3 segundos</small></div><div class="table-wrap"><table><thead><tr><th>Comando</th><th>Estado</th><th>Fecha</th><th>Resultado</th></tr></thead><tbody>{#each commands as c}<tr><td>{c.command === 'PROBE' ? 'Probar conexión' : 'Aplicar configuración'}</td><td>{stateLabel(c.status)}</td><td>{new Date(display(c.created_at)).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</td><td>{display(c.error)}</td></tr>{/each}</tbody></table></div></section>
+          <section class="panel"><div class="panel-heading"><h2>Historial de comandos</h2><small>Se actualiza en tiempo real</small></div><div class="table-wrap"><table><thead><tr><th>Comando</th><th>Estado</th><th>Fecha</th><th>Resultado</th></tr></thead><tbody>{#each commands as c}<tr><td>{c.command === 'PROBE' ? 'Probar conexión' : 'Aplicar configuración'}</td><td>{stateLabel(c.status)}</td><td>{new Date(display(c.created_at)).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</td><td>{display(c.error)}</td></tr>{/each}</tbody></table></div></section>
         {/if}
         {#if can('cameras.manage')}<section class="panel"><div class="panel-heading"><div><h2>Frigate: grabación e IA</h2><small>El alias debe existir en el Frigate de esta sede.</small></div></div><form class="settings-form" onsubmit={(e) => {e.preventDefault(); void action(() => api(`/frigate/cameras/${cameraId}`, 'PUT', {frigate_camera_name: frigateName}), 'Cámara vinculada con Frigate.');}}>
           <label>Cámara en Frigate<select bind:value={frigateName} required><option value="">Selecciona una cámara</option>{#each frigateCameras as item}<option value={item.name}>{display(item.name)}</option>{/each}</select></label><button class="primary" disabled={busy || !frigateName}>Vincular</button>
@@ -396,16 +431,17 @@
           {#if !cameraPermissions.length}<div class="empty"><p>No hay operadores u observadores activos en esta empresa.</p></div>{:else}<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Ver cámara</th><th>Controlar/configurar</th><th>Acción</th></tr></thead><tbody>{#each cameraPermissions as permission}<tr><td><strong>{display(permission.first_name)} {display(permission.last_name)}</strong><small>{display(permission.email)}</small></td><td><label class="check"><input type="checkbox" bind:checked={permission.can_view} /> Permitido</label></td><td><label class="check"><input type="checkbox" bind:checked={permission.can_configure} onchange={() => { if (permission.can_configure) permission.can_view = true; }} /> Permitido</label></td><td><button disabled={busy} onclick={() => saveCameraPermission(permission)}>Guardar</button></td></tr>{/each}</tbody></table></div>{/if}
         </section>{/if}
       {:else if section === 'events'}
-        <section class="panel"><div class="panel-heading"><div><h2>Alertas y detecciones <span class="count">{filteredEvents.length}</span></h2><small>Resultados reales producidos por la IA de Frigate.</small></div><div class="list-filters">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={eventsTenant} onchange={() => eventsPage = 1}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<button disabled={busy} onclick={() => action(refresh, 'Eventos actualizados.')}>Actualizar</button></div></div>
-          {#if !frigateEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>No hay eventos disponibles</h3><p>Vincula cada cámara con su alias de Frigate desde Configuración y detalle.</p></div>
-          {:else if !filteredEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>Sin eventos para esta empresa</h3><p>Prueba con otra empresa en el filtro.</p></div>
-          {:else}<div class="event-grid">{#each pagedEvents as item}<article class="event-card"><button class="event-image" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.thumbnail_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'image'; }}><img src={display(item.thumbnail_url)} alt="{eventLabel(item.label)} detectado en {display(item.camera_name)}" /></button><div><span class="badge">{eventLabel(item.label)}{item.sub_label ? ` · ${display(item.sub_label)}` : ''}</span><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p>{#if item.clip_url}<button class="primary" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.clip_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'video'; }}>Ver clip</button>{/if}</div></article>{/each}</div>
+        <section class="panel"><div class="panel-heading"><div><h2>Alertas y detecciones <span class="count">{filteredEvents.length}</span></h2><small>Resultados reales producidos por la IA de Frigate.</small></div><div class="list-filters">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={eventsTenant} onchange={() => { eventsCameraId = ''; eventsPage = 1; }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por cámara" bind:value={eventsCameraId} onchange={() => eventsPage = 1}><option value="">Todas las cámaras</option>{#each eventsCameras as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><button disabled={busy} onclick={() => action(refresh, 'Eventos actualizados.')}>Actualizar</button></div></div>
+          <div class="panel-heading events-range"><div class="list-filters"><label class="range-label">Desde<input type="datetime-local" bind:value={eventsAfter} onchange={() => action(refresh, 'Eventos actualizados.')} /></label><label class="range-label">Hasta<input type="datetime-local" bind:value={eventsBefore} onchange={() => action(refresh, 'Eventos actualizados.')} /></label></div><div class="list-filters"><button disabled={busy} onclick={() => setEventsRange(0, 0)}>Hoy</button><button disabled={busy} onclick={() => setEventsRange(1, 1)}>Ayer</button><button disabled={busy} onclick={() => setEventsRange(7, 0)}>Últimos 7 días</button>{#if eventsAfter || eventsBefore}<button disabled={busy} onclick={clearEventsRange}>Quitar fechas</button>{/if}</div></div>
+          {#if !frigateEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>No hay eventos disponibles</h3><p>{eventsAfter || eventsBefore ? 'No hay eventos en el rango de fechas seleccionado.' : 'Vincula cada cámara con su alias de Frigate desde Configuración y detalle.'}</p></div>
+          {:else if !filteredEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>Sin eventos con estos filtros</h3><p>Prueba con otra empresa o cámara.</p></div>
+          {:else}<div class="event-grid">{#each pagedEvents as item}<article class="event-card"><button class="event-image" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.thumbnail_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'image'; }}><img src={display(item.thumbnail_url)} alt="{eventLabel(item.label)} detectado en {display(item.camera_name)}" /></button><div><span class="badge">{eventLabel(item.label)}{item.sub_label ? ` · ${display(item.sub_label)}` : ''}</span><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p><div class="card-actions">{#if item.clip_url}<button class="primary" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.clip_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'video'; }}>Ver clip</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'evento')} title="Descargar clip">⬇ Descargar</a>{/if}</div></div></article>{/each}</div>
           <div class="pagination"><span>{filteredEvents.length ? `${(eventsPage - 1) * eventsPageSize + 1}–${Math.min(eventsPage * eventsPageSize, filteredEvents.length)} de ${filteredEvents.length}` : '0 eventos'}</span><div><label>Por página <select bind:value={eventsPageSize} onchange={() => eventsPage = 1}><option value={6}>6</option><option value={12}>12</option><option value={24}>24</option></select></label><button disabled={eventsPage <= 1} onclick={() => eventsPage -= 1}>← Anterior</button><span>Página {eventsPage} de {eventsPages}</span><button disabled={eventsPage >= eventsPages} onclick={() => eventsPage += 1}>Siguiente →</button></div></div>{/if}
         </section>
       {:else if section === 'recordings'}
         <section class="panel"><div class="panel-heading"><div><h2>Grabaciones de Frigate <span class="count">{recordings.length}</span></h2><small>Video conservado y procesado por Frigate en la sede. Al terminar un fragmento continúa el siguiente de la lista.</small></div><div class="recording-filter">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={recordingTenant} onchange={() => { recordingSite = ''; frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por sede" bind:value={recordingSite} onchange={() => { frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las sedes</option>{#each sites.filter(item => !recordingTenant || item.tenant_id === recordingTenant) as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><select aria-label="Seleccionar cámara" bind:value={frigateCameraId} onchange={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}><option value="">Selecciona una cámara</option>{#each recordingCameras as item}<option value={item.id}>{display(item.name)} · {nameOf(sites, item.site_id)}</option>{/each}</select><button disabled={busy || !frigateCameraId} onclick={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}>Actualizar</button></div></div>
           {#if !recordings.length}<div class="empty"><span class="empty-icon">◉</span><h3>No hay grabaciones en las últimas 24 horas</h3><p>Comprueba que la cámara esté vinculada y que Frigate tenga la grabación habilitada.</p></div>
-          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
+          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><div class="card-actions"><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'grabacion')} title="Descargar grabación">⬇ Descargar</a></div></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
         </section>
       {:else if section === 'admin/system'}
         <section class="panel"><div class="panel-heading"><h2>Servicios</h2><button onclick={() => action(refresh, 'Estado actualizado.')} disabled={busy}>Actualizar</button></div>{#each Object.entries(health) as [service, value]}<div class="setting-row"><strong>{service === 'media' ? 'Video en vivo' : service.toUpperCase()}</strong><span class="badge">{value === 'ok' ? 'Operativo' : value === 'offline' ? 'Sin conexión' : 'Pendiente de integración'}</span></div>{/each}</section>
@@ -431,7 +467,7 @@
           <select aria-label="Filtrar por integración" bind:value={filterIntegration} onchange={applyFilters}><option value="">Todas las integraciones</option><option value="RTSP">RTSP</option><option value="V380">V380</option><option value="SIMULATOR">Simulador</option></select>
         </div></div>
           {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>No hay cámaras con estos filtros</h3><p>Registra una cámara o cambia los filtros.</p></div>
-          {:else}<div class="camera-grid operational">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(tenants, item.tenant_id)} · {nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}" data-sveltekit-reload>Configuración y detalle →</a></div></article>{/each}</div>{/if}
+          {:else}<div class="camera-grid operational">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(tenants, item.tenant_id)} · {nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}">Configuración y detalle →</a></div></article>{/each}</div>{/if}
           <div class="pagination"><span>{totalRecords ? `${(pageNumber - 1) * pageSize + 1}–${Math.min(pageNumber * pageSize, totalRecords)} de ${totalRecords}` : '0 cámaras'}</span><div><button disabled={pageNumber <= 1 || busy} onclick={() => { pageNumber--; void refresh(); }}>← Anterior</button><span>Página {pageNumber} de {totalPages}</span><button disabled={pageNumber >= totalPages || busy} onclick={() => { pageNumber++; void refresh(); }}>Siguiente →</button></div></div>
         </section>
       {:else if endpoints[section]}
@@ -445,11 +481,11 @@
         </div></div>
           {#if !filtered.length}<div class="empty"><span class="empty-icon">▦</span><h3>{records.length ? 'Sin coincidencias' : 'Todavía no hay registros'}</h3><p>{records.length ? 'Prueba con otro término de búsqueda.' : 'Los registros que crees aparecerán aquí.'}</p></div>
           {:else}<div class="table-wrap"><table><thead><tr><th>{section === 'admin/audit' ? 'Acción' : 'Nombre'}</th><th>{section === 'admin/users' ? 'Correo' : section === 'admin/audit' ? 'Recurso' : 'Cliente / detalle'}</th><th>{section === 'admin/users' ? 'Rol' : section === 'admin/audit' ? 'Fecha' : 'Estado / ubicación'}</th><th>Acciones</th></tr></thead><tbody>
-            {#each filtered as row}<tr><td><strong>{display(row.name || row.first_name || row.email || row.action)}</strong>{#if row.integration_type}<small>{row.integration_type === 'SIMULATOR' ? 'Simulador de desarrollo' : 'RTSP'}</small>{/if}</td><td>{section === 'admin/users' ? display(row.email) : section === 'admin/customers' ? display(row.timezone) : section === 'admin/audit' ? display(row.resource_type) : nameOf(tenants, row.tenant_id)}</td><td>{section === 'admin/users' ? roleLabel(row.role) : section === 'admin/audit' ? new Date(display(row.created_at)).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : stateLabel(row.status || row.address || '—')}</td><td>{#if section === 'cameras'}<a href="/cameras/{row.id}" data-sveltekit-reload>Ver detalle →</a>{:else if newPermission() && row.role !== 'SUPER_ADMIN' && row.id !== user?.id}<button class="text-button" onclick={() => openForm(row)}>Editar</button>{:else}—{/if}</td></tr>{/each}
+            {#each filtered as row}<tr><td><strong>{display(row.name || row.first_name || row.email || row.action)}</strong>{#if row.integration_type}<small>{row.integration_type === 'SIMULATOR' ? 'Simulador de desarrollo' : 'RTSP'}</small>{/if}</td><td>{section === 'admin/users' ? display(row.email) : section === 'admin/customers' ? display(row.timezone) : section === 'admin/audit' ? display(row.resource_type) : nameOf(tenants, row.tenant_id)}</td><td>{section === 'admin/users' ? roleLabel(row.role) : section === 'admin/audit' ? new Date(display(row.created_at)).toLocaleString('es-PE', {timeZone: 'America/Lima'}) : stateLabel(row.status || row.address || '—')}</td><td>{#if section === 'cameras'}<a href="/cameras/{row.id}">Ver detalle →</a>{:else if newPermission() && row.role !== 'SUPER_ADMIN' && row.id !== user?.id}<button class="text-button" onclick={() => openForm(row)}>Editar</button>{:else}—{/if}</td></tr>{/each}
           </tbody></table></div>{/if}
           <div class="pagination"><span>{totalRecords ? `${(pageNumber - 1) * pageSize + 1}–${Math.min(pageNumber * pageSize, totalRecords)} de ${totalRecords}` : '0 registros'}</span><div><button disabled={pageNumber <= 1 || busy} onclick={() => { pageNumber--; void refresh(); }}>← Anterior</button><span>Página {pageNumber} de {totalPages}</span><button disabled={pageNumber >= totalPages || busy} onclick={() => { pageNumber++; void refresh(); }}>Siguiente →</button></div></div>
         </section>
-      {:else}<div class="empty"><h2>Página no encontrada</h2><a href="/dashboard" data-sveltekit-reload>Volver al resumen</a></div>{/if}
+      {:else}<div class="empty"><h2>Página no encontrada</h2><a href="/dashboard">Volver al resumen</a></div>{/if}
     </main>
   </div>
 </div>
@@ -510,6 +546,8 @@
     .list-filters, .list-filters input, .list-filters select { width: 100%; }
     .pagination { align-items: stretch; flex-direction: column; }
     .pagination div { justify-content: space-between; }
+    .events-range { flex-direction: column; align-items: stretch; }
+    .range-label { width: 100%; }
   }
   .live-button { margin-left: auto; }
   .preview-live { margin-top: 10px; background: #147d74; border-color: #147d74; color: white; }
@@ -526,6 +564,11 @@
   .event-card > div { padding: 15px; }
   .event-card strong { display: block; margin-top: 10px; }
   .event-card p { color: var(--muted); font-size: 11px; }
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .card-actions .button, a.button { display: inline-flex; align-items: center; margin: 0; padding: 8px 14px; border: 1px solid var(--line, #d7dde2); border-radius: 6px; color: inherit; text-decoration: none; font-size: 13px; background: white; }
+  .events-range { border-top: 1px solid var(--line, #e3e8ec); flex-wrap: wrap; gap: 10px; }
+  .range-label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--muted); margin: 0; }
+  .range-label input { margin: 0; }
   .recording-filter { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .recording-filter select { min-width: 180px; width: auto; }
   .recording-list article { display: grid; grid-template-columns: minmax(180px, 1fr) auto auto auto; gap: 20px; align-items: center; padding: 16px 24px; border-top: 1px solid var(--line); }

@@ -94,8 +94,13 @@ class FrigateService:
         config = self.json("/config")
         return set((config.get("cameras") or {}).keys())
 
-    def events(self, *, limit=200):
-        result = self.json("/events", params={"limit": min(limit, 200)})
+    def events(self, *, limit=200, after=None, before=None):
+        params = {"limit": min(limit, 200)}
+        if after is not None:
+            params["after"] = after
+        if before is not None:
+            params["before"] = before
+        result = self.json("/events", params=params)
         return result if isinstance(result, list) else []
 
     def event(self, event_id: str):

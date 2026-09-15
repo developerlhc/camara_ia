@@ -109,9 +109,16 @@ def map_frigate_camera(
 def events(
     camera_id: str | None = None,
     limit: int = Query(50, ge=1, le=200),
+    after: int | None = Query(None, ge=0),
+    before: int | None = Query(None, ge=1),
     actor: Principal = Depends(require("cameras.read")),
     db=Depends(database),
 ):
+    if after is not None and before is not None:
+        if before <= after:
+            raise HTTPException(422, "El rango de fechas no es válido")
+        if before - after > 7776000:
+            raise HTTPException(422, "Selecciona un rango de hasta 90 días")
     if camera_id:
         allowed = [mapped_camera(db, actor, camera_id)]
     else:
@@ -141,7 +148,7 @@ def events(
             errors.append(str(service))
             continue
         try:
-            rows = service.events(limit=200)
+            rows = service.events(limit=200, after=after, before=before)
         except FrigateError as exc:
             errors.append(str(exc))
             continue
