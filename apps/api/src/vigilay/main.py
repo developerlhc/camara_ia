@@ -25,7 +25,7 @@ def create_app():
         raise RuntimeError("La API en producción requiere INTERNAL_PROXY_SECRET aleatorio")
     app = FastAPI(
         title="Vigilay",
-        version="0.1.0",
+        version="0.2.0",
         docs_url="/api/docs" if config.app_env != "production" else None,
     )
     app.add_middleware(
@@ -52,6 +52,7 @@ def create_app():
                 "X-Content-Type-Options": "nosniff",
                 "Cache-Control": "no-store",
                 "X-Frame-Options": "DENY",
+                "Server-Timing": f"api;dur={(time.monotonic() - started) * 1000:.1f}",
             }
         )
         logger.info(

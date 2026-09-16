@@ -1,5 +1,6 @@
 """Private Frigate API client. Gateway URLs and credentials never reach the browser."""
 
+from dataclasses import dataclass
 from datetime import timedelta
 from urllib.parse import urlsplit
 
@@ -14,6 +15,40 @@ from vigilay.security import decrypt_credentials
 
 class FrigateError(RuntimeError):
     pass
+
+
+@dataclass
+class MediaStream:
+    response: httpx.Response
+    client: httpx.Client
+    owns_client: bool
+
+    def close(self):
+        self.response.close()
+        if self.owns_client:
+            self.client.close()
+
+    def chunks(self):
+        try:
+            yield from self.response.iter_raw()
+        finally:
+            self.close()
+
+    @property
+    def headers(self):
+        return {
+            name: self.response.headers[name]
+            for name in (
+                "content-type",
+                "content-length",
+                "content-range",
+                "accept-ranges",
+                "etag",
+                "last-modified",
+                "content-encoding",
+            )
+            if name in self.response.headers
+        }
 
 
 class FrigateService:
@@ -116,38 +151,34 @@ class FrigateService:
         media_type = response.headers.get("content-type", "application/octet-stream")
         return response.content, media_type
 
-    def stream_media(self, path: str):
+    def stream_media(self, path: str, *, range_header=None, if_range=None):
         """Return a bounded-memory iterator and keep its private client alive."""
-        client = httpx.Client(timeout=self.timeout)
+        owns_client = self._client is None
+        client = self._client or httpx.Client(timeout=httpx.Timeout(60, connect=5))
+        headers = {**self.headers, "Accept-Encoding": "identity"}
+        if range_header:
+            headers["Range"] = range_header
+        if if_range:
+            headers["If-Range"] = if_range
+        response = None
         try:
-            request = client.build_request(
-                "GET", f"{self.base_url}/api{path}", headers=self.headers
-            )
+            request = client.build_request("GET", f"{self.base_url}/api{path}", headers=headers)
             response = client.send(request, stream=True)
             if response.status_code in {401, 403}:
-                response.close()
-                client.close()
                 raise FrigateError("Vigilay Local rechazó la credencial de esta sede")
             if response.status_code == 404:
-                response.close()
-                client.close()
                 raise FrigateError("La grabación ya no existe en Frigate")
-            if response.status_code >= 400:
-                response.close()
-                client.close()
+            if response.status_code >= 400 and response.status_code != 416:
                 raise FrigateError("Frigate rechazó la consulta")
-        except (httpx.TimeoutException, httpx.NetworkError) as exc:
-            client.close()
-            raise FrigateError("Frigate no está disponible en la sede") from exc
-
-        def chunks():
-            try:
-                yield from response.iter_bytes()
-            finally:
+        except (httpx.HTTPError, FrigateError) as exc:
+            if response is not None:
                 response.close()
+            if owns_client:
                 client.close()
-
-        return chunks(), response.headers.get("content-type", "application/octet-stream")
+            if isinstance(exc, FrigateError):
+                raise
+            raise FrigateError("Frigate no está disponible en la sede") from exc
+        return MediaStream(response, client, owns_client)
 
 
 def recording_windows(segments: list[dict]) -> list[dict]:
@@ -159,7 +190,7 @@ def recording_windows(segments: list[dict]) -> list[dict]:
         end = float(segment.get("end_time") or start)
         if end <= start:
             continue
-        if windows and start - windows[-1]["end"] <= 5 and end - windows[-1]["start"] <= 3600:
+        if windows and start - windows[-1]["end"] <= 5 and end - windows[-1]["start"] <= 300:
             current = windows[-1]
             current["end"] = max(current["end"], end)
             current["motion"] += int(segment.get("motion") or 0)

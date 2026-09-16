@@ -21,6 +21,24 @@ docker compose up -d --build
 - OpenAPI: http://localhost:8000/api/docs
 - Preparación API: http://localhost:8000/readyz
 
+### Vigilay Local en Docker (v0.2.0)
+
+El panel local también funciona en un contenedor, sin instalar Python en el anfitrión:
+
+```powershell
+docker compose --profile local up -d --build vigilay-local
+```
+
+Abre http://localhost:5000. No ejecutes simultáneamente el panel Python de
+`iniciar.ps1` en ese puerto; para probar ambos, configura `VIGILAY_LOCAL_PORT=5002`.
+La empresa/sede persisten en `.local/vigilay-local.json` y se validan contra MySQL.
+El agente de streaming, Frigate y el puente V380 Windows siguen siendo servicios
+separados. Consulta [instalación, red y límites de Docker Local](docs/VIGILAY_LOCAL_DOCKER.md).
+
+GitHub Actions verifica y publica tres imágenes GHCR: `vigilay-api`, `vigilay-web`
+y `vigilay-local`, con etiquetas `v0.2.0-build-N`. Publicar no despliega automáticamente
+en Bunny. Vigilay Local se instala en la sede, no en Magic Containers.
+
 En otra instalación, crea `.env` desde [.env.example](.env.example), reemplaza todos los marcadores y genera claves aleatorias propias. Crea el primer administrador de forma interactiva:
 
 ```powershell
@@ -37,7 +55,7 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Permisos de visualización/configuración por cámara para operadores y observadores.
 - Simulador explícito: prueba de conexión, descubrimiento de capacidades, comandos persistidos, worker y lectura de confirmación desired/reported.
 - Dashboard con datos reales de la base, auditoría y estado de API/MySQL/worker/agente.
-- Cuadrícula de cámaras con filtros, paginación y acceso directo a **Ver en vivo**.
+- Cuadrícula de cámaras con filtros empresa/sede, paginación y vivo automático en tarjetas visibles.
 - Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
 - Eventos de IA y grabaciones obtenidos de Frigate y filtrados por empresa, sede y permisos de cámara.
 - Gateway Frigate autenticado por sede; sin dominio usa un Quick Tunnel saliente que se registra automáticamente.
@@ -52,7 +70,7 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 3. Crea una sede y un usuario de ese cliente.
 4. En Cámaras, registra la conexión RTSP/V380 y, si la cámara ya existe en Frigate, selecciona su alias Frigate.
 5. Pulsa **Probar conexión**; una conexión real correcta queda verificada/en línea.
-6. Pulsa **Ver en vivo** directamente desde la cuadrícula.
+6. En Cámaras, selecciona empresa/sede: las tarjetas visibles inician el vivo automáticamente; puedes ampliar una cámara.
 7. Consulta **Eventos de IA** y **Grabaciones**. Estas vistas nunca leen Cloudflare: el API obtiene los datos y medios de Frigate y sólo entrega cámaras autorizadas.
 
 Cloudflare Stream se usa exclusivamente para el video en vivo. Frigate sigue siendo el motor y almacén de detecciones, eventos y grabaciones. Cloudflare Tunnel sólo crea el canal privado entre la sede y Vigilay Cloud; no almacena esos medios. Una cámara puede funcionar en vivo y, aun así, no aparecer en Eventos/Grabaciones hasta que exista en Frigate, su alias se vincule y `frigate-gateway` esté conectado.

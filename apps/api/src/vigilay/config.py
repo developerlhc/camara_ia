@@ -2,7 +2,7 @@ import base64
 from functools import lru_cache
 from urllib.parse import quote_plus
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     cloudflared_path: str = "cloudflared"
     stream_idle_timeout_seconds: int = 300
     stream_start_timeout_seconds: int = 15
+    stream_live_height: int = Field(720, ge=240, le=720)
+    stream_live_fps: int = Field(15, ge=5, le=30)
+    stream_live_bitrate_kbps: int = Field(2000, ge=256, le=4000)
+    stream_encoder_threads: int = Field(2, ge=1, le=8)
 
     @model_validator(mode="before")
     @classmethod

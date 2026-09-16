@@ -23,6 +23,10 @@ x-api-environment: &api-environment
   CLOUDFLARED_PATH: ${CLOUDFLARED_PATH:-cloudflared}
   STREAM_IDLE_TIMEOUT_SECONDS: ${STREAM_IDLE_TIMEOUT_SECONDS:-300}
   STREAM_START_TIMEOUT_SECONDS: ${STREAM_START_TIMEOUT_SECONDS:-15}
+  STREAM_LIVE_HEIGHT: ${STREAM_LIVE_HEIGHT:-720}
+  STREAM_LIVE_FPS: ${STREAM_LIVE_FPS:-15}
+  STREAM_LIVE_BITRATE_KBPS: ${STREAM_LIVE_BITRATE_KBPS:-2000}
+  STREAM_ENCODER_THREADS: ${STREAM_ENCODER_THREADS:-2}
 
 services:
   mysql:
@@ -94,6 +98,30 @@ services:
     profiles: ["media"]
     # Kept private until live-session authorization is implemented.
     volumes: ["./services/media/mediamtx.yml:/mediamtx.yml:ro"]
+    restart: unless-stopped
+
+  vigilay-local:
+    image: ${VIGILAY_LOCAL_IMAGE:-vigilay-local:local}
+    build: {context: ., dockerfile: infra/docker/local.Dockerfile}
+    profiles: ["local"]
+    init: true
+    environment:
+      <<: *api-environment
+      CAMERA_STORAGE: mysql
+      LOCAL_AI_ENABLED: "false"
+      START_STREAM_AGENT_WITH_LOCAL: "false"
+      VIGILAY_API_URL: ${VIGILAY_LOCAL_API_URL:-http://api:8000}
+      FRIGATE_RESTREAM_URL: ${VIGILAY_LOCAL_RESTREAM_URL:-rtsp://frigate:8554}
+      V380_EXTERNAL_BRIDGE_HOST: ${V380_EXTERNAL_BRIDGE_HOST:-host.docker.internal}
+      VIGILAY_LOCAL_LAN_CIDR: ${VIGILAY_LOCAL_LAN_CIDR:-}
+      FFMPEG_PATH: ffmpeg
+    ports: ["127.0.0.1:${VIGILAY_LOCAL_PORT:-5000}:5000"]
+    volumes: ["./.local:/app/.local"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+    depends_on:
+      api: {condition: service_healthy}
     restart: unless-stopped
 
 volumes:

@@ -12,7 +12,6 @@ from vigilay.auth import Principal, principal_from_token
 from vigilay.config import settings
 from vigilay.db import system_session, tenant_session
 from vigilay.models import (
-    Camera,
     CameraStreamSession,
     DeviceCommand,
     FrigateConnection,
@@ -49,9 +48,7 @@ def _authorize_camera(actor: Principal, camera_id: str) -> bool:
 def _snapshot(actor: Principal, subscription: dict, *, touch_live: bool) -> dict:
     camera_id = subscription["camera_id"]
     with tenant_session(actor.tenant_id, superadmin=actor.superadmin) as db:
-        camera = db.get(Camera, camera_id)
-        if camera is None:
-            raise HTTPException(404, "Cámara no encontrada")
+        camera = authorized_camera(db, actor, camera_id)
         result = {
             "type": "snapshot",
             "camera": {"id": camera.id, "status": camera.status, "enabled": camera.enabled},
@@ -136,11 +133,20 @@ async def realtime(websocket: WebSocket):
     previous = ""
     last_sent = 0.0
     last_touch = 0.0
+    last_auth = time.monotonic()
     try:
         while True:
             poll_delay = 30.0
             if subscription:
                 now = time.monotonic()
+                if now - last_auth >= 20:
+                    actor = await asyncio.to_thread(
+                        _authenticate, websocket.cookies.get(config.session_cookie_name, "")
+                    )
+                    subscription["can_configure"] = await asyncio.to_thread(
+                        _authorize_camera, actor, subscription["camera_id"]
+                    )
+                    last_auth = now
                 touch_live = now - last_touch >= 10
                 snapshot = await asyncio.to_thread(
                     _snapshot, actor, subscription, touch_live=touch_live
@@ -156,7 +162,7 @@ async def realtime(websocket: WebSocket):
                     command["status"] in {"PENDING", "RUNNING"} for command in snapshot["commands"]
                 )
                 live_starting = bool(snapshot["live"] and snapshot["live"]["status"] == "starting")
-                poll_delay = 0.25 if command_active or live_starting else 2.0
+                poll_delay = 1.0 if command_active or live_starting else 10.0
             try:
                 payload = await asyncio.wait_for(websocket.receive_json(), timeout=poll_delay)
             except TimeoutError:

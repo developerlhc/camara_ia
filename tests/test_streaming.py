@@ -137,6 +137,10 @@ def test_stream_manager_prevents_duplicate_and_stops(tmp_path):
     assert arguments[arguments.index("-map") + 1] == "0:v:0"
     assert "0:a:0?" in arguments
     assert arguments.index("-fflags") < arguments.index("-i")
+    assert "fps=15" in arguments[arguments.index("-vf") + 1]
+    assert "min(720,ih)" in arguments[arguments.index("-vf") + 1]
+    assert arguments[arguments.index("-g") + 1] == "15"
+    assert arguments[arguments.index("-threads") + 1] == "2"
     assert manager.is_streaming("camera") is True
     assert manager.stop_stream("camera") is True
     assert processes[0].terminated is True

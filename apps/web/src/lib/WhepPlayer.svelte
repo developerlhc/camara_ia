@@ -1,97 +1,120 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-
   export let playbackUrl: string;
+  export let compact = false;
   export let onState: (state: string) => void = () => {};
-
   let video: HTMLVideoElement;
-  let peer: RTCPeerConnection | null = null;
-  let resourceUrl = '';
-  let cancelled = false;
-  let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
-  let reconnectAttempts = 0;
   let audioAvailable = false;
   let muted = true;
-
-  async function releaseCurrent() {
-    peer?.close();
-    peer = null;
-    const currentResource = resourceUrl;
-    resourceUrl = '';
-    if (currentResource) await fetch(currentResource, { method: 'DELETE' }).catch(() => {});
-  }
-
-  function scheduleReconnect() {
-    if (cancelled || reconnectTimer) return;
-    if (reconnectAttempts >= 10) { onState('error'); return; }
-    onState('reconnecting');
-    const delay = [200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 8000][reconnectAttempts++];
-    reconnectTimer = setTimeout(() => {
-      reconnectTimer = undefined;
-      void releaseCurrent().then(connect).catch(scheduleReconnect);
-    }, delay);
-  }
-
-  async function connect() {
-    onState('connecting');
-    const current = new RTCPeerConnection();
-    peer = current;
-    const media = new MediaStream();
-    current.addTransceiver('video', { direction: 'recvonly' });
-    current.addTransceiver('audio', { direction: 'recvonly' });
-    current.ontrack = ({ track }) => {
-      media.addTrack(track);
-      video.srcObject = media;
-      if (track.kind === 'audio') audioAvailable = true;
-      void video.play().catch(() => {});
-    };
-    current.onconnectionstatechange = () => {
-      if (current.connectionState === 'connected') { reconnectAttempts = 0; onState('live'); }
-      if (['failed', 'disconnected'].includes(current.connectionState)) scheduleReconnect();
-    };
-    const offer = await current.createOffer();
-    await current.setLocalDescription(offer);
-    const response = await fetch(playbackUrl, {
-      method: 'POST',
-      headers: { 'content-type': 'application/sdp' },
-      body: offer.sdp
-    });
-    if (!response.ok) throw new Error('Cloudflare no pudo iniciar la reproducción');
-    const location = response.headers.get('location');
-    resourceUrl = location ? new URL(location, playbackUrl).toString() : '';
-    await current.setRemoteDescription({ type: 'answer', sdp: await response.text() });
-  }
-
-  async function disconnect() {
-    cancelled = true;
-    clearTimeout(reconnectTimer);
-    reconnectTimer = undefined;
-    await releaseCurrent();
-  }
-
-  async function toggleAudio() {
-    muted = !muted;
-    video.muted = muted;
-    await video.play().catch(() => {});
-  }
+  let firstFrameMs = 0;
 
   onMount(() => {
-    void connect().catch(scheduleReconnect);
-    return () => { void disconnect(); };
+    let stopped = false;
+    let attempts = 0;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    let cleanup = () => {};
+    const started = performance.now();
+    const releaseResource = (url: string) => {
+      if (url) void fetch(url, { method: 'DELETE', keepalive: true, signal: AbortSignal.timeout(3000) }).catch(() => {});
+    };
+    function reconnect() {
+      if (stopped || retry) return;
+      cleanup();
+      if (attempts >= 8) { onState('error'); return; }
+      onState('reconnecting');
+      const delay = Math.min(400 * 2 ** attempts++, 5000) + Math.random() * 200;
+      retry = setTimeout(() => { retry = undefined; void connect(); }, delay);
+    }
+    async function connect() {
+      if (stopped) return;
+      onState('connecting'); audioAvailable = false;
+      const peer = new RTCPeerConnection({ bundlePolicy: 'max-bundle' });
+      const media = new MediaStream();
+      const abort = new AbortController();
+      let disposed = false;
+      let resource = '';
+      let frameCallback = 0;
+      let lastFrame = performance.now();
+      let receivedFrame = false;
+      let disconnected: ReturnType<typeof setTimeout> | undefined;
+      const offerTimeout = setTimeout(() => abort.abort(), 8000);
+      const watchdog = setInterval(() => {
+        if (performance.now() - lastFrame > 15000) reconnect();
+      }, 3000);
+      cleanup = () => {
+        if (disposed) return;
+        disposed = true;
+        abort.abort(); clearTimeout(offerTimeout); clearTimeout(disconnected); clearInterval(watchdog);
+        if (frameCallback) video.cancelVideoFrameCallback(frameCallback);
+        video.onplaying = null;
+        peer.ontrack = null; peer.onconnectionstatechange = null;
+        peer.close(); media.getTracks().forEach(track => track.stop());
+        video.srcObject = null; releaseResource(resource);
+      };
+      function frameArrived() {
+        if (disposed) return;
+        lastFrame = performance.now();
+        if (!receivedFrame) {
+          receivedFrame = true; attempts = 0;
+          firstFrameMs = Math.round(performance.now() - started);
+        }
+        onState('live');
+        if (typeof video.requestVideoFrameCallback === 'function') frameCallback = video.requestVideoFrameCallback(frameArrived);
+      }
+      // ICE connected is not proof of decoded video.
+      if (typeof video.requestVideoFrameCallback === 'function') frameCallback = video.requestVideoFrameCallback(frameArrived);
+      else { video.onplaying = frameArrived; clearInterval(watchdog); }
+      peer.addTransceiver('video', { direction: 'recvonly' });
+      peer.addTransceiver('audio', { direction: 'recvonly' });
+      peer.ontrack = ({ track }) => {
+        if (disposed) return;
+        media.addTrack(track); video.srcObject = media;
+        if (track.kind === 'audio') audioAvailable = true;
+        void video.play().catch(() => onState('paused'));
+      };
+      peer.onconnectionstatechange = () => {
+        if (disposed) return;
+        if (peer.connectionState === 'failed') reconnect();
+        if (peer.connectionState === 'disconnected' && !disconnected) {
+          onState('reconnecting'); disconnected = setTimeout(reconnect, 3000);
+        }
+        if (peer.connectionState === 'connected') { clearTimeout(disconnected); disconnected = undefined; }
+      };
+      try {
+        const offer = await peer.createOffer();
+        if (disposed) return;
+        await peer.setLocalDescription(offer);
+        if (disposed) return;
+        // Cloudflare's WHEP endpoint accepts a single offer/answer exchange.
+        // Do not wait for full ICE gathering or proxy media through the API.
+        const response = await fetch(playbackUrl, {
+          method: 'POST', headers: { 'content-type': 'application/sdp' },
+          body: offer.sdp, signal: abort.signal,
+        });
+        const location = response.headers.get('location');
+        const created = location ? new URL(location, playbackUrl).toString() : '';
+        if (disposed) { releaseResource(created); return; }
+        resource = created;
+        if (!response.ok) throw new Error('WHEP no disponible');
+        const sdp = await response.text();
+        if (disposed) return;
+        await peer.setRemoteDescription({ type: 'answer', sdp });
+        clearTimeout(offerTimeout);
+      } catch { if (!disposed && !stopped) reconnect(); }
+    }
+    void connect();
+    return () => { stopped = true; clearTimeout(retry); cleanup(); };
   });
 </script>
 
-<video bind:this={video} autoplay playsinline controls {muted} aria-label="Video en vivo"></video>
-<div class="audio-toolbar">
-  {#if audioAvailable}
-    <button type="button" onclick={toggleAudio}>{muted ? '🔊 Activar sonido' : '🔇 Silenciar'}</button>
-  {:else}
-    <span>Esperando audio de la cámara…</span>
-  {/if}
+<video bind:this={video} autoplay playsinline controls {muted} aria-label="Video en vivo" data-first-frame-ms={firstFrameMs || undefined}></video>
+{#if !compact}<div class="audio-toolbar">
+  {#if audioAvailable}<button type="button" onclick={() => { muted = !muted; }}>{muted ? 'Activar sonido' : 'Silenciar'}</button>
+  {:else}<span>Esperando audio de la cámara…</span>{/if}
   <span>Hablar requiere altavoz y canal de retorno compatible.</span>
-</div>
+</div>{/if}
 
 <style>
-  .audio-toolbar { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 10px 14px; background: #14222d; color: #a9bbc6; font-size: 12px; }
-  .audio-toolbar button { margin: 0; background: #203642; color: white; border-color: #36505e; }
+  video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #000; }
+  .audio-toolbar { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; padding: 10px; background: #14222d; color: #a9bbc6; font-size: 12px; }
 </style>

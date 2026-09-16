@@ -343,6 +343,7 @@ class StreamManager:
         return executable
 
     def start_stream(self, camera_id: str, source_url: str, whip_url: str):
+        config = settings()
         with self._lock:
             current = self._active.get(camera_id)
             if current and current.poll() is None:
@@ -364,6 +365,8 @@ class StreamManager:
                 "750000",
                 "-probesize",
                 "750000",
+                "-threads",
+                str(config.stream_encoder_threads),
                 "-i",
                 source_url,
                 "-map",
@@ -372,6 +375,12 @@ class StreamManager:
                 "0:a:0?",
                 "-c:v",
                 "libx264",
+                "-threads",
+                str(config.stream_encoder_threads),
+                "-vf",
+                f"fps={config.stream_live_fps},"
+                f"scale=w='min(1280,iw)':h='min({config.stream_live_height},ih)':"
+                "force_original_aspect_ratio=decrease:force_divisible_by=2",
                 "-profile:v",
                 "baseline",
                 "-level:v",
@@ -385,11 +394,11 @@ class StreamManager:
                 "-bf",
                 "0",
                 "-g",
-                "30",
+                str(config.stream_live_fps),
                 "-maxrate",
-                "4000k",
+                f"{config.stream_live_bitrate_kbps}k",
                 "-bufsize",
-                "1500k",
+                f"{max(128, config.stream_live_bitrate_kbps // 2)}k",
                 "-flags",
                 "+global_header",
                 "-c:a",
@@ -494,6 +503,7 @@ class LocalStreamAgent:
 
     def reconcile_live(self):
         now = time.monotonic()
+        pending = []
         with system_session() as db:
             active = self._active_sessions(db)
             by_camera = {}
@@ -508,69 +518,73 @@ class LocalStreamAgent:
                     continue
                 if now < self.next_retry_at.get(camera_id, 0):
                     continue
-                try:
-                    camera = db.get(Camera, camera_id)
-                    credential = db.scalar(
-                        select(CameraCredential).where(CameraCredential.camera_id == camera_id)
-                    )
-                    provider = db.scalar(
-                        select(CameraStreamProvider).where(
-                            CameraStreamProvider.camera_id == camera_id,
-                            CameraStreamProvider.enabled.is_(True),
-                        )
-                    )
-                    if not camera or not credential or not provider:
-                        raise StreamAgentError("Configuración de streaming incompleta")
-                    source_secret = decrypt_credentials(
-                        credential.secret_encrypted, camera.tenant_id, camera.id
-                    )
-                    publish_secret = decrypt_credentials(
-                        provider.publish_url_encrypted, camera.tenant_id, camera.id
-                    )
-                    source = self.resolver.resolve(camera, source_secret)
-                    started = time.monotonic()
-                    self.manager.start_stream(camera.id, source, publish_secret["publish_url"])
-                    logger.info(
-                        "Publisher ready camera_id=%s elapsed_ms=%s request_age_ms=%s",
-                        camera.id,
-                        round((time.monotonic() - started) * 1000),
-                        round(
-                            (utcnow() - min(row.started_at for row in sessions)).total_seconds()
-                            * 1000
-                        ),
-                    )
-                    self.failures.pop(camera_id, None)
-                    self.next_retry_at.pop(camera_id, None)
-                    for session in sessions:
+                config = db.execute(
+                    select(Camera, CameraCredential, CameraStreamProvider)
+                    .outerjoin(CameraCredential, CameraCredential.camera_id == Camera.id)
+                    .outerjoin(CameraStreamProvider, CameraStreamProvider.camera_id == Camera.id)
+                    .where(Camera.id == camera_id)
+                ).first()
+                pending.append((camera_id, config, min(row.started_at for row in sessions)))
+            db.commit()
+
+        # RTSP probing, V380 startup and WHIP negotiation can take seconds. Never
+        # hold a MySQL connection while doing them, nor merge stale viewer rows.
+        for camera_id, config, requested_at in pending:
+            failure = False
+            try:
+                if config is None:
+                    raise StreamAgentError("Configuración de streaming incompleta")
+                camera, credential, provider = config
+                if not camera.enabled or not credential or not provider or not provider.enabled:
+                    raise StreamAgentError("Configuración de streaming incompleta")
+                started = time.monotonic()
+                source_secret = decrypt_credentials(
+                    credential.secret_encrypted, camera.tenant_id, camera.id
+                )
+                publish_secret = decrypt_credentials(
+                    provider.publish_url_encrypted, camera.tenant_id, camera.id
+                )
+                source = self.resolver.resolve(camera, source_secret)
+                self.manager.start_stream(camera.id, source, publish_secret["publish_url"])
+                logger.info(
+                    "Publisher started camera_id=%s elapsed_ms=%s request_age_ms=%s",
+                    camera.id,
+                    round((time.monotonic() - started) * 1000),
+                    max(0, round((utcnow() - requested_at).total_seconds() * 1000)),
+                )
+                self.failures.pop(camera_id, None)
+                self.next_retry_at.pop(camera_id, None)
+            except Exception:
+                failure = True
+                failures = self.failures.get(camera_id, 0) + 1
+                self.failures[camera_id] = failures
+                if failures <= 3:
+                    self.next_retry_at[camera_id] = time.monotonic() + (2, 5, 10)[failures - 1]
+                logger.warning(
+                    "Cloudflare stream start failed camera_id=%s attempt=%s", camera_id, failures
+                )
+            if failure and self.failures[camera_id] <= 3:
+                continue
+            with system_session() as db:
+                for session in self._active_sessions(db, camera_id):
+                    if failure:
+                        session.status = "error"
+                        session.stopped_at = utcnow()
+                        session.stop_reason = "publisher_failed"
+                        session.sanitized_error = "No se pudo iniciar la transmisión"
+                    else:
                         session.status = "live"
                         session.sanitized_error = None
-                except Exception:
-                    failures = self.failures.get(camera_id, 0) + 1
-                    self.failures[camera_id] = failures
-                    if failures <= 3:
-                        self.next_retry_at[camera_id] = now + (2, 5, 10)[failures - 1]
-                    else:
-                        for session in sessions:
-                            session.status = "error"
-                            session.stopped_at = utcnow()
-                            session.stop_reason = "publisher_failed"
-                            session.sanitized_error = "No se pudo iniciar la transmisión"
-                    logger.warning(
-                        "Cloudflare stream start failed camera_id=%s attempt=%s",
-                        camera_id,
-                        failures,
-                    )
-
-            for camera_id in self.manager.camera_ids():
-                if camera_id in by_camera:
-                    continue
-                last = self.last_viewer_at.setdefault(camera_id, now)
-                if now - last >= self.idle_timeout:
-                    self.manager.stop_stream(camera_id)
-                    self.last_viewer_at.pop(camera_id, None)
-                    self.failures.pop(camera_id, None)
-                    self.next_retry_at.pop(camera_id, None)
-            db.commit()
+                db.commit()
+        for camera_id in self.manager.camera_ids():
+            if camera_id in by_camera:
+                continue
+            last = self.last_viewer_at.setdefault(camera_id, now)
+            if now - last >= self.idle_timeout:
+                self.manager.stop_stream(camera_id)
+                self.last_viewer_at.pop(camera_id, None)
+                self.failures.pop(camera_id, None)
+                self.next_retry_at.pop(camera_id, None)
 
     def reconcile_housekeeping(self):
         with system_session() as db:

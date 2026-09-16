@@ -38,6 +38,10 @@
 | CLOUDFLARED_PATH | Ejecutable de Cloudflare Tunnel; el contenedor local ya lo incorpora. |
 | STREAM_IDLE_TIMEOUT_SECONDS | Gracia sin espectadores antes de detener FFmpeg. Se recomiendan `300` segundos para que reaperturas cercanas sean instantáneas; sin espectadores Cloudflare no factura minutos entregados y la grabación remota está desactivada. |
 | STREAM_START_TIMEOUT_SECONDS | Espera máxima de confirmación al abrir el visor. |
+| STREAM_LIVE_HEIGHT | Altura máxima del vivo WHIP (240–720, por defecto 720); ancho limitado a 1280 sin ampliar fuentes pequeñas. No modifica grabaciones Frigate. |
+| STREAM_LIVE_FPS | FPS de salida del vivo (5–30, por defecto 15). Un fotograma clave por segundo. |
+| STREAM_LIVE_BITRATE_KBPS | Tope de bitrate del video en vivo (256–4000, por defecto 2000). Considerar la subida de todas las cámaras publicadas simultáneamente. |
+| STREAM_ENCODER_THREADS | Hilos de decodificación/codificación por publicador (1–8, por defecto 2). No es un límite total de CPU del proceso. |
 
 Generación manual de claves:
 

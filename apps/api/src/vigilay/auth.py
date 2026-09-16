@@ -89,17 +89,23 @@ def principal_from_token(token: str):
     if not token or len(token) > 256:
         raise HTTPException(401, "Inicia sesión para continuar")
     with system_session() as db:
-        session = db.scalar(
-            select(LoginSession).where(
+        # One round trip instead of 4–5 sequential reads on the remote database.
+        # Do not cache authorization: revocations and tenant suspension remain immediate.
+        rows = db.execute(
+            select(LoginSession, User, UserRole, Tenant, RolePermission.permission_key)
+            .outerjoin(User, User.id == LoginSession.user_id)
+            .outerjoin(UserRole, UserRole.user_id == User.id)
+            .outerjoin(Tenant, Tenant.id == User.tenant_id)
+            .outerjoin(RolePermission, RolePermission.role_name == UserRole.role_name)
+            .where(
                 LoginSession.token_hash == hash_token(token),
                 LoginSession.revoked_at.is_(None),
                 LoginSession.expires_at > utcnow(),
             )
-        )
-        if session is None:
+        ).all()
+        if not rows:
             raise HTTPException(401, "La sesión ha expirado")
-        user = db.get(User, session.user_id)
-        role = db.get(UserRole, user.id) if user else None
+        session, user, role, tenant, _ = rows[0]
         if user is None or user.status != "ACTIVE" or role is None:
             raise HTTPException(401, "Cuenta no disponible")
         if role.tenant_id != user.tenant_id or session.tenant_id != user.tenant_id:
@@ -107,16 +113,9 @@ def principal_from_token(token: str):
         if (role.role_name == "SUPER_ADMIN") != (user.tenant_id is None):
             raise HTTPException(403, "Asignación de rol inválida")
         if user.tenant_id:
-            tenant = db.get(Tenant, user.tenant_id)
             if tenant is None or tenant.status != "ACTIVE":
                 raise HTTPException(403, "Cliente suspendido")
-        permissions = frozenset(
-            db.scalars(
-                select(RolePermission.permission_key).where(
-                    RolePermission.role_name == role.role_name,
-                )
-            )
-        )
+        permissions = frozenset(row[4] for row in rows if row[4] is not None)
         return Principal(
             user.id,
             user.tenant_id,

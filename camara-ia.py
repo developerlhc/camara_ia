@@ -18,7 +18,7 @@ import psutil
 from dotenv import load_dotenv, set_key
 from flask import Flask, Response, jsonify, render_template, send_from_directory
 from flask import request as flask_request
-from ultralytics import YOLO
+from local_runtime import discovery_network, external_v380, preview_source
 
 try:
     from onvif import ONVIFCamera
@@ -37,9 +37,10 @@ load_dotenv(BASE_DIR / ".env", override=False)
 LEGACY_CONFIG_PATH = BASE_DIR / ".local" / "legacy-config.json"
 LEGACY_CONFIG = json.loads(LEGACY_CONFIG_PATH.read_text(encoding="utf-8")) if LEGACY_CONFIG_PATH.exists() else {}
 MODEL_PATH = BASE_DIR / "yolo11n.pt"
-KNOWN_FACES_DIR = BASE_DIR / "rostros_conocidos"
-REPORTS_DIR = BASE_DIR / "reportes"
-VISITS_DIR = BASE_DIR / "visitas"
+DATA_DIR = Path(os.getenv("VIGILAY_LOCAL_DATA_DIR", str(BASE_DIR)))
+KNOWN_FACES_DIR = DATA_DIR / "rostros_conocidos"
+REPORTS_DIR = DATA_DIR / "reportes"
+VISITS_DIR = DATA_DIR / "visitas"
 REPORT_CSV = REPORTS_DIR / "conteo_personas.csv"
 VISITS_CSV = REPORTS_DIR / "visitas.csv"
 
@@ -151,7 +152,7 @@ def load_cameras():
             for index, camera in enumerate(stored, start=1):
                 if camera["integration_type"] == "V380":
                     camera = _start_v380_bridge(camera, index)
-                cameras.append(camera)
+                cameras.append(preview_source(camera))
             return cameras
         except Exception as error:
             raise RuntimeError(
@@ -241,6 +242,10 @@ def _stop_v380_bridge(bridge_dir, http_port, rtsp_port):
 
 
 def _start_v380_bridge(camera, index, force_restart=False):
+    if os.name != "nt":
+        if force_restart:
+            raise RuntimeError("Reinicia el puente V380 en el anfitrión Windows, no dentro de Docker.")
+        return external_v380(camera)
     bridge_dir = BASE_DIR / ".local" / "v380-bridge"
     executable = bridge_dir / "V380Decoder.exe"
     if not executable.exists():
@@ -391,7 +396,7 @@ def discover_network_cameras(configured_cameras):
     if local_address.is_loopback or not local_address.is_private:
         raise OSError("No se encontró una interfaz LAN privada para buscar cámaras.")
 
-    network = ipaddress.ip_network(f"{local_ip}/24", strict=False)
+    network = discovery_network(local_ip)
     hosts = [str(ip) for ip in network.hosts() if str(ip) != local_ip]
     camera_ports = (554, 8000, 37777, 8800, 8899, 9000)
     open_ports = {}
@@ -438,6 +443,27 @@ def discover_network_cameras(configured_cameras):
 
 
 app = Flask(__name__)
+
+
+@app.before_request
+def protect_local_container():
+    if os.getenv("VIGILAY_LOCAL_CONTAINER") != "true":
+        return None
+    allowed = {"localhost", "127.0.0.1", "::1"}
+    if urlsplit(flask_request.host_url).hostname not in allowed:
+        return jsonify({"error": "Vigilay Local solo admite acceso desde este equipo."}), 403
+    origin = flask_request.headers.get("Origin")
+    if flask_request.method not in {"GET", "HEAD", "OPTIONS"} and origin:
+        if origin.rstrip("/") != flask_request.host_url.rstrip("/"):
+            return jsonify({"error": "Origen no permitido."}), 403
+    return None
+
+
+@app.get("/healthz")
+def local_health():
+    return jsonify({"service": "vigilay-local", "status": "ok", "version": "0.2.0"})
+
+
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 
@@ -467,7 +493,11 @@ class CameraAnalytics:
         )
         # Frigate is the production source of detections, recordings and events.
         # The legacy model remains opt-in only for isolated/offline experiments.
-        self.model = YOLO(str(MODEL_PATH)) if LOCAL_AI_ENABLED else None
+        self.model = None
+        if LOCAL_AI_ENABLED:
+            from ultralytics import YOLO
+
+            self.model = YOLO(str(MODEL_PATH))
         self.face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
         )
@@ -527,9 +557,9 @@ class CameraAnalytics:
         self.camera_failures = {}
         self.camera_last_recovery = {}
 
-        REPORTS_DIR.mkdir(exist_ok=True)
-        KNOWN_FACES_DIR.mkdir(exist_ok=True)
-        VISITS_DIR.mkdir(exist_ok=True)
+        REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+        KNOWN_FACES_DIR.mkdir(parents=True, exist_ok=True)
+        VISITS_DIR.mkdir(parents=True, exist_ok=True)
         self._ensure_report_header()
         self._ensure_visits_header()
         self._load_known_faces()
@@ -1515,6 +1545,7 @@ class CameraAnalytics:
             "brand": "V380",
             "model": model,
             "integration_type": "V380",
+            "frigate_camera_name": frigate_camera_name,
             **secret,
         }
         candidate = _start_v380_bridge(candidate, 3 + offset)
@@ -1546,7 +1577,7 @@ class CameraAnalytics:
         )
         stored.update(
             {
-                "host": "127.0.0.1",
+                "host": candidate["host"],
                 "rtsp_url": candidate["rtsp_url"],
                 "username": "",
                 "password": "",
@@ -1972,7 +2003,7 @@ def api_configure_local_scope():
                 or previous.get("site_id") != configured["site_id"]
             )
         )
-        return jsonify({"ok": True, "configured": configured, "restart_required": changed})
+        return jsonify({"ok": True, "configured": configured, "restart_required": not previous or changed})
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     except Exception:

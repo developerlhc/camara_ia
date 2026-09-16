@@ -8,7 +8,8 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
     headers.set('x-vigilay-proxy-key', env.INTERNAL_PROXY_SECRET);
     headers.set('x-vigilay-client-ip', getClientAddress());
   }
-  for (const key of ['content-type', 'cookie', 'x-csrf-token', 'user-agent', 'range']) {
+  headers.set('accept-encoding', 'identity');
+  for (const key of ['content-type', 'cookie', 'x-csrf-token', 'user-agent', 'range', 'if-range']) {
     const value = request.headers.get(key);
     if (value) headers.set(key, value);
   }
@@ -24,8 +25,10 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
       signal: AbortSignal.timeout(params.path.includes('/frigate/') ? 3600000 : 30000)
     });
     const responseHeaders = new Headers(upstream.headers);
-    responseHeaders.delete('content-encoding');
-    responseHeaders.delete('content-length');
+    if (responseHeaders.has('content-encoding')) {
+      responseHeaders.delete('content-encoding');
+      responseHeaders.delete('content-length');
+    }
     responseHeaders.set('cache-control', 'no-store');
     return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
   } catch {

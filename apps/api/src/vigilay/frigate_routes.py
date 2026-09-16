@@ -6,6 +6,7 @@ from cryptography.exceptions import InvalidTag
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request
 from fastapi.responses import Response, StreamingResponse
 from sqlalchemy import select
+from starlette.background import BackgroundTask
 
 from vigilay.auth import Principal, audit, database, require
 from vigilay.frigate import FrigateError, FrigateService, recording_windows
@@ -16,6 +17,25 @@ from vigilay.security import decrypt_credentials
 
 router = APIRouter(prefix="/api/v1/frigate", tags=["Frigate"])
 SAFE_EVENT_ID = r"^[a-zA-Z0-9_.-]+$"
+
+
+def media_response(service, path, request, download, filename):
+    stream = safe_call(
+        lambda: service.stream_media(
+            path,
+            range_header=request.headers.get("range"),
+            if_range=request.headers.get("if-range"),
+        )
+    )
+    headers = {**stream.headers, "Cache-Control": "private, no-store"}
+    if download:
+        headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return StreamingResponse(
+        stream.chunks(),
+        status_code=stream.response.status_code,
+        headers=headers,
+        background=BackgroundTask(stream.close),
+    )
 
 
 @router.get("/internal/cameras", include_in_schema=False)
@@ -199,6 +219,14 @@ def recordings(
     )
     db.close()  # return the pooled MySQL connection before the outbound Frigate request
     segments = safe_call(lambda: service.recordings(frigate_name, after=after, before=before))
+    segments = [
+        {
+            **segment,
+            "start_time": max(after, float(segment.get("start_time") or 0)),
+            "end_time": min(before, float(segment.get("end_time") or 0)),
+        }
+        for segment in segments
+    ]
     return [
         {
             **window,
@@ -228,20 +256,25 @@ def event_thumbnail(
 
 @router.get("/events/{event_id}/clip.mp4")
 def event_clip(
+    request: Request,
     event_id: str = Path(pattern=SAFE_EVENT_ID),
+    download: bool = False,
     actor: Principal = Depends(require("cameras.read")),
     db=Depends(database),
 ):
     _, service, _ = locate_event(db, actor, event_id)
-    chunks, media_type = safe_call(lambda: service.stream_media(f"/events/{event_id}/clip.mp4"))
-    return StreamingResponse(chunks, media_type=media_type)
+    return media_response(
+        service, f"/events/{event_id}/clip.mp4", request, download, f"evento-{event_id}.mp4"
+    )
 
 
 @router.get("/recordings/{camera_id}/start/{start}/end/{end}/clip.mp4")
 def recording_clip(
+    request: Request,
     camera_id: str,
     start: int,
     end: int,
+    download: bool = False,
     actor: Principal = Depends(require("cameras.read")),
     db=Depends(database),
 ):
@@ -251,10 +284,13 @@ def recording_clip(
     service = safe_call(lambda: service_for_camera(db, camera))
     frigate_name = camera.frigate_camera_name
     db.close()  # return the pooled MySQL connection before streaming the clip from Frigate
-    chunks, media_type = safe_call(
-        lambda: service.stream_media(f"/{frigate_name}/start/{start}/end/{end}/clip.mp4")
+    return media_response(
+        service,
+        f"/{frigate_name}/start/{start}/end/{end}/clip.mp4",
+        request,
+        download,
+        f"grabacion-{start}-{end}.mp4",
     )
-    return StreamingResponse(chunks, media_type=media_type)
 
 
 def locate_event(db, actor, event_id):

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import { page } from '$app/state';
   import { api, setCsrf, type Me, type Row } from '$lib/api';
   import WhepPlayer from '$lib/WhepPlayer.svelte';
+  import LiveTile from '$lib/LiveTile.svelte';
 
   type CameraPermissionRow = Row & { user_id: string; can_view: boolean; can_configure: boolean };
 
@@ -20,6 +21,8 @@
   let camera = $state<Row | null>(null); let capabilities = $state<Row[]>([]); let settings = $state<Row[]>([]); let commands = $state<Row[]>([]);
   let showForm = $state(false); let editing = $state(''); let search = $state('');
   let filterTenant = $state(''); let filterStatus = $state(''); let filterIntegration = $state('');
+  let cameraTenant = $state(''); let cameraSite = $state('');
+  let camerasLoading = $state(false); let recordsRequest = 0;
   let pageNumber = $state(1); let pageSize = $state(10); let totalRecords = $state(0); let totalPages = $state(1);
   let searchTimer: ReturnType<typeof setTimeout> | undefined;
   let name = $state(''); let tenantId = $state(''); let siteId = $state(''); let address = $state('');
@@ -36,6 +39,8 @@
   let frigateEvents = $state<Row[]>([]); let recordings = $state<Row[]>([]);
   let frigateCameraId = $state(''); let mediaUrl = $state(''); let mediaTitle = $state(''); let mediaKind = $state('video');
   let recordingTenant = $state(''); let recordingSite = $state(''); let recordingPage = $state(1); let recordingPageSize = $state(10);
+  let recordingAfter = $state(''); let recordingBefore = $state('');
+  let recordingsLoading = $state(false); let recordingsError = $state(''); let recordingsRequest = 0;
   let eventsTenant = $state(''); let eventsPage = $state(1); let eventsPageSize = $state(12);
   let eventsCameraId = $state(''); let eventsAfter = $state(''); let eventsBefore = $state('');
   let mediaQueue = $state<Row[]>([]); let mediaIndex = $state(-1);
@@ -80,14 +85,29 @@
   };
 
   async function loadRecords() {
-    const params = new URLSearchParams({ paged: 'true', page: String(pageNumber), page_size: String(pageSize) });
+    const requestId = ++recordsRequest;
+    const isCameras = section === 'cameras';
+    if (isCameras) camerasLoading = true;
+    const params = new URLSearchParams({ paged: 'true', page: String(pageNumber), page_size: String(isCameras ? 4 : pageSize) });
     if (search.trim()) params.set('q', search.trim());
-    if (filterTenant) params.set('tenant_id', filterTenant);
+    if (isCameras ? cameraTenant : filterTenant) params.set('tenant_id', isCameras ? cameraTenant : filterTenant);
+    if (isCameras && cameraSite) params.set('site_id', cameraSite);
     if (filterStatus) params.set('status', filterStatus);
     if (filterIntegration && section === 'cameras') params.set('integration_type', filterIntegration);
-    const result = await api<{items: Row[]; total: number; pages: number}>(`${endpoints[section]}?${params}`);
-    records = result.items; totalRecords = result.total; totalPages = result.pages;
-    if (pageNumber > totalPages) { pageNumber = totalPages; await loadRecords(); }
+    try {
+      const result = await api<{items: Row[]; total: number; pages: number}>(`${endpoints[section]}?${params}`);
+      if (requestId !== recordsRequest) return;
+      records = result.items; totalRecords = result.total; totalPages = Math.max(1, result.pages);
+      if (pageNumber > totalPages) { pageNumber = totalPages; await loadRecords(); }
+    } finally { if (requestId === recordsRequest) camerasLoading = false; }
+  }
+
+  function chooseCameraScope(companyChanged = false) {
+    if (companyChanged || !sites.some(row => row.id === cameraSite && row.tenant_id === cameraTenant)) {
+      cameraSite = sites.find(row => row.tenant_id === cameraTenant)?.id || '';
+    }
+    try { localStorage.setItem(`vigilay-scope:${user?.id}`, JSON.stringify({tenant: cameraTenant, site: cameraSite})); } catch { /* Private browsing. */ }
+    applyFilters();
   }
 
   function applyFilters() { pageNumber = 1; void refresh().catch(e => error = e.message); }
@@ -133,7 +153,7 @@
           update.commands.forEach(applyRealtimeCommand);
         }
         if (update.live?.sessionId === liveSessionId) {
-          liveStatus = update.live.status;
+          if (['error', 'stopped'].includes(update.live.status)) liveStatus = update.live.status;
           if (update.live.error) error = update.live.error;
         }
       } catch { /* Ignore malformed frames and keep the last valid state. */ }
@@ -191,10 +211,9 @@
       }
       if (can('cameras.manage')) cameraPermissions = await api<CameraPermissionRow[]>(`/cameras/${cameraId}/permissions`);
     } else if (section === 'dashboard') {
-      [metrics, records, frigateEvents] = await Promise.all([
-        api<Record<string, number>>('/dashboard'), api('/cameras'),
-        api<Row[]>('/frigate/events?limit=6').catch(() => []),
-      ]);
+      [metrics, records] = await Promise.all([api<Record<string, number>>('/dashboard'), api('/cameras')]);
+      // An offline recording gateway must not block camera controls.
+      void api<Row[]>('/frigate/events?limit=6').then(rows => { if (section === 'dashboard') frigateEvents = rows; }).catch(() => {});
     } else if (section === 'events') {
       const eventsParams = new URLSearchParams({ limit: '200' });
       if (eventsAfter) eventsParams.set('after', String(Math.floor(new Date(eventsAfter).getTime() / 1000)));
@@ -222,6 +241,12 @@
         user = await api<Me>('/me'); setCsrf(user.csrf_token);
         [tenants, sites] = await Promise.all([api('/tenants'), api('/sites')]);
         tenantId = user.tenant_id || tenants[0]?.id || '';
+        let saved: {tenant?: string; site?: string} = {};
+        try { saved = JSON.parse(localStorage.getItem(`vigilay-scope:${user.id}`) || '{}') || {}; } catch { /* Use allowed defaults. */ }
+        cameraTenant = user.tenant_id || (tenants.some(row => row.id === saved.tenant) ? saved.tenant! : tenants[0]?.id || '');
+        cameraSite = sites.find(row => row.id === saved.site && row.tenant_id === cameraTenant)?.id || sites.find(row => row.tenant_id === cameraTenant)?.id || '';
+        recordingTenant = cameraTenant; recordingSite = cameraSite;
+        recordingBefore = toLocalInput(new Date()); recordingAfter = toLocalInput(new Date(Date.now() - 86400000));
       } catch(e) { error = (e as Error).message; loading = false; bootstrapFailed = true; }
       initialized = true;
     })();
@@ -233,7 +258,7 @@
     const currentSection = section;
     if (!initialized || bootstrapFailed) return;
     loading = true;
-    void refresh().catch(e => error = e.message).finally(() => { loading = false; });
+    untrack(() => { void closeLive(); void refresh().catch(e => error = e.message).finally(() => { loading = false; }); });
   });
   $effect(() => {
     const target = cameraId;
@@ -249,7 +274,7 @@
 
   async function action(work: () => Promise<unknown>, message: string) {
     busy = true; error = ''; notice = '';
-    try { await work(); notice = message; await refresh(); }
+    try { await work(); notice = message; if (work !== refresh && work !== loadFrigateRecordings) await refresh(); }
     catch(e) { error = (e as Error).message; } finally { busy = false; }
   }
   async function probeCamera() {
@@ -263,10 +288,15 @@
     finally { busy = false; }
   }
   async function openLive(targetId = cameraId, targetName = display(camera?.name)) {
+    if (liveOpen) return;
     liveCameraId = targetId; liveCameraName = targetName;
     liveOpen = true; liveStatus = 'connecting'; error = '';
     try {
       const result = await api<Record<string, string>>(`/cameras/${targetId}/live/start`, 'POST');
+      if (!liveOpen || liveCameraId !== targetId) {
+        await api(`/cameras/${targetId}/live/stop`, 'POST', {session_id: result.sessionId, viewer_key: result.viewerKey});
+        return;
+      }
       liveUrl = result.playbackUrl; liveSessionId = result.sessionId;
       liveViewerKey = result.viewerKey; liveStatus = result.status;
       connectRealtime(targetId); subscribeRealtime();
@@ -280,35 +310,45 @@
       try {
         if (realtimeSocket?.readyState === WebSocket.OPEN) { scheduleLiveHeartbeat(); return; }
         const state = await api<Record<string, string>>(`/cameras/${liveCameraId}/live/heartbeat`, 'POST', {session_id: liveSessionId, viewer_key: liveViewerKey});
-        liveStatus = state.status; scheduleLiveHeartbeat();
+        if (['error', 'stopped'].includes(state.status)) liveStatus = state.status;
+        scheduleLiveHeartbeat();
       } catch (e) { liveStatus = 'error'; error = (e as Error).message; }
-    }, liveStatus === 'live' ? 15000 : 1000);
+    }, 12000);
   }
   async function closeLive() {
     const sessionId = liveSessionId; const viewerKey = liveViewerKey; const targetId = liveCameraId;
     clearTimeout(liveTimer); liveOpen = false; liveStatus = 'stopped'; liveUrl = ''; liveSessionId = ''; liveViewerKey = '';
     if (sessionId && viewerKey && targetId) {
-      await api(`/cameras/${targetId}/live/stop`, 'POST', {session_id: sessionId, viewer_key: viewerKey}).catch(() => {});
+      await api(`/cameras/${targetId}/live/stop`, 'POST', {session_id: sessionId, viewer_key: viewerKey}, {keepalive: true}).catch(() => {});
     }
     liveCameraId = ''; liveCameraName = '';
     if (cameraId) subscribeRealtime(); else { realtimeSocket?.close(); realtimeSocket = undefined; }
   }
   async function loadFrigateRecordings() {
-    recordings = [];
-    recordingPage = 1;
+    const requestId = ++recordingsRequest;
+    recordings = []; recordingPage = 1; recordingsError = ''; mediaUrl = ''; mediaQueue = []; mediaIndex = -1;
+    recordingsLoading = false;
     if (!frigateCameraId) return;
-    const before = Math.floor(Date.now() / 1000);
-    const after = before - 86400;
-    recordings = await api<Row[]>(`/frigate/recordings?camera_id=${encodeURIComponent(frigateCameraId)}&after=${after}&before=${before}`);
+    const before = Math.floor(new Date(recordingBefore).getTime() / 1000);
+    const after = Math.floor(new Date(recordingAfter).getTime() / 1000);
+    if (!Number.isFinite(after) || !Number.isFinite(before) || before <= after || before - after > 604800) {
+      recordingsError = 'Selecciona fecha y hora de inicio y fin: máximo 7 días.'; return;
+    }
+    recordingsLoading = true;
+    try {
+      const rows = await api<Row[]>(`/frigate/recordings?camera_id=${encodeURIComponent(frigateCameraId)}&after=${after}&before=${before}`);
+      if (requestId === recordingsRequest) recordings = rows;
+    } catch (e) { if (requestId === recordingsRequest) recordingsError = (e as Error).message; }
+    finally { if (requestId === recordingsRequest) recordingsLoading = false; }
   }
   function selectRecordingScope() {
     recordingPage = 1; recordings = [];
     if (frigateCameraId && !recordingCameras.some(row => row.id === frigateCameraId)) frigateCameraId = '';
     if (!frigateCameraId && recordingCameras.length) frigateCameraId = display(recordingCameras[0].id);
-    if (frigateCameraId) void action(loadFrigateRecordings, 'Grabaciones actualizadas.');
+    void loadFrigateRecordings();
   }
   function openRecording(item: Row) {
-    mediaQueue = [...recordings]; mediaIndex = mediaQueue.findIndex(row => row.clip_url === item.clip_url);
+    mediaQueue = [...recordings].sort((a, b) => Number(a.start) - Number(b.start)); mediaIndex = mediaQueue.findIndex(row => row.clip_url === item.clip_url);
     mediaUrl = display(item.clip_url); mediaTitle = `Grabación · ${display(item.camera_name)}`; mediaKind = 'video';
   }
   function advanceRecording() {
@@ -440,8 +480,17 @@
         </section>
       {:else if section === 'recordings'}
         <section class="panel"><div class="panel-heading"><div><h2>Grabaciones de Frigate <span class="count">{recordings.length}</span></h2><small>Video conservado y procesado por Frigate en la sede. Al terminar un fragmento continúa el siguiente de la lista.</small></div><div class="recording-filter">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={recordingTenant} onchange={() => { recordingSite = ''; frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por sede" bind:value={recordingSite} onchange={() => { frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las sedes</option>{#each sites.filter(item => !recordingTenant || item.tenant_id === recordingTenant) as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><select aria-label="Seleccionar cámara" bind:value={frigateCameraId} onchange={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}><option value="">Selecciona una cámara</option>{#each recordingCameras as item}<option value={item.id}>{display(item.name)} · {nameOf(sites, item.site_id)}</option>{/each}</select><button disabled={busy || !frigateCameraId} onclick={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}>Actualizar</button></div></div>
-          {#if !recordings.length}<div class="empty"><span class="empty-icon">◉</span><h3>No hay grabaciones en las últimas 24 horas</h3><p>Comprueba que la cámara esté vinculada y que Frigate tenga la grabación habilitada.</p></div>
-          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><div class="card-actions"><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'grabacion')} title="Descargar grabación">⬇ Descargar</a></div></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
+          <form class="panel-heading events-range" onsubmit={(event) => { event.preventDefault(); void loadFrigateRecordings(); }}>
+            <label class="range-label">Desde (fecha y hora local)<input type="datetime-local" bind:value={recordingAfter} required /></label>
+            <label class="range-label">Hasta (fecha y hora local)<input type="datetime-local" bind:value={recordingBefore} required /></label>
+            <button class="primary" disabled={recordingsLoading || !frigateCameraId}>Aplicar intervalo</button>
+            <small>Zona horaria: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Máximo 7 días.</small>
+          </form>
+          <p class="storage-note">Origen: disco de Frigate en la sede. La memoria SD interna de la cámara aún no está integrada: necesita un adaptador de reproducción compatible con su modelo; RTSP solo permite el vivo. No se borran ni formatean tarjetas.</p>
+          {#if recordingsLoading}<div class="empty" role="status">Consultando grabaciones de la sede…</div>
+          {:else if recordingsError}<div class="empty" role="alert"><h3>No se pudo consultar Frigate</h3><p>{recordingsError}</p><button onclick={() => loadFrigateRecordings()}>Reintentar</button></div>
+          {:else if !recordings.length}<div class="empty"><span class="empty-icon">◉</span><h3>{frigateCameraId ? 'No hay grabaciones en el intervalo seleccionado' : 'Selecciona una cámara vinculada a Frigate'}</h3><p>Comprueba el intervalo, la vinculación y que Frigate tenga la grabación habilitada.</p></div>
+          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE')}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><div class="card-actions"><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button><a class="button" href={`${display(item.clip_url)}?download=true`} download={mediaFileName(item, 'grabacion')} title="Descargar grabación">⬇ Descargar</a></div></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
         </section>
       {:else if section === 'admin/system'}
         <section class="panel"><div class="panel-heading"><h2>Servicios</h2><button onclick={() => action(refresh, 'Estado actualizado.')} disabled={busy}>Actualizar</button></div>{#each Object.entries(health) as [service, value]}<div class="setting-row"><strong>{service === 'media' ? 'Video en vivo' : service.toUpperCase()}</strong><span class="badge">{value === 'ok' ? 'Operativo' : value === 'offline' ? 'Sin conexión' : 'Pendiente de integración'}</span></div>{/each}</section>
@@ -462,13 +511,19 @@
       {:else if section === 'cameras'}
         <section class="panel"><div class="panel-heading"><h2>Cámaras <span class="count">{totalRecords}</span></h2><div class="list-filters">
           <input aria-label="Buscar cámaras" type="search" placeholder="Buscar cámara…" bind:value={search} oninput={scheduleSearch} />
-          {#if user?.role === 'SUPER_ADMIN'}<select aria-label="Filtrar por cliente" bind:value={filterTenant} onchange={applyFilters}><option value="">Todos los clientes</option>{#each tenants as tenant}<option value={tenant.id}>{display(tenant.name)}</option>{/each}</select>{/if}
+          <select aria-label="Empresa de las cámaras" bind:value={cameraTenant} disabled={!!user?.tenant_id} onchange={() => chooseCameraScope(true)}>{#each tenants as tenant}<option value={tenant.id}>{display(tenant.name)}</option>{/each}</select>
+          <select aria-label="Sede de las cámaras" bind:value={cameraSite} onchange={() => chooseCameraScope()}>{#each sites.filter(row => row.tenant_id === cameraTenant) as site}<option value={site.id}>{display(site.name)}</option>{/each}</select>
           <select aria-label="Filtrar por estado" bind:value={filterStatus} onchange={applyFilters}><option value="">Todos los estados</option><option value="ONLINE">En línea</option><option value="OFFLINE">Sin conexión</option><option value="UNVERIFIED">Sin verificar</option></select>
           <select aria-label="Filtrar por integración" bind:value={filterIntegration} onchange={applyFilters}><option value="">Todas las integraciones</option><option value="RTSP">RTSP</option><option value="V380">V380</option><option value="SIMULATOR">Simulador</option></select>
         </div></div>
           {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>No hay cámaras con estos filtros</h3><p>Registra una cámara o cambia los filtros.</p></div>
-          {:else}<div class="camera-grid operational">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(tenants, item.tenant_id)} · {nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}">Configuración y detalle →</a></div></article>{/each}</div>{/if}
-          <div class="pagination"><span>{totalRecords ? `${(pageNumber - 1) * pageSize + 1}–${Math.min(pageNumber * pageSize, totalRecords)} de ${totalRecords}` : '0 cámaras'}</span><div><button disabled={pageNumber <= 1 || busy} onclick={() => { pageNumber--; void refresh(); }}>← Anterior</button><span>Página {pageNumber} de {totalPages}</span><button disabled={pageNumber >= totalPages || busy} onclick={() => { pageNumber++; void refresh(); }}>Siguiente →</button></div></div>
+          {:else}<div class="camera-grid operational">{#each records as item (item.id)}<article class="camera-card">
+            {#if item.integration_type !== 'SIMULATOR' && item.enabled !== false}
+              <LiveTile cameraId={item.id} enabled={!liveOpen && !camerasLoading && !!cameraTenant && !!cameraSite} />
+            {:else}<div class="camera-preview">Cámara deshabilitada o simulador</div>{/if}
+            <div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(tenants, item.tenant_id)} · {nameOf(sites, item.site_id)}</small><button disabled={item.integration_type === 'SIMULATOR' || item.enabled === false} onclick={() => openLive(item.id, display(item.name))}>Ampliar / PTZ</button><a href="/cameras/{item.id}">Configuración y detalle →</a></div>
+          </article>{/each}</div>{/if}
+          <div class="pagination"><span>{totalRecords ? `${(pageNumber - 1) * 4 + 1}–${Math.min(pageNumber * 4, totalRecords)} de ${totalRecords}` : '0 cámaras'} · Hasta 4 vivos visibles; se pausan al ocultar la pestaña.</span><div><button disabled={pageNumber <= 1 || busy || camerasLoading} onclick={() => { pageNumber--; void refresh(); }}>← Anterior</button><span>Página {pageNumber} de {totalPages}</span><button disabled={pageNumber >= totalPages || busy || camerasLoading} onclick={() => { pageNumber++; void refresh(); }}>Siguiente →</button></div></div>
         </section>
       {:else if endpoints[section]}
         <section class="panel"><div class="panel-heading"><h2>{titles[section]} <span class="count">{totalRecords}</span></h2><div class="list-filters">
@@ -536,6 +591,7 @@
 {/if}
 
 <style>
+  .storage-note { padding: 12px 24px; color: var(--muted); font-size: 13px; }
   .list-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .list-filters input, .list-filters select { width: auto; min-width: 150px; margin: 0; }
   .list-filters input { min-width: 220px; }

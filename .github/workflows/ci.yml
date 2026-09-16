@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  VIGILAY_VERSION: 0.1.0
+  VIGILAY_VERSION: 0.2.0
 
 jobs:
   backend:
@@ -47,8 +47,32 @@ jobs:
         working-directory: apps/web
       - run: npm run check && npm run build && npm audit
         working-directory: apps/web
+  local:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/local.Dockerfile
+          load: true
+          tags: vigilay-local:smoke
+          cache-from: type=gha,scope=local
+          cache-to: type=gha,scope=local,mode=max
+      - name: Smoke test Local without real database or cameras
+        run: |
+          docker run -d --name local-smoke --init -p 127.0.0.1:5002:5000 \
+            -e CAMERA_STORAGE=env --cap-drop ALL --security-opt no-new-privileges:true vigilay-local:smoke
+          python scripts/smoke_local_container.py
+      - name: Local logs
+        if: failure()
+        run: docker logs local-smoke || true
+      - name: Stop test container
+        if: always()
+        run: docker rm -f local-smoke || true
   images:
-    needs: [backend, web]
+    needs: [backend, web, local]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,6 +82,7 @@ jobs:
         include:
           - {name: api, context: '.', file: infra/docker/api.Dockerfile}
           - {name: web, context: apps/web, file: apps/web/Dockerfile}
+          - {name: local, context: '.', file: infra/docker/local.Dockerfile}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -82,5 +107,5 @@ jobs:
           file: ${{ matrix.file }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,scope=${{ matrix.name }},mode=max

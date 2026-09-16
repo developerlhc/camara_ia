@@ -101,9 +101,10 @@ def handler_factory(token, frigate_url, timeout):
             parsed = urlsplit(self.path)
             if not any(pattern.fullmatch(parsed.path) for pattern in SAFE_PATHS):
                 return self._error(404, b"Not found")
-            headers = {}
-            if self.headers.get("Range"):
-                headers["Range"] = self.headers["Range"]
+            headers = {"Accept-Encoding": "identity"}
+            for name in ("Range", "If-Range"):
+                if self.headers.get(name):
+                    headers[name] = self.headers[name]
             try:
                 with httpx.stream(
                     "GET",
@@ -118,13 +119,16 @@ def handler_factory(token, frigate_url, timeout):
                         "content-length",
                         "content-range",
                         "accept-ranges",
+                        "etag",
+                        "last-modified",
+                        "content-encoding",
                     ):
                         if response.headers.get(name):
                             self.send_header(name, response.headers[name])
                     self.send_header("Cache-Control", "private, no-store")
                     self.send_header("Connection", "close")
                     self.end_headers()
-                    for chunk in response.iter_bytes():
+                    for chunk in response.iter_raw():
                         self.wfile.write(chunk)
             except (httpx.HTTPError, OSError):
                 if not self.wfile.closed:
