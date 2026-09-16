@@ -13,7 +13,7 @@ for attempt in range(30):
             health = json.load(response)
         assert health["status"] == "ok" and health["version"] == "0.2.0", health
         break
-    except (URLError, TimeoutError):
+    except (URLError, TimeoutError, ConnectionError):
         if attempt == 29:
             raise
         time.sleep(0.5)
