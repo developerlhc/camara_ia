@@ -1,0 +1,1 @@
+{"identifier":"main-local","description":"Sólo la interfaz empaquetada; ningún origen remoto recibe acceso nativo.","windows":["main"],"permissions":["core:default"]}

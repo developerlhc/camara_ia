@@ -436,7 +436,7 @@ def cameras(
     offset: int = Query(0, ge=0),
     paged: bool = False,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=5, le=100),
+    page_size: int = Query(25, ge=1, le=100),
     q: str = Query("", max_length=100),
     tenant_id: str | None = None,
     site_id: str | None = None,

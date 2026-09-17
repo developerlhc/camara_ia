@@ -2,6 +2,14 @@
 
 Plataforma de videovigilancia multiempresa con administración central, agente local, video en vivo y consulta protegida de eventos y grabaciones de Frigate.
 
+## Aplicaciones Mobile y Desktop
+
+- **Vigilay Mobile** (`apps/mobile`): proyecto Capacitor Android que reutiliza Vigilay Web.
+- **Vigilay Desktop** (`apps/desktop`): asistente Tauri/Rust para empresa, sede, cámaras,
+  exportación/instalación de Frigate y contraseña de administrador.
+
+Consulta [requisitos, instalación, seguridad y límites](docs/MOBILE_DESKTOP.md).
+
 ## Iniciar
 
 Esta instalación ya cuenta con `.env` local y claves aleatorias. El acceso inicial está en [el archivo privado local](.local/ACCESO_LOCAL.md), excluido de Git y Docker.

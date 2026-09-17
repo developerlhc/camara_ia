@@ -115,6 +115,36 @@ def test_server_pagination_search_and_tenant_filter(clients, identities, cameras
     assert denied.status_code == 404
 
 
+def test_four_camera_live_grid_pagination(clients, identities, cameras):
+    tenant_id = identities["tenants"][0]
+    site_id = cameras["a"]["site_id"]
+    # Five authorized cameras exercise the exact 4 + 1 grid used by the web.
+    for number in range(4):
+        created = clients["a"].post(
+            "/api/v1/cameras",
+            json={
+                "name": f"Grid {number}",
+                "tenant_id": tenant_id,
+                "site_id": site_id,
+                "integration_type": "SIMULATOR",
+            },
+        )
+        assert created.status_code == 201
+    params = {"paged": "true", "page_size": 4, "tenant_id": tenant_id, "site_id": site_id}
+    first = clients["a"].get("/api/v1/cameras", params={**params, "page": 1})
+    second = clients["a"].get("/api/v1/cameras", params={**params, "page": 2})
+    assert first.status_code == second.status_code == 200
+    assert first.json()["total"] == second.json()["total"] == 5
+    assert first.json()["pageSize"] == 4 and first.json()["pages"] == 2
+    assert len(first.json()["items"]) == 4 and len(second.json()["items"]) == 1
+    rows = first.json()["items"] + second.json()["items"]
+    assert len({row["id"] for row in rows}) == 5
+    assert all(row["tenant_id"] == tenant_id and row["site_id"] == site_id for row in rows)
+    for invalid_size in (0, -1, 101):
+        rejected = clients["a"].get("/api/v1/cameras", params={**params, "page_size": invalid_size})
+        assert rejected.status_code == 422
+
+
 def test_cross_tenant_writes_and_escalation_denied(clients, identities, cameras):
     a, b = identities["tenants"]
     assert clients["a"].post("/api/v1/tenants", json={"name": "Escalation"}).status_code == 403

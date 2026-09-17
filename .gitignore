@@ -25,3 +25,8 @@ rostros_conocidos/*
 .local/
 test-results/
 playwright-report/
+target/
+*.jks
+*.keystore
+apps/desktop/src-tauri/gen/schemas/
+apps/mobile/android/.idea/

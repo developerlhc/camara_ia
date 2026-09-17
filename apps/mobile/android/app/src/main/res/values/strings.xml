@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Vigilay Mobile</string>
+    <string name="title_activity_main">Vigilay Mobile</string>
+    <string name="package_name">com.vigilay.mobile</string>
+    <string name="custom_url_scheme">com.vigilay.mobile</string>
+</resources>
