@@ -56,7 +56,7 @@ silenciosamente. Para compilar: Rust 1.94, MSVC Build Tools, WebView2 y Node 22.
 cd apps/desktop
 npm ci
 npm run desktop:dev
-# Instalador Windows NSIS (no firmado):
+# Instaladores Windows NSIS .exe y WiX .msi (no firmados):
 npm run desktop:build
 ```
 
@@ -124,10 +124,10 @@ reportadas. Android `assembleDebug`, `testDebugUnitTest` y `lint` completados
 
 La configuración exportada también fue aceptada por el modelo de configuración
 de Frigate 0.18 dentro de un contenedor aislado, sin red ni cámaras reales.
-**El ejecutable Windows no está compilado todavía:** esta PC carece de `link.exe`
-de MSVC. La compilación/pruebas Rust y el instalador quedan pendientes del runner
-Windows de GitHub Actions o de instalar los Build Tools en la PC. No se han
-validado aún cámaras reales desde Android ni el asistente completo en una PC limpia.
+Los instaladores Windows se compilan en el runner de GitHub Actions porque esta
+PC carece de `link.exe` de MSVC. El workflow entrega tanto NSIS `.exe` como WiX
+`.msi`, ambos sin firma. No se han validado aún cámaras reales desde Android ni
+el asistente completo en una PC limpia.
 
 La prueba API reproduce la cuadrícula de cuatro cámaras, dos páginas, límites e
 identidad por empresa. Las pruebas del exportador cubren fuentes, aliases, copias,

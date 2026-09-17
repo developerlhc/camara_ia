@@ -4,5 +4,5 @@
   "build": {"beforeDevCommand": "npm run dev", "devUrl": "http://localhost:1420", "beforeBuildCommand": "npm run build", "frontendDist": "../dist"},
   "app": {"windows": [{"label": "main", "title": "Vigilay Desktop — instalación de sede", "width": 1180, "height": 850, "minWidth": 850, "minHeight": 600}],
     "security": {"csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost; img-src 'self' data:; frame-src 'none'; object-src 'none'"}},
-  "bundle": {"active": true, "targets": ["nsis"], "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"]}
+  "bundle": {"active": true, "targets": ["nsis", "msi"], "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.ico"]}
 }
