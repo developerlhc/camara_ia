@@ -1,6 +1,6 @@
-# Vigilay Local en Docker — v0.2.0
+# Vigilay Local en Docker — v0.2.1
 
-La imagen `ghcr.io/developerlhc/vigilay-local:v0.2.0-build-N` contiene el panel
+La imagen `ghcr.io/developerlhc/vigilay-local:v0.2.1-build-N` contiene el panel
 Python, administración de conexiones y empresa/sede, previsualización y controles
 compatibles con cada cámara. Usa un proceso Waitress con hilos, usuario sin
 privilegios, healthcheck y persistencia fuera de la imagen. No incluye `.env`,
@@ -92,6 +92,14 @@ Dockerfile ni al repositorio.
 - El contenedor no inicia otro agente WHIP ni instala FFmpeg del publicador:
   mantén `scripts/iniciar-agente-stream.ps1` y un solo publicador por cámara.
   `LOCAL_AI_ENABLED=false`: Frigate sigue encargado de IA y grabaciones.
+
+Desde v0.2.1, Compose pasa `FRIGATE_LIVE_STREAM_SUFFIX` y
+`VIGILAY_LOCAL_PREFER_RESTREAM` al panel. Usa `_live` sólo cuando esos aliases
+estén creados y verificados en go2rtc. El stream de grabación no cambia.
+`V380_LOCAL_TRANSPORT=mjpeg` permite probar el visor HTTP del puente V380 si su
+RTSP es inestable; no cambia el transporte remoto WebRTC ni garantiza estabilidad
+del dispositivo. El puente nuevo usa RTSP 8556 y HTTP 8081; Frigate conserva
+8555 para WebRTC. Los puertos guardados de cámaras existentes no se migran solos.
 
 Docker documenta [el acceso al anfitrión mediante host.docker.internal](https://docs.docker.com/desktop/features/networking/networking-how-tos/).
 No publiques los puertos de cámaras o Frigate en Internet para resolver conectividad.

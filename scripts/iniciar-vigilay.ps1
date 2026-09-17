@@ -16,29 +16,7 @@ try {
         }
     }
 
-    $python = Join-Path (Get-Location) ".venv\Scripts\python.exe"
-    if (-not (Test-Path -LiteralPath $python)) {
-        throw "No se encontró .venv para iniciar el agente local de streaming."
-    }
-    $agentRunning = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -eq "python.exe" -and $_.CommandLine -match "vigilay\.stream_agent" } |
-        Select-Object -First 1
-    if (-not $agentRunning) {
-        $logDirectory = Join-Path (Get-Location) ".local"
-        New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
-        $agent = Start-Process -FilePath $python `
-            -ArgumentList "-m", "vigilay.stream_agent" `
-            -WorkingDirectory (Get-Location) `
-            -WindowStyle Hidden `
-            -RedirectStandardOutput (Join-Path $logDirectory "stream-agent.out.log") `
-            -RedirectStandardError (Join-Path $logDirectory "stream-agent.err.log") `
-            -PassThru
-        Set-Content -LiteralPath (Join-Path $logDirectory "stream-agent.pid") -Value $agent.Id
-        Start-Sleep -Seconds 2
-        if ($agent.HasExited) {
-            throw "El agente local de streaming no pudo iniciar. Revisa .local\stream-agent.err.log"
-        }
-    }
+    & (Join-Path $PSScriptRoot 'asegurar-agente-stream.ps1')
     Write-Host "Vigilay: http://localhost:3000"
     Write-Host "API: http://localhost:8000/api/docs"
     Write-Host "Agente de streaming: activo"

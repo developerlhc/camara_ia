@@ -1,6 +1,6 @@
 # V380 Pro y Frigate: estado y operación
 
-Última comprobación: 14 de septiembre de 2026.
+Última comprobación: 16 de septiembre de 2026.
 
 Este documento describe la instalación actual, cómo fluye el video desde la cámara V380 Pro hasta Frigate y cómo acceder desde otros equipos. No contiene contraseñas, claves de cifrado ni URLs con credenciales.
 
@@ -9,10 +9,10 @@ Este documento describe la instalación actual, cómo fluye el video desde la c�
 | Componente | Estado | Dirección o dato relevante |
 | --- | --- | --- |
 | Cámara V380 Pro | Registrada y activa | `192.168.100.59`, protocolo V380 en TCP `8800` |
-| Puente V380 local | Operativo | Publica `rtsp://192.168.100.14:8555/live` |
+| Puente V380 local | Operativo | Publica `rtsp://192.168.100.14:8556/live`; usa relay V380 mientras la IP LAN no responde |
 | Video del puente | Verificado | Se recibió un fotograma de `640x1080` |
 | Frigate | Operativo en Docker | Contenedor `frigate`, imagen `ghcr.io/blakeblackshear/frigate:stable` |
-| Cámara `calle` en Frigate | Configurada | Fuente `rtsp://192.168.100.14:8555/live`; roles `detect` y `record` |
+| Cámara `calle` en Frigate | Configurada | Fuente `rtsp://192.168.100.14:8556/live`; roles `detect` y `record` |
 | Acceso web de Frigate | Publicado en la LAN | `https://192.168.100.14:8971` |
 | Autenticación de Frigate | Activa por defecto | Usar usuarios creados en Frigate |
 
@@ -23,13 +23,13 @@ Vigilay Web mantiene estas vinculaciones reales: `calle` con **V380 Pro**, `cuar
 ## Flujo de video
 
 ```text
-V380 Pro (192.168.100.59:8800)
+V380 Pro (relay del fabricante; respaldo temporal)
         |
         | protocolo propietario V380
         v
 V380Decoder.exe en Windows
         |
-        | RTSP: 192.168.100.14:8555/live
+        | RTSP: 192.168.100.14:8556/live
         v
 Frigate en Docker (cámara "calle", IA y grabación)
         |
@@ -61,14 +61,21 @@ El visor inicia `.local/v380-bridge/V380Decoder.exe` con los siguientes valores 
 
 | Parámetro | Valor actual |
 | --- | --- |
-| IP de la cámara | `192.168.100.59` |
-| Puerto V380 | `8800` |
+| IP LAN registrada | `192.168.100.59` (actualmente sin respuesta) |
+| Fuente activa | `cloud`, relay V380 |
 | Calidad | `sd` |
-| Puerto RTSP local | `8555` |
+| Puerto RTSP local | `8556` |
 | Puerto HTTP/API local | `8081` |
 | Ruta RTSP publicada | `/live` |
 
 La contraseña se entrega al proceso mediante la variable temporal `V380_CAMERA_PASSWORD`; no se incluye como argumento del proceso.
+
+El 16 de septiembre la dirección LAN registrada dejó de responder. Se verificó
+la misma identidad por el relay V380 y se obtuvo un fotograma real, por lo que
+la fuente cifrada de esta cámara quedó en modo `cloud`. Esto no utiliza
+Cloudflare Stream, pero sí depende del relay del fabricante. Al reservar una IP
+LAN estable para la cámara se puede volver a `lan` con
+`python scripts/set_v380_source.py <camera-id> lan` y reiniciar Vigilay Local.
 
 Para iniciar Vigilay y el puente:
 
@@ -81,7 +88,7 @@ El proceso debe permanecer activo. Si se cierra Vigilay o falla `V380Decoder.exe
 Comprobación rápida del puerto del puente:
 
 ```powershell
-Test-NetConnection 192.168.100.14 -Port 8555
+Test-NetConnection 192.168.100.14 -Port 8556
 ```
 
 El resultado esperado es `TcpTestSucceeded : True`.
@@ -154,18 +161,18 @@ Si se requiere un dominio público, usar un proxy inverso con HTTPS, autenticaci
 | --- | --- | --- |
 | `8800/TCP` | Protocolo de la cámara V380 | Solo red local |
 | `8081/TCP` | API local del puente V380 | Solo host/red local confiable |
-| `8555/TCP` | RTSP generado por el puente | Solo red local; Frigate lo consume |
+| `8556/TCP` | RTSP generado por el puente | Solo red local; Frigate lo consume |
 | `8971/TCP` | Interfaz autenticada de Frigate | LAN o VPN |
 | `5000/TCP` | Interfaz interna sin autenticación de Frigate | No publicar |
 | `8554/TCP` | Restream RTSP de Frigate | No publicar en Internet |
 
-Frigate también reserva habitualmente `8555/TCP/UDP` para WebRTC. En esta máquina el puente V380 utiliza el puerto TCP `8555`. Si después de un reinicio aparece un conflicto, se debe asignar un puerto distinto al puente o al mapeo WebRTC de Frigate y actualizar la URL de la cámara `calle`.
+Frigate reserva `8555/TCP/UDP` para WebRTC. El puente V380 utiliza ahora `8556/TCP`: se comprobó que ambos procesos escuchaban simultáneamente en `8555`, provocando conflictos. No vuelvas a asignar ese puerto al puente. La entrada de `calle` en Frigate usa `-use_wallclock_as_timestamps 1` para corregir las marcas de tiempo repetidas del puente. Ver [diagnóstico del live](LIVE_RECUPERACION_2026-09-17.md).
 
 ## Orden recomendado de arranque
 
 1. Encender y conectar la cámara V380 Pro a la red.
 2. Iniciar Vigilay Local con `.\iniciar.ps1` para levantar el puente V380.
-3. Confirmar que `192.168.100.14:8555` responde.
+3. Confirmar que `192.168.100.14:8556` responde.
 4. Iniciar o comprobar el contenedor `frigate`.
 5. Abrir `https://192.168.100.14:8971` y verificar la cámara `calle`.
 6. Iniciar la plataforma con `.\scripts\iniciar-vigilay.ps1`; el script conecta Frigate a la red privada de Vigilay.
@@ -176,8 +183,8 @@ Si `calle` no muestra video:
 
 1. Comprobar que la cámara responde en la red y conserva la IP `192.168.100.59`.
 2. Confirmar que Vigilay y `V380Decoder.exe` están ejecutándose.
-3. Ejecutar `Test-NetConnection 192.168.100.14 -Port 8555`.
+3. Ejecutar `Test-NetConnection 192.168.100.14 -Port 8556`.
 4. Revisar los logs del puente en `.local/v380-bridge/` sin publicar su contenido si contiene datos sensibles.
 5. Revisar `docker logs --tail 100 frigate`.
-6. Verificar que la fuente de `calle` siga siendo `rtsp://192.168.100.14:8555/live`.
+6. Verificar que la fuente de `calle` siga siendo `rtsp://192.168.100.14:8556/live`.
 7. Reiniciar primero el puente y luego Frigate si el stream quedó desconectado.

@@ -741,8 +741,11 @@
     }
 
     async function selectCamera(cameraId) {
-      // La última miniatura permanece visible durante la negociación RTSP.
+      // Clear the previous image before opening the new multipart stream.
       clearTimeout(mainStreamRetryTimer);
+      videoFeed.removeAttribute("src");
+      videoFeed.style.visibility = "hidden";
+      videoFeed.onload = () => { videoFeed.style.visibility = "visible"; };
       videoFeed.src = `/camera_feed/${encodeURIComponent(cameraId)}?primary=${Date.now()}`;
       cameraStatus.classList.remove("online");
       cameraStatus.querySelector("span:last-child").textContent = "Cambiando cámara…";

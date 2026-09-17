@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     v380_decoder_path: str = ".local/v380-bridge/V380Decoder.exe"
     frigate_api_url: str = "http://frigate:5000"
     frigate_restream_url: str = "rtsp://127.0.0.1:8554"
+    frigate_live_stream_suffix: str = ""
     frigate_timeout_seconds: int = 10
     frigate_gateway_port: int = 8788
     cloudflared_path: str = "cloudflared"

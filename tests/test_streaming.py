@@ -1,4 +1,6 @@
+import io
 import subprocess
+import threading
 import time
 from types import SimpleNamespace
 from uuid import uuid4
@@ -163,6 +165,18 @@ def test_stream_manager_reports_missing_ffmpeg(tmp_path):
         manager.start_stream("camera", "rtsp://source/live", PUBLISH_URL)
 
 
+def test_publisher_readiness_requires_real_frame_progress():
+    ready = threading.Event()
+    StreamManager._read_progress(
+        SimpleNamespace(stdout=io.StringIO("frame=0\nprogress=continue\n")), ready
+    )
+    assert not ready.is_set()
+    StreamManager._read_progress(
+        SimpleNamespace(stdout=io.StringIO("frame=1\nprogress=continue\n")), ready
+    )
+    assert ready.is_set()
+
+
 def test_cloudflare_retries_transient_network_errors(cameras):
     class FlakyClient(FakeClient):
         def request(self, method, url, **kwargs):
@@ -195,6 +209,28 @@ def test_v380_resolver_starts_bridge_once(monkeypatch):
     assert started[0]["host"] == "192.168.1.20"
 
 
+@pytest.mark.parametrize("mode", ["lan", "cloud"])
+def test_v380_bridge_respects_selected_transport(monkeypatch, tmp_path, mode):
+    from vigilay import stream_agent
+
+    executable = tmp_path / "V380Decoder.exe"
+    executable.touch()
+    monkeypatch.setattr(
+        stream_agent, "settings", lambda: SimpleNamespace(v380_decoder_path=str(executable))
+    )
+    monkeypatch.setattr(stream_agent, "_port_open", lambda *a: True)
+    calls = []
+    monkeypatch.setattr(stream_agent.subprocess, "Popen", lambda args, **kwargs: calls.append(args))
+    CameraStreamResolver._start_v380_bridge(
+        {"source": mode, "host": "192.168.1.20", "rtsp_port": 8556, "password": "test-only"}
+    )
+    arguments = calls[0]
+    assert arguments[arguments.index("--source") + 1] == mode
+    assert ("--ip" in arguments) == (mode == "lan")
+    assert arguments[arguments.index("--rtsp-port") + 1] == "8556"
+    assert "test-only" not in arguments
+
+
 def test_resolver_prefers_available_frigate_restream(monkeypatch):
     from vigilay import stream_agent
 
@@ -211,6 +247,27 @@ def test_resolver_prefers_available_frigate_restream(monkeypatch):
     source = CameraStreamResolver(restream_base_url="rtsp://127.0.0.1:8554").resolve(camera, {})
 
     assert source == "rtsp://127.0.0.1:8554/calle"
+
+
+@pytest.mark.parametrize("live_available", [True, False])
+def test_resolver_uses_low_resolution_live_alias_with_main_fallback(monkeypatch, live_available):
+    from vigilay import stream_agent
+
+    monkeypatch.setattr(
+        stream_agent,
+        "settings",
+        lambda: SimpleNamespace(
+            frigate_live_stream_suffix="_live", frigate_restream_url="rtsp://127.0.0.1:8554"
+        ),
+    )
+    monkeypatch.setattr(
+        stream_agent,
+        "_rtsp_stream_available",
+        lambda url: live_available or not url.endswith("_live"),
+    )
+    camera = SimpleNamespace(id="a", frigate_camera_name="imou")
+    source = CameraStreamResolver().resolve(camera, {})
+    assert source == "rtsp://127.0.0.1:8554/imou" + ("_live" if live_available else "")
 
 
 def test_resolver_falls_back_when_frigate_restream_is_missing(monkeypatch):

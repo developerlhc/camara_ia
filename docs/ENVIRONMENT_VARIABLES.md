@@ -33,6 +33,9 @@
 | V380_DECODER_PATH | Ruta local de V380Decoder en el equipo del agente. |
 | FRIGATE_API_URL | API interna de Frigate; debe ser accesible sólo desde el API de Vigilay, nunca desde Internet ni desde el navegador. |
 | FRIGATE_RESTREAM_URL | RTSP base de go2rtc para el agente local. Por defecto `rtsp://127.0.0.1:8554`; el agente lo prefiere cuando existe el alias vinculado y vuelve al RTSP de la cámara si no existe. |
+| FRIGATE_LIVE_STREAM_SUFFIX | Sufijo opcional del alias para live, por ejemplo `_live`. Crear y verificar primero los aliases en go2rtc. No modifica el alias de grabación. El agente vuelve al alias principal si no encuentra el alternativo; el visor Local requiere que exista. |
+| VIGILAY_LOCAL_PREFER_RESTREAM | `true` para consumir go2rtc en el visor Local y compartir conexiones con Frigate. Requiere que Frigate sea alcanzable desde el equipo o contenedor. |
+| V380_LOCAL_TRANSPORT | `rtsp` por defecto; `mjpeg` permite usar el puente HTTP de la V380 sólo en el visor Local. No modifica el WebRTC remoto ni las grabaciones. |
 | FRIGATE_TIMEOUT_SECONDS | Tiempo máximo de consulta a Frigate. |
 | FRIGATE_GATEWAY_PORT | Puerto loopback del proxy autenticado local; valor normal `8788`. |
 | CLOUDFLARED_PATH | Ejecutable de Cloudflare Tunnel; el contenedor local ya lo incorpora. |

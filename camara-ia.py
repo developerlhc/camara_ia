@@ -18,6 +18,7 @@ import psutil
 from dotenv import load_dotenv, set_key
 from flask import Flask, Response, jsonify, render_template, send_from_directory
 from flask import request as flask_request
+
 from local_runtime import discovery_network, external_v380, preview_source
 
 try:
@@ -35,7 +36,11 @@ BASE_DIR = Path(__file__).resolve().parent
 # Las variables ya definidas en PowerShell conservan prioridad sobre .env.
 load_dotenv(BASE_DIR / ".env", override=False)
 LEGACY_CONFIG_PATH = BASE_DIR / ".local" / "legacy-config.json"
-LEGACY_CONFIG = json.loads(LEGACY_CONFIG_PATH.read_text(encoding="utf-8")) if LEGACY_CONFIG_PATH.exists() else {}
+LEGACY_CONFIG = (
+    json.loads(LEGACY_CONFIG_PATH.read_text(encoding="utf-8"))
+    if LEGACY_CONFIG_PATH.exists()
+    else {}
+)
 MODEL_PATH = BASE_DIR / "yolo11n.pt"
 DATA_DIR = Path(os.getenv("VIGILAY_LOCAL_DATA_DIR", str(BASE_DIR)))
 KNOWN_FACES_DIR = DATA_DIR / "rostros_conocidos"
@@ -54,7 +59,9 @@ LOCAL_AI_ENABLED = os.getenv("LOCAL_AI_ENABLED", "false").lower() in {"1", "true
 CAMERA_WIDTH = int(os.getenv("CAMERA_WIDTH", "1920"))
 CAMERA_HEIGHT = int(os.getenv("CAMERA_HEIGHT", "1080"))
 TARGET_FPS = float(os.getenv("TARGET_FPS", "10"))
-DROP_BUFFER_FRAMES = int(os.getenv("DROP_BUFFER_FRAMES", "14"))
+# RTSP grab() waits for a real frame; discarding 14 frames adds ~1 second
+# at 15 fps. Drain normally instead of waiting for future frames on every read.
+DROP_BUFFER_FRAMES = int(os.getenv("DROP_BUFFER_FRAMES", "0"))
 ANALYZE_EVERY_FRAMES = max(1, int(os.getenv("ANALYZE_EVERY_FRAMES", "3")))
 FACE_SCAN_EVERY = int(os.getenv("FACE_SCAN_EVERY", "5"))
 REPORT_EVERY_SECONDS = int(os.getenv("REPORT_EVERY_SECONDS", "5"))
@@ -75,6 +82,8 @@ os.environ.setdefault(
     "OPENCV_FFMPEG_CAPTURE_OPTIONS",
     "rtsp_transport;tcp|fflags;nobuffer|flags;low_delay|max_delay;500000",
 )
+os.environ.setdefault("OPENCV_FFMPEG_THREADS", "2")
+cv2.setNumThreads(2)
 
 
 def load_notification_config():
@@ -113,9 +122,7 @@ def load_frigate_camera_names():
     except (OSError, URLError, json.JSONDecodeError) as error:
         raise RuntimeError("Vigilay API no pudo consultar las cámaras de Frigate.") from error
     return sorted(
-        str(item.get("name", ""))
-        for item in result
-        if isinstance(item, dict) and item.get("name")
+        str(item.get("name", "")) for item in result if isinstance(item, dict) and item.get("name")
     )
 
 
@@ -155,9 +162,7 @@ def load_cameras():
                 cameras.append(preview_source(camera))
             return cameras
         except Exception as error:
-            raise RuntimeError(
-                "No se pudieron cargar las cámaras cifradas desde MySQL."
-            ) from error
+            raise RuntimeError("No se pudieron cargar las cámaras cifradas desde MySQL.") from error
 
     cameras = []
     if RTSP_URL:
@@ -188,10 +193,7 @@ def load_cameras():
     # Compatibilidad temporal hasta que scripts/migrate-cameras-to-mysql.py
     # confirme la importación y retire estos valores de .env.
     configured_ids = {camera["id"] for camera in cameras}
-    if (
-        os.getenv("V380_ENABLED", "0") == "1"
-        and "camera-3" not in configured_ids
-    ):
+    if os.getenv("V380_ENABLED", "0") == "1" and "camera-3" not in configured_ids:
         cameras.append(
             _start_v380_bridge(
                 {
@@ -206,7 +208,7 @@ def load_cameras():
                     "host": os.getenv("V380_IP", ""),
                     "port": int(os.getenv("V380_PORT", "8800")),
                     "quality": os.getenv("V380_QUALITY", "sd"),
-                    "rtsp_port": int(os.getenv("V380_RTSP_PORT", "8555")),
+                    "rtsp_port": int(os.getenv("V380_RTSP_PORT", "8556")),
                     "http_port": int(os.getenv("V380_HTTP_PORT", "8081")),
                 },
                 3,
@@ -244,15 +246,20 @@ def _stop_v380_bridge(bridge_dir, http_port, rtsp_port):
 def _start_v380_bridge(camera, index, force_restart=False):
     if os.name != "nt":
         if force_restart:
-            raise RuntimeError("Reinicia el puente V380 en el anfitrión Windows, no dentro de Docker.")
+            raise RuntimeError(
+                "Reinicia el puente V380 en el anfitrión Windows, no dentro de Docker."
+            )
         return external_v380(camera)
     bridge_dir = BASE_DIR / ".local" / "v380-bridge"
     executable = bridge_dir / "V380Decoder.exe"
     if not executable.exists():
         raise RuntimeError("No se encontró el puente local V380.")
-    rtsp_port = int(camera.get("rtsp_port", 8554 + index))
-    http_port = int(camera.get("http_port", 8080 + index))
+    rtsp_port = int(camera.get("rtsp_port", 8556))
+    http_port = int(camera.get("http_port", 8081))
     source_host = camera["host"]
+    source = str(camera.get("source", "lan")).lower()
+    if source not in {"lan", "cloud"}:
+        source = "lan"
     if force_restart:
         _stop_v380_bridge(bridge_dir, http_port, rtsp_port)
         for _ in range(20):
@@ -264,20 +271,27 @@ def _start_v380_bridge(camera, index, force_restart=False):
         child_environment["V380_CAMERA_PASSWORD"] = camera["password"]
         arguments = [
             str(executable),
-            "--id", str(camera["device_id"]),
-            "--username", camera["username"],
-            "--ip", camera["host"],
-            "--port", str(camera.get("port", 8800)),
-            "--source", "lan",
-            "--quality", camera.get("quality", "sd"),
+            "--id",
+            str(camera["device_id"]),
+            "--username",
+            camera["username"],
+            "--source",
+            source,
+            "--quality",
+            camera.get("quality", "sd"),
             "--enable-api",
-            "--http-port", str(http_port),
-            "--rtsp-port", str(rtsp_port),
+            "--http-port",
+            str(http_port),
+            "--rtsp-port",
+            str(rtsp_port),
         ]
+        if source == "lan":
+            arguments.extend(["--ip", camera["host"], "--port", str(camera.get("port", 8800))])
         log_name = "v380-" + camera["id"]
-        with (bridge_dir / f"{log_name}.out.log").open("ab") as stdout, (
-            bridge_dir / f"{log_name}.err.log"
-        ).open("ab") as stderr:
+        with (
+            (bridge_dir / f"{log_name}.out.log").open("ab") as stdout,
+            (bridge_dir / f"{log_name}.err.log").open("ab") as stderr,
+        ):
             subprocess.Popen(
                 arguments,
                 cwd=bridge_dir,
@@ -600,7 +614,9 @@ class CameraAnalytics:
             if not encodings:
                 continue
 
-            name = image_path.parent.name if image_path.parent != KNOWN_FACES_DIR else image_path.stem
+            name = (
+                image_path.parent.name if image_path.parent != KNOWN_FACES_DIR else image_path.stem
+            )
             self.known_face_names.append(name)
             self.known_face_encodings.append(encodings[0])
 
@@ -613,13 +629,14 @@ class CameraAnalytics:
 
     def _run(self):
         while not self.stop_event.is_set():
-            camera = self._active_camera()
+            with self.lock:
+                self.camera_changed.clear()
+                camera = self._active_camera()
             if camera is None:
                 self._set_camera_status(False)
                 time.sleep(1)
                 continue
 
-            self.camera_changed.clear()
             capture = cv2.VideoCapture(
                 camera["rtsp_url"],
                 cv2.CAP_FFMPEG,
@@ -635,18 +652,21 @@ class CameraAnalytics:
             capture.set(cv2.CAP_PROP_FRAME_HEIGHT, CAMERA_HEIGHT)
 
             if not capture.isOpened():
-                self._set_camera_status(False)
-                self._handle_camera_failure(camera)
+                capture.release()
+                if camera["id"] == self.active_camera_id:
+                    self._set_camera_status(False)
+                    self._handle_camera_failure(camera)
                 time.sleep(3)
                 continue
 
-            self._set_camera_status(True)
             camera_target_fps = float(camera.get("target_fps", TARGET_FPS))
             frame_interval = 1 / camera_target_fps if camera_target_fps > 0 else 0
 
             while not self.stop_event.is_set() and not self.camera_changed.is_set():
                 loop_started_at = time.time()
                 ok, frame = self._read_latest_frame(capture)
+                if self.camera_changed.is_set() or camera["id"] != self.active_camera_id:
+                    break
                 if not ok:
                     self._set_camera_status(False)
                     self._handle_camera_failure(camera)
@@ -682,12 +702,17 @@ class CameraAnalytics:
                     ".jpg", processed_frame, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
                 )
                 with self.lock:
+                    # A camera selection may arrive while decoding/encoding.
+                    # Never publish the old camera's frame under the new ID.
+                    if self.camera_changed.is_set() or camera["id"] != self.active_camera_id:
+                        break
                     self.latest_frame = processed_frame
                     if jpeg_ok:
                         self.latest_jpeg = jpeg_buffer.tobytes()
                         self.latest_frame_version += 1
                     self.status.update(snapshot)
                     self.status["camera_online"] = True
+                    self.last_frame_at = time.monotonic()
                     self.status["last_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     self.fps_frames += 1
                     fps_elapsed = time.monotonic() - self.fps_started_at
@@ -719,8 +744,22 @@ class CameraAnalytics:
             from camera_store import get_runtime_camera
 
             stored = get_runtime_camera(camera_id)
+            # A failed Frigate restream does not prove the bridge failed.
+            # Do not tear down a healthy producer used by other viewers.
+            with request.urlopen(
+                f"http://127.0.0.1:{int(stored.get('http_port', 8081))}/snapshot", timeout=3
+            ) as response:
+                if response.status == 200 and response.read(16):
+                    return
+        except (OSError, URLError):
+            pass
+        except Exception:
+            app.logger.warning("No se pudo consultar la configuración para recuperar V380")
+            return
+        try:
+            stored = get_runtime_camera(camera_id)
             restarted = _start_v380_bridge(stored, 3, force_restart=True)
-            camera.update(restarted)
+            camera.update(preview_source(restarted))
         except Exception as error:
             app.logger.warning("No se pudo recuperar el puente V380: %s", error)
 
@@ -768,7 +807,9 @@ class CameraAnalytics:
             face_frame = self._resize_frame(original_frame, FACE_DETECT_WIDTH)
             detected_face_labels = self._recognize_faces(face_frame)
             face_labels = self._scale_face_labels(detected_face_labels, face_frame, display_frame)
-            face_save_labels = self._scale_face_labels(detected_face_labels, face_frame, original_frame)
+            face_save_labels = self._scale_face_labels(
+                detected_face_labels, face_frame, original_frame
+            )
             face_labels, face_save_labels = self._filter_faces_inside_people(
                 face_labels, face_save_labels, person_boxes
             )
@@ -777,7 +818,9 @@ class CameraAnalytics:
 
         self._draw_face_boxes(annotated, face_labels)
 
-        recognized = sorted({label["name"] for label in face_labels if label["name"] != "Desconocido"})
+        recognized = sorted(
+            {label["name"] for label in face_labels if label["name"] != "Desconocido"}
+        )
         unknown_faces = sum(1 for label in face_labels if label["name"] == "Desconocido")
         self._handle_presence_notification(person_count)
         self._save_visit_images(original_frame, face_save_labels)
@@ -943,8 +986,7 @@ class CameraAnalytics:
         new_events = []
 
         save_items = [
-            {"name": label["name"], "box": label["box"], "kind": "rostro"}
-            for label in face_labels
+            {"name": label["name"], "box": label["box"], "kind": "rostro"} for label in face_labels
         ]
 
         for index, item in enumerate(save_items):
@@ -965,7 +1007,9 @@ class CameraAnalytics:
 
             safe_name = "".join(char for char in name if char.isalnum() or char in ("-", "_"))
             safe_name = safe_name or "Desconocido"
-            filename = f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{item['kind']}_{safe_name}_{index}.jpg"
+            filename = (
+                f"{timestamp.strftime('%Y%m%d_%H%M%S')}_{item['kind']}_{safe_name}_{index}.jpg"
+            )
             path = VISITS_DIR / filename
             cv2.imwrite(str(path), visit_image, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
 
@@ -1143,10 +1187,7 @@ class CameraAnalytics:
             minNeighbors=4,
             minSize=(36, 36),
         )
-        return [
-            {"name": "Desconocido", "box": (x, y, x + w, y + h)}
-            for (x, y, w, h) in faces
-        ]
+        return [{"name": "Desconocido", "box": (x, y, x + w, y + h)} for (x, y, w, h) in faces]
 
     def _draw_header(self, frame, person_count, recognized, unknown_faces):
         cv2.rectangle(frame, (0, 0), (frame.shape[1], 76), (18, 22, 28), -1)
@@ -1188,11 +1229,19 @@ class CameraAnalytics:
     def _set_camera_status(self, online):
         with self.lock:
             self.status["camera_online"] = online
+            if not online:
+                self.latest_frame = None
+                self.latest_jpeg = None
+                self.status["display_fps"] = 0
             self.status["last_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def get_status(self):
         with self.lock:
-            return dict(self.status)
+            result = dict(self.status)
+            if time.monotonic() - getattr(self, "last_frame_at", 0) > 8:
+                result["camera_online"] = False
+                result["display_fps"] = 0
+            return result
 
     def get_cameras(self):
         with self.lock:
@@ -1266,7 +1315,7 @@ class CameraAnalytics:
             raise ValueError("Selecciona entre 1 y 30 FPS.")
         grayscale = bool(payload.get("grayscale", False))
         frigate_camera_name = validate_frigate_camera_name(
-            payload.get("frigate_camera_name")
+            payload.get("frigate_camera_name", stored.get("frigate_camera_name"))
         )
         if not name:
             raise ValueError("Escribe un alias para la cámara.")
@@ -1284,17 +1333,19 @@ class CameraAnalytics:
             secret = {
                 "host": host,
                 "port": int(stored.get("port", 8800)),
+                "source": stored.get("source", "lan"),
                 "device_id": device_id,
                 "username": username,
                 "password": password or stored.get("password", ""),
                 "quality": stored.get("quality", "sd"),
-                "rtsp_port": int(stored.get("rtsp_port", 8555)),
+                "rtsp_port": int(stored.get("rtsp_port", 8556)),
                 "http_port": int(stored.get("http_port", 8081)),
             }
             if not all((username, device_id, secret["password"])):
                 raise ValueError("Completa ID, usuario y contraseña V380.")
             restart_required = any(
-                secret[key] != stored.get(key) for key in ("host", "username", "device_id", "password")
+                secret[key] != stored.get(key)
+                for key in ("host", "username", "device_id", "password")
             )
             updated = update_camera(
                 camera_id,
@@ -1310,6 +1361,8 @@ class CameraAnalytics:
                 camera["model"] = updated["model"]
                 camera["target_fps"] = updated["target_fps"]
                 camera["grayscale"] = updated["grayscale"]
+                camera["frigate_camera_name"] = updated.get("frigate_camera_name")
+                self.cameras[camera_id] = preview_source(camera)
         else:
             host = str(payload.get("host", stored.get("host", ""))).strip()
             username = str(payload.get("username", stored.get("username", ""))).strip()
@@ -1346,7 +1399,9 @@ class CameraAnalytics:
                 finally:
                     capture.release()
                 if not connected:
-                    raise ConnectionError("No fue posible abrir el video con la nueva configuración.")
+                    raise ConnectionError(
+                        "No fue posible abrir el video con la nueva configuración."
+                    )
                 secret = {
                     "rtsp_url": rtsp_url,
                     "onvif_port": int(stored.get("onvif_port", 80)),
@@ -1362,7 +1417,7 @@ class CameraAnalytics:
             )
             updated["view_mode"] = camera.get("view_mode", "full")
             with self.lock:
-                self.cameras[camera_id] = updated
+                self.cameras[camera_id] = preview_source(updated)
         with self.lock:
             if camera_id == self.active_camera_id:
                 self.status["active_camera_name"] = name
@@ -1375,12 +1430,11 @@ class CameraAnalytics:
         if camera is None:
             raise KeyError(camera_id)
         with self.lock:
-            already_active = (
-                camera_id == self.active_camera_id and self.status["camera_online"]
-            )
+            already_active = camera_id == self.active_camera_id and self.status["camera_online"]
         if already_active:
             return camera
         with self.lock:
+            self.camera_changed.set()
             self.active_camera_id = camera_id
             camera.setdefault("view_mode", "full")
             self.latest_frame = None
@@ -1409,7 +1463,6 @@ class CameraAnalytics:
                     "display_fps": 0,
                 }
             )
-        self.camera_changed.set()
         if os.getenv("CAMERA_STORAGE", "env").lower() == "mysql":
             from camera_store import save_active_camera_id
 
@@ -1451,8 +1504,7 @@ class CameraAnalytics:
                 path = f"/{path}"
             # Conserva consultas RTSP comunes y codifica únicamente las credenciales.
             rtsp_url = (
-                f"rtsp://{quote(username, safe='')}:{quote(password, safe='')}"
-                f"@{host}:554{path}"
+                f"rtsp://{quote(username, safe='')}:{quote(password, safe='')}@{host}:554{path}"
             )
         capture = cv2.VideoCapture(
             rtsp_url,
@@ -1526,9 +1578,7 @@ class CameraAnalytics:
             raise RuntimeError("Activa el almacenamiento MySQL antes de agregar otra V380.")
         from camera_store import save_camera
 
-        offset = sum(
-            1 for camera in self.cameras.values() if camera["integration_type"] == "V380"
-        )
+        offset = sum(1 for camera in self.cameras.values() if camera["integration_type"] == "V380")
         secret = {
             "host": host,
             "port": 8800,
@@ -1536,7 +1586,7 @@ class CameraAnalytics:
             "username": username,
             "password": password,
             "quality": "sd",
-            "rtsp_port": 8555 + offset,
+            "rtsp_port": 8556 + offset,
             "http_port": 8081 + offset,
         }
         candidate = {
@@ -1608,9 +1658,7 @@ class CameraAnalytics:
                 raise RuntimeError("La V380 no ofrece zoom mediante el puente local.")
             try:
                 for movement in movements[action]:
-                    endpoint = (
-                        f"http://{camera['host']}:{camera['onvif_port']}/api/ptz/{movement}"
-                    )
+                    endpoint = f"http://{camera['host']}:{camera['onvif_port']}/api/ptz/{movement}"
                     command = request.Request(endpoint, data=b"", method="POST")
                     with request.urlopen(command, timeout=3) as response:
                         if response.status != 200:
@@ -1668,9 +1716,7 @@ class CameraAnalytics:
         if zoom:
             if not zoom_spaces:
                 raise RuntimeError("La cámara no ofrece zoom mediante ONVIF.")
-            movement.Velocity = {
-                "Zoom": {"x": zoom * speed, "space": zoom_spaces[0].URI}
-            }
+            movement.Velocity = {"Zoom": {"x": zoom * speed, "space": zoom_spaces[0].URI}}
         else:
             if not pan_tilt_space:
                 raise RuntimeError("La cámara no ofrece movimiento mediante ONVIF.")
@@ -1772,8 +1818,12 @@ class CameraAnalytics:
         with self.lock:
             return self.latest_jpeg
 
-    def get_jpeg_packet(self):
+    def get_jpeg_packet(self, camera_id=None):
         with self.lock:
+            if camera_id is not None and camera_id != self.active_camera_id:
+                return None, self.latest_frame_version
+            if time.monotonic() - getattr(self, "last_frame_at", 0) > 8:
+                return None, self.latest_frame_version
             return self.latest_jpeg, self.latest_frame_version
 
 
@@ -1804,6 +1854,7 @@ class CameraPreviewHub:
         with self.lock:
             if camera_id in self.states:
                 self.states[camera_id]["online"] = False
+                self.states[camera_id]["jpeg"] = None
 
     def _run(self, camera_id):
         while not self.analytics.stop_event.is_set():
@@ -1831,6 +1882,7 @@ class CameraPreviewHub:
                 ],
             )
             if not capture.isOpened():
+                capture.release()
                 self._set_offline(camera_id)
                 with self.lock:
                     self.states[camera_id]["capturing"] = False
@@ -1865,9 +1917,7 @@ class CameraPreviewHub:
                             cv2.cvtColor(preview, cv2.COLOR_BGR2GRAY),
                             cv2.COLOR_GRAY2BGR,
                         )
-                    ok, buffer = cv2.imencode(
-                        ".jpg", preview, [cv2.IMWRITE_JPEG_QUALITY, 65]
-                    )
+                    ok, buffer = cv2.imencode(".jpg", preview, [cv2.IMWRITE_JPEG_QUALITY, 65])
                     if not ok:
                         continue
                     with self.lock:
@@ -1875,6 +1925,7 @@ class CameraPreviewHub:
                         state["jpeg"] = buffer.tobytes()
                         state["version"] += 1
                         state["online"] = True
+                        state["last_frame_at"] = now
             finally:
                 capture.release()
                 with self.lock:
@@ -1903,10 +1954,9 @@ class CameraPreviewHub:
         if camera_id not in self.analytics.cameras:
             raise KeyError(camera_id)
         if camera_id == self.analytics.active_camera_id:
-            frame, version = self.analytics.get_jpeg_packet()
-            if frame is not None:
-                # Separa el contador del visor principal del contador de miniatura.
-                return frame, version + 1_000_000_000
+            frame, version = self.analytics.get_jpeg_packet(camera_id)
+            # No stale thumbnail fallback while the selected camera connects.
+            return frame, version + 1_000_000_000
         self.ensure_worker(camera_id)
         with self.lock:
             state = self.states[camera_id]
@@ -1916,7 +1966,10 @@ class CameraPreviewHub:
         if camera_id == self.analytics.active_camera_id:
             return bool(self.analytics.get_status().get("camera_online"))
         with self.lock:
-            return bool(self.states.get(camera_id, {}).get("online"))
+            state = self.states.get(camera_id, {})
+            return (
+                bool(state.get("online")) and time.monotonic() - state.get("last_frame_at", 0) < 8
+            )
 
 
 analytics = CameraAnalytics()
@@ -2003,7 +2056,9 @@ def api_configure_local_scope():
                 or previous.get("site_id") != configured["site_id"]
             )
         )
-        return jsonify({"ok": True, "configured": configured, "restart_required": not previous or changed})
+        return jsonify(
+            {"ok": True, "configured": configured, "restart_required": not previous or changed}
+        )
     except ValueError as error:
         return jsonify({"error": str(error)}), 400
     except Exception:
@@ -2056,9 +2111,8 @@ def api_discover_cameras():
 @app.post("/api/cameras/<camera_id>/select")
 def api_select_camera(camera_id):
     try:
-        already_active = (
-            camera_id == analytics.active_camera_id
-            and analytics.get_status().get("camera_online")
+        already_active = camera_id == analytics.active_camera_id and analytics.get_status().get(
+            "camera_online"
         )
         if not already_active:
             preview_hub.reserve_for_primary(camera_id)
@@ -2155,9 +2209,7 @@ def api_configure_camera():
     if connection_mode != "onvif" and brand != "V380" and (not password or not path):
         return jsonify({"error": "Completa contraseña y ruta RTSP."}), 400
     try:
-        frigate_camera_name = validate_frigate_camera_name(
-            payload.get("frigate_camera_name")
-        )
+        frigate_camera_name = validate_frigate_camera_name(payload.get("frigate_camera_name"))
         if brand == "V380":
             device_id = str(payload.get("device_id", "")).strip()
             if not password or not device_id:
@@ -2260,9 +2312,7 @@ if __name__ == "__main__":
 
         platform_settings.cache_clear()
         stream_agent = LocalStreamAgent(
-            resolver=CameraStreamResolver(
-                v380_starter=lambda camera: _start_v380_bridge(camera, 3)
-            )
+            resolver=CameraStreamResolver(v380_starter=lambda camera: _start_v380_bridge(camera, 3))
         )
         stream_agent.start()
         app.logger.info("Agente de transmisión en vivo iniciado dentro de Vigilay Local.")

@@ -44,6 +44,7 @@ os.environ["CREDENTIAL_ENCRYPTION_KEY"] = (
 )
 os.environ["ENABLE_SIMULATOR"] = "true"
 os.environ["WEB_ORIGIN"] = "http://localhost:3000"
+os.environ["FRIGATE_LIVE_STREAM_SUFFIX"] = ""
 
 from vigilay.config import settings  # noqa: E402
 

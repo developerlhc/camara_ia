@@ -21,7 +21,7 @@ docker compose up -d --build
 - OpenAPI: http://localhost:8000/api/docs
 - Preparación API: http://localhost:8000/readyz
 
-### Vigilay Local en Docker (v0.2.0)
+### Vigilay Local en Docker (v0.2.1)
 
 El panel local también funciona en un contenedor, sin instalar Python en el anfitrión:
 
@@ -36,7 +36,7 @@ El agente de streaming, Frigate y el puente V380 Windows siguen siendo servicios
 separados. Consulta [instalación, red y límites de Docker Local](docs/VIGILAY_LOCAL_DOCKER.md).
 
 GitHub Actions verifica y publica tres imágenes GHCR: `vigilay-api`, `vigilay-web`
-y `vigilay-local`, con etiquetas `v0.2.0-build-N`. Publicar no despliega automáticamente
+y `vigilay-local`, con etiquetas `v0.2.1-build-N`. Publicar no despliega automáticamente
 en Bunny. Vigilay Local se instala en la sede, no en Magic Containers.
 
 En otra instalación, crea `.env` desde [.env.example](.env.example), reemplaza todos los marcadores y genera claves aleatorias propias. Crea el primer administrador de forma interactiva:

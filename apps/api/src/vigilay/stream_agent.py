@@ -5,12 +5,14 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import shutil
 import signal
 import socket
 import subprocess
 import threading
 import time
+from collections import deque
 from pathlib import Path
 from urllib import request
 from urllib.error import URLError
@@ -243,6 +245,11 @@ class CameraStreamResolver:
         if not name:
             return None
         base_url = (self.restream_base_url or settings().frigate_restream_url).rstrip("/")
+        suffix = settings().frigate_live_stream_suffix
+        if suffix:
+            live_source = f"{base_url}/{quote(name + suffix, safe='')}"
+            if _rtsp_stream_available(live_source):
+                return live_source
         source = f"{base_url}/{quote(name, safe='')}"
         return source if _rtsp_stream_available(source) else None
 
@@ -256,7 +263,7 @@ class CameraStreamResolver:
             )
             return restream
         if camera.integration_type == "V380":
-            port = int(secret.get("rtsp_port", 8555))
+            port = int(secret.get("rtsp_port", 8556))
             if not _port_open("127.0.0.1", port):
                 runtime = {"id": camera.id, "name": camera.name, **secret}
                 runtime.update(
@@ -285,22 +292,21 @@ class CameraStreamResolver:
         executable = Path(settings().v380_decoder_path).resolve()
         if not executable.is_file():
             raise StreamAgentError("No se encontró V380Decoder")
-        rtsp_port = int(camera.get("rtsp_port", 8555))
+        rtsp_port = int(camera.get("rtsp_port", 8556))
         http_port = int(camera.get("http_port", 8081))
         child_environment = os.environ.copy()
         child_environment["V380_CAMERA_PASSWORD"] = str(camera.get("password", ""))
+        source = str(camera.get("source", "lan")).lower()
+        if source not in {"lan", "cloud"}:
+            raise StreamAgentError("Origen V380 no válido")
         arguments = [
             str(executable),
             "--id",
             str(camera.get("device_id", "")),
             "--username",
             str(camera.get("username", "")),
-            "--ip",
-            str(camera.get("host", "")),
-            "--port",
-            str(camera.get("port", 8800)),
             "--source",
-            "lan",
+            source,
             "--quality",
             str(camera.get("quality", "sd")),
             "--enable-api",
@@ -309,6 +315,10 @@ class CameraStreamResolver:
             "--rtsp-port",
             str(rtsp_port),
         ]
+        if source == "lan":
+            arguments.extend(
+                ["--ip", str(camera.get("host", "")), "--port", str(camera.get("port", 8800))]
+            )
         subprocess.Popen(
             arguments,
             cwd=executable.parent,
@@ -334,6 +344,8 @@ class StreamManager:
         self.startup_seconds = startup_seconds
         self._lock = threading.RLock()
         self._active = {}
+        self._ready = {}
+        self._progress = {}
 
     def _executable(self):
         path = Path(self.ffmpeg_path)
@@ -355,8 +367,14 @@ class StreamManager:
                 "-hide_banner",
                 "-loglevel",
                 "warning",
+                "-progress",
+                "pipe:1",
+                "-stats_period",
+                "0.25",
                 "-rtsp_transport",
                 "tcp",
+                "-timeout",
+                "10000000",
                 "-fflags",
                 "nobuffer",
                 "-flags",
@@ -419,11 +437,29 @@ class StreamManager:
                 arguments,
                 shell=False,
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
             )
             self._active[camera_id] = process
+            ready = threading.Event()
+            self._ready[camera_id] = (process, ready)
+            progress = {
+                "started": time.monotonic(),
+                "last_frame_at": 0,
+                "frame": 0,
+                "errors": deque(maxlen=5),
+            }
+            self._progress[camera_id] = progress
+            threading.Thread(
+                target=self._read_progress, args=(process, ready, progress), daemon=True
+            ).start()
+            threading.Thread(
+                target=self._read_errors, args=(process, progress), daemon=True
+            ).start()
         try:
             code = process.wait(timeout=self.startup_seconds)
         except subprocess.TimeoutExpired:
@@ -433,9 +469,70 @@ class StreamManager:
             self._active.pop(camera_id, None)
         raise StreamAgentError(f"FFmpeg terminó durante el arranque (código {code})")
 
+    @staticmethod
+    def _read_progress(process, ready, progress=None):
+        pipe = getattr(process, "stdout", None)
+        if pipe is None:
+            return
+        try:
+            for line in pipe:
+                key, _, value = line.strip().partition("=")
+                if key == "frame" and value.isdigit() and int(value) > 0:
+                    if progress is not None and int(value) > progress["frame"]:
+                        progress["last_frame_at"] = time.monotonic()
+                        progress["frame"] = int(value)
+                    ready.set()
+        except (OSError, ValueError):
+            pass
+        finally:
+            pipe.close()
+
+    @staticmethod
+    def _read_errors(process, progress):
+        pipe = getattr(process, "stderr", None)
+        if pipe is None:
+            return
+        try:
+            for line in pipe:
+                safe = re.sub(r"(?:rtsps?|https?)://[^\s\"']+", "[media-url]", line.strip())
+                progress["errors"].append(safe[:300])
+        except (OSError, ValueError):
+            pass
+        finally:
+            pipe.close()
+
+    def reap_stalled(self):
+        # Run outside MySQL transactions: a live OS process can have no media.
+        for camera_id in self.camera_ids():
+            with self._lock:
+                progress = self._progress.get(camera_id)
+            if (
+                progress
+                and time.monotonic() - (progress["last_frame_at"] or progress["started"]) > 20
+            ):
+                logger.warning("Publisher stalled camera_id=%s; restarting", camera_id)
+                self.stop_stream(camera_id)
+
+    def is_ready(self, camera_id):
+        with self._lock:
+            current = self._active.get(camera_id)
+            tracked = self._ready.get(camera_id)
+            progress = self._progress.get(camera_id)
+            return bool(
+                current
+                and current.poll() is None
+                and tracked
+                and tracked[0] is current
+                and tracked[1].is_set()
+                and progress
+                and time.monotonic() - progress["last_frame_at"] < 10
+            )
+
     def stop_stream(self, camera_id: str):
         with self._lock:
             process = self._active.pop(camera_id, None)
+            self._ready.pop(camera_id, None)
+            self._progress.pop(camera_id, None)
         if not process or process.poll() is not None:
             return False
         process.terminate()
@@ -451,12 +548,21 @@ class StreamManager:
         with self._lock:
             process = self._active.get(camera_id)
             if process and process.poll() is not None:
+                progress = self._progress.pop(camera_id, {})
+                logger.warning(
+                    "Publisher exited camera_id=%s code=%s diagnostic=%s",
+                    camera_id,
+                    process.poll(),
+                    list(progress.get("errors", [])),
+                )
                 self._active.pop(camera_id, None)
                 return False
             return process is not None
 
     def get_stream_status(self, camera_id: str):
-        return "live" if self.is_streaming(camera_id) else "stopped"
+        if not self.is_streaming(camera_id):
+            return "stopped"
+        return "live" if self.is_ready(camera_id) else "starting"
 
     def camera_ids(self):
         with self._lock:
@@ -502,6 +608,9 @@ class LocalStreamAgent:
         return active
 
     def reconcile_live(self):
+        reap = getattr(self.manager, "reap_stalled", None)
+        if reap:
+            reap()
         now = time.monotonic()
         pending = []
         with system_session() as db:
@@ -514,7 +623,7 @@ class LocalStreamAgent:
                 self.last_viewer_at[camera_id] = now
                 if self.manager.is_streaming(camera_id):
                     for session in sessions:
-                        session.status = "live"
+                        session.status = "live" if self._publisher_ready(camera_id) else "starting"
                     continue
                 if now < self.next_retry_at.get(camera_id, 0):
                     continue
@@ -573,7 +682,7 @@ class LocalStreamAgent:
                         session.stop_reason = "publisher_failed"
                         session.sanitized_error = "No se pudo iniciar la transmisión"
                     else:
-                        session.status = "live"
+                        session.status = "live" if self._publisher_ready(camera_id) else "starting"
                         session.sanitized_error = None
                 db.commit()
         for camera_id in self.manager.camera_ids():
@@ -585,6 +694,10 @@ class LocalStreamAgent:
                 self.last_viewer_at.pop(camera_id, None)
                 self.failures.pop(camera_id, None)
                 self.next_retry_at.pop(camera_id, None)
+
+    def _publisher_ready(self, camera_id):
+        check = getattr(self.manager, "is_ready", None)
+        return check(camera_id) if check else True
 
     def reconcile_housekeeping(self):
         with system_session() as db:

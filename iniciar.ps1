@@ -50,4 +50,5 @@ if (Test-Path -LiteralPath $torchLib) {
 
 Write-Host "Vigilay Local: http://localhost:5000"
 Write-Host "Aquí se configuran empresa, sede, conexiones de cámara y asignación Frigate."
+& (Join-Path $PSScriptRoot 'scripts\asegurar-agente-stream.ps1')
 & $python "$PSScriptRoot\camara-ia.py"

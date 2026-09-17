@@ -7,10 +7,18 @@ from urllib.parse import quote
 
 def preview_source(camera):
     result = dict(camera)
+    # The proprietary V380 bridge also provides MJPEG. Use it only for Local
+    # when explicitly selected; remote WebRTC and Frigate keep their RTSP path.
+    if camera.get("integration_type") == "V380" and os.getenv("V380_LOCAL_TRANSPORT") == "mjpeg":
+        host = camera["host"]
+        port = int(camera.get("http_port", 8081))
+        result["rtsp_url"] = f"http://{host}:{port}/stream.mjpg"
+        return result
     alias = camera.get("frigate_camera_name")
     restream = os.getenv("FRIGATE_RESTREAM_URL", "").rstrip("/")
     if alias and restream and os.getenv("VIGILAY_LOCAL_PREFER_RESTREAM", "false") == "true":
-        result["rtsp_url"] = f"{restream}/{quote(alias, safe='')}"
+        live_alias = alias + os.getenv("FRIGATE_LIVE_STREAM_SUFFIX", "")
+        result["rtsp_url"] = f"{restream}/{quote(live_alias, safe='')}"
     return result
 
 
@@ -21,7 +29,7 @@ def external_v380(camera):
         **camera,
         "source_host": camera.get("source_host") or camera["host"],
         "host": host,
-        "rtsp_url": f"rtsp://{host}:{int(camera.get('rtsp_port', 8555))}/live",
+        "rtsp_url": f"rtsp://{host}:{int(camera.get('rtsp_port', 8556))}/live",
         "onvif_port": int(camera.get("http_port", 8081)),
         "username": "",
         "password": "",

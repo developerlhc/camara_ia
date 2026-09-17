@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 env:
-  VIGILAY_VERSION: 0.2.0
+  VIGILAY_VERSION: 0.2.1
 
 jobs:
   backend:

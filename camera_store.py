@@ -518,7 +518,7 @@ def migrate_environment_cameras(values):
                         "host": values["V380_IP"],
                         "port": int(values.get("V380_PORT", 8800)),
                         "quality": values.get("V380_QUALITY", "sd"),
-                        "rtsp_port": int(values.get("V380_RTSP_PORT", 8555)),
+                        "rtsp_port": int(values.get("V380_RTSP_PORT", 8556)),
                         "http_port": int(values.get("V380_HTTP_PORT", 8081)),
                     },
                 )
