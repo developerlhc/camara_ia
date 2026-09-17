@@ -17,7 +17,6 @@ jobs:
         with: {node-version: '22', cache: npm, cache-dependency-path: apps/mobile/package-lock.json}
       - uses: actions/setup-java@v6
         with: {distribution: temurin, java-version: '21'}
-      - uses: android-actions/setup-android@v4
       - run: npm ci && npm test && npm run build && npm audit && npx cap sync android
         working-directory: apps/mobile
       - name: Build and lint Android
