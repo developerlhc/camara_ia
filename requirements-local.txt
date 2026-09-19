@@ -1,7 +1,7 @@
 # Frigate owns inference. No torch/ultralytics/GPU weights in this image.
 flask>=3.1,<4
 waitress>=3.0.2,<4
-opencv-python-headless>=4.13,<5
+opencv-python-headless>=5.0.0.93,<6
 numpy>=2,<3
 python-dotenv>=1,<2
 psutil>=7,<8
