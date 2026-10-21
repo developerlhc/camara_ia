@@ -1089,6 +1089,7 @@ mod tests {
     fn validates_recording_configuration() {
         let root = env::temp_dir().join(format!("vigilay-recorder-test-{}", std::process::id()));
         let settings = RecorderSettings {
+            site_id: None,
             output_dir: root.to_string_lossy().into_owned(),
             retention_days: 7,
             min_free_gb: 1.0,
