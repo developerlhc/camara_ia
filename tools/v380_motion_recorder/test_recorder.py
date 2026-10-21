@@ -48,7 +48,7 @@ def test_creates_playable_clip_and_metadata(tmp_path):
     frame = np.zeros((120, 160, 3), dtype=np.uint8)
     cv2.rectangle(frame, (20, 20), (80, 80), (255, 255, 255), -1)
     recorder._remember(datetime.now().astimezone(), frame)
-    recorder._start_clip(frame.shape, time.monotonic())
+    recorder._start_clip(frame, time.monotonic())
     for _ in range(4):
         recorder.writer.write(frame)
         recorder.frames_written += 1
@@ -57,6 +57,7 @@ def test_creates_playable_clip_and_metadata(tmp_path):
     videos = list(tmp_path.rglob("*.mp4"))
     assert len(videos) == 1
     assert videos[0].stat().st_size > 0
+    assert videos[0].with_suffix(".jpg").stat().st_size > 0
     assert videos[0].with_suffix(".json").exists()
     metadata = json.loads(videos[0].with_suffix(".json").read_text(encoding="utf-8"))
     assert metadata["codec"] == "h264"
