@@ -30,9 +30,13 @@ const administrator = () => ['SUPER_ADMIN', 'CLIENT_ADMIN'].includes(currentUser
 async function ensureVideoAgent() {
   const badge = byId('agent-badge');
   try {
-    await invoke('ensure_stream_agent');
-    badge.textContent = 'Agente de video: automático';
-    badge.classList.add('running');
+    const state = await invoke<{ running: boolean; configured: boolean }>('ensure_stream_agent');
+    badge.textContent = state.running
+      ? 'Agente de video: activo (integrado en Recorder)'
+      : state.configured
+        ? 'Agente de video: listo; inicia con la grabación'
+        : 'Agente de video: integrado; sincroniza las cámaras';
+    badge.classList.toggle('running', state.running);
   } catch (error) {
     badge.textContent = `Agente de video: ${String(error)}`;
     badge.classList.remove('running');
@@ -123,6 +127,7 @@ function renderRecorder(state: RecorderState) {
   const badge = byId('recorder-badge');
   badge.textContent = `${state.running ? 'Grabando' : 'Grabador detenido'} · ${state.camera_count} cámara(s)`;
   badge.classList.toggle('running', Boolean(state.running));
+  void ensureVideoAgent();
   const form = byId<HTMLFormElement>('recorder-form');
   byId<HTMLInputElement>('output-dir').value = state.output_dir || '';
   if (state.retention_days !== undefined) (form.elements.namedItem('retention_days') as HTMLInputElement).value = String(state.retention_days);

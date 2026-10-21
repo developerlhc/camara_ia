@@ -40,6 +40,14 @@ jobs:
         with: {python-version: '3.11', cache: pip, cache-dependency-path: tools/vigilay_recorder/requirements-build.txt}
       - uses: dtolnay/rust-toolchain@stable
         with: {toolchain: '1.94.0', components: rustfmt}
+      - name: Install FFmpeg with WHIP support
+        shell: pwsh
+        run: |
+          choco install ffmpeg-full --yes --no-progress
+          $ffmpeg = (Get-Command ffmpeg -ErrorAction Stop).Source
+          $muxers = & $ffmpeg -hide_banner -muxers 2>&1 | Out-String
+          if ($muxers -notmatch '(?m)^\s*E\s+whip\s') { throw 'FFmpeg does not include the WHIP muxer' }
+          "FFMPEG_PATH=$ffmpeg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
       - run: python -m pip install -r tools/vigilay_recorder/requirements-build.txt "pytest>=8.3,<10"
       - run: npm ci
         working-directory: apps/desktop

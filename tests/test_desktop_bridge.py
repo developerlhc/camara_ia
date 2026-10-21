@@ -46,16 +46,27 @@ def test_desktop_uses_tauri_camel_case_arguments_and_supports_viewers():
         assert command in typescript and command in rust
 
 
-def test_desktop_starts_the_local_video_agent_automatically():
+def test_desktop_uses_the_integrated_video_agent_without_repository_scripts():
     typescript = (ROOT / "src/main.ts").read_text(encoding="utf-8")
     rust = (ROOT / "src-tauri/src/deployment.rs").read_text(encoding="utf-8")
-    powershell = (ROOT.parents[1] / "scripts/asegurar-agente-stream.ps1").read_text(
-        encoding="utf-8"
-    )
     assert "void ensureVideoAgent()" in typescript
     assert "ensure_stream_agent" in rust
-    assert "asegurar-agente-stream.ps1" in rust
-    assert "Get-CimInstance" not in powershell
+    assert "integrated" in rust
+    assert "asegurar-agente-stream.ps1" not in rust
+    assert "api_url" in rust
+
+
+def test_desktop_is_single_instance_and_bundles_whip_ffmpeg():
+    main = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
+    cargo = (ROOT / "src-tauri/Cargo.toml").read_text(encoding="utf-8")
+    bundle = (ROOT / "src-tauri/tauri.bundle.conf.json").read_text(encoding="utf-8")
+    build = (ROOT.parents[1] / "scripts/build-desktop-recorder.ps1").read_text(
+        encoding="utf-8"
+    )
+    assert "tauri_plugin_single_instance::init" in main
+    assert "tauri-plugin-single-instance" in cargo
+    assert '"binaries/vigilay-ffmpeg"' in bundle
+    assert "muxer WHIP" in build
 
 
 def test_installer_controls_its_own_recorder_and_storage_path():

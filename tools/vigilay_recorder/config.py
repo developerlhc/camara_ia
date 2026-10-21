@@ -35,6 +35,8 @@ class AgentConfiguration:
     model: Path
     gateway_port: int
     gateway_token: str
+    site_id: str
+    api_url: str
     cameras: tuple[CameraConfiguration, ...]
 
 
@@ -75,6 +77,8 @@ def load_configuration(path: Path) -> AgentConfiguration:
         model = model_value.resolve()
         gateway_port = int(data.get("gateway_port", 8788))
         gateway_token = str(data.get("gateway_token") or "")
+        site_id = str(data.get("site_id") or "")
+        api_url = str(data.get("api_url") or "").rstrip("/")
     except (KeyError, TypeError, ValueError, OSError) as exc:
         raise RecorderConfigurationError("La configuracion del grabador esta incompleta") from exc
     if not 1 <= retention <= 365:
@@ -89,6 +93,23 @@ def load_configuration(path: Path) -> AgentConfiguration:
         raise RecorderConfigurationError("El puerto local del grabador no es valido")
     if len(gateway_token) < 32 or len(gateway_token) > 256:
         raise RecorderConfigurationError("La credencial local del grabador no es valida")
+    if site_id and len(site_id) != 36:
+        raise RecorderConfigurationError("La sede del agente de video no es valida")
+    if api_url:
+        parsed_api = urlsplit(api_url)
+        local_api = parsed_api.hostname in {"localhost", "127.0.0.1"}
+        if (
+            (parsed_api.scheme != "https" and not (local_api and parsed_api.scheme == "http"))
+            or not parsed_api.hostname
+            or parsed_api.path not in {"", "/"}
+            or parsed_api.query
+            or parsed_api.fragment
+            or parsed_api.username
+            or parsed_api.password
+        ):
+            raise RecorderConfigurationError("La direccion de Vigilay API no es valida")
+    if bool(site_id) != bool(api_url):
+        raise RecorderConfigurationError("La configuracion del agente de video esta incompleta")
     if detector == "yolo" and not model.is_file():
         raise RecorderConfigurationError("No se encontro el modelo de deteccion YOLO")
     cameras = []
@@ -122,6 +143,8 @@ def load_configuration(path: Path) -> AgentConfiguration:
         model=model,
         gateway_port=gateway_port,
         gateway_token=gateway_token,
+        site_id=site_id,
+        api_url=api_url,
         cameras=tuple(cameras),
     )
 

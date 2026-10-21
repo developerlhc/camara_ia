@@ -53,23 +53,67 @@
     </section>
 
     <section id="events-view" class="view" hidden>
-      <div class="section-title"><h2>Eventos de IA</h2><span>Hoy</span></div>
+      <div class="section-title"><h2>Eventos de IA</h2><span id="events-range-label">Hoy</span></div>
+      <form id="events-filter" class="filter-card">
+        <label>Cámara<select id="events-camera"><option value="">Todas las cámaras</option></select></label>
+        <div class="date-grid">
+          <label>Desde<input id="events-from" type="datetime-local" required></label>
+          <label>Hasta<input id="events-to" type="datetime-local" required></label>
+        </div>
+        <div class="quick-filters">
+          <button type="button" data-event-preset="today">Hoy</button>
+          <button type="button" data-event-preset="yesterday">Ayer</button>
+          <button type="button" data-event-preset="seven">7 días</button>
+        </div>
+        <button class="primary wide" type="submit">Aplicar intervalo</button>
+      </form>
+      <p id="events-status" class="section-status" role="status"></p>
       <div id="event-list" class="stack empty-state">No hay eventos disponibles.</div>
+    </section>
+
+    <section id="recordings-view" class="view" hidden>
+      <div class="section-title"><h2>Grabaciones</h2><span id="recording-total">0 videos</span></div>
+      <form id="recordings-filter" class="filter-card">
+        <label>Cámara<select id="recordings-camera" required><option value="">Selecciona una cámara</option></select></label>
+        <div class="date-grid">
+          <label>Desde<input id="recordings-from" type="datetime-local" required></label>
+          <label>Hasta<input id="recordings-to" type="datetime-local" required></label>
+        </div>
+        <div class="quick-filters">
+          <button type="button" data-recording-preset="today">Hoy</button>
+          <button type="button" data-recording-preset="yesterday">Ayer</button>
+          <button type="button" data-recording-preset="seven">7 días</button>
+        </div>
+        <button class="primary wide" type="submit">Buscar grabaciones</button>
+      </form>
+      <p id="recordings-status" class="section-status" role="status"></p>
+      <div id="recording-list" class="stack empty-state">Selecciona una cámara.</div>
     </section>
 
     <section id="profile-view" class="view" hidden>
       <article class="profile-card"><span id="avatar">V</span><h2 id="profile-name">Vigilay</h2><p id="profile-email"></p><small id="profile-role"></small></article>
       <button id="logout" class="logout">Cerrar sesión</button>
-      <p class="version">Vigilay Mobile · interfaz instalada</p>
+      <p class="version">Vigilay Mobile 0.3.0 · aplicación instalada</p>
     </section>
 
     <nav class="bottom-nav" aria-label="Navegación principal">
       <button class="active" data-view="dashboard"><span>⌂</span>Inicio</button>
       <button data-view="cameras"><span>▣</span>Cámaras</button>
       <button data-view="events"><span>⚑</span>Eventos</button>
+      <button data-view="recordings"><span>◉</span>Videos</button>
       <button data-view="profile"><span>○</span>Perfil</button>
     </nav>
   </main>
+
+  <dialog id="viewer" class="viewer">
+    <div class="viewer-head"><div><small id="viewer-kicker">VIDEO</small><h2 id="viewer-title">Vigilay</h2></div><button id="viewer-close" type="button" aria-label="Cerrar">×</button></div>
+    <div class="viewer-stage">
+      <video id="viewer-video" controls autoplay playsinline></video>
+      <div id="viewer-loading" class="viewer-loading">Preparando video…</div>
+    </div>
+    <p id="viewer-status" role="status"></p>
+    <div id="viewer-actions" class="viewer-actions" hidden><button id="viewer-sound" type="button">Activar sonido</button></div>
+  </dialog>
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

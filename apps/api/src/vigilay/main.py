@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from vigilay import auth, live_routes, media_routes, realtime, routes
@@ -114,6 +114,15 @@ def create_app():
         with system_session() as db:
             worker = db.get(ServiceHeartbeat, "worker")
             media = db.get(ServiceHeartbeat, "stream-agent")
+            if media is None or media.last_seen_at < cutoff:
+                media = db.scalar(
+                    select(ServiceHeartbeat)
+                    .where(
+                        ServiceHeartbeat.service_name.like("stream-agent:%"),
+                        ServiceHeartbeat.last_seen_at >= cutoff,
+                    )
+                    .limit(1)
+                )
         return {
             "api": "ok",
             "mysql": "ok",

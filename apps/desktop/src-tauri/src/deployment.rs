@@ -6,7 +6,7 @@ use std::{
     collections::HashSet,
     env, fs,
     path::{Path, PathBuf},
-    process::{Command as StdCommand, Stdio},
+    process::Stdio,
 };
 use tauri::{Manager, State};
 use tauri_plugin_opener::OpenerExt;
@@ -77,6 +77,8 @@ pub struct RecorderSettings {
     #[serde(default)]
     pub gateway_token: String,
     #[serde(default)]
+    pub api_url: String,
+    #[serde(default)]
     pub cameras: Vec<RecordingCamera>,
 }
 
@@ -117,61 +119,32 @@ fn api_error(status: reqwest::StatusCode, value: &Value) -> String {
         .unwrap_or_else(|| format!("Vigilay respondió con estado {status}"))
 }
 
-fn stream_agent_script() -> Result<(PathBuf, PathBuf), String> {
-    let mut roots = Vec::new();
-    if let Some(root) = env::var_os("VIGILAY_PROJECT_ROOT") {
-        roots.push(PathBuf::from(root));
-    }
-    roots.push(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join(".."),
-    );
-    if let Ok(root) = env::current_dir() {
-        roots.push(root);
-    }
-    for root in roots {
-        let script = root.join("scripts").join("asegurar-agente-stream.ps1");
-        if script.is_file() {
-            let root = root
-                .canonicalize()
-                .map_err(|_| "No se pudo validar la instalación local de Vigilay")?;
-            return Ok((root, script));
-        }
-    }
-    Err("Este instalador no encontró el agente local de video de Vigilay".into())
-}
-
 #[tauri::command]
-pub fn ensure_stream_agent() -> Result<Value, String> {
-    let (root, script) = stream_agent_script()?;
-    let mut command = StdCommand::new("powershell.exe");
-    command
-        .args([
-            "-NoProfile",
-            "-NonInteractive",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-File",
-        ])
-        .arg(script)
-        .current_dir(root)
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null());
-    #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        command.creation_flags(0x08000000);
+pub async fn ensure_stream_agent(
+    app: tauri::AppHandle,
+    state: State<'_, Operations>,
+) -> Result<Value, String> {
+    // El agente de live está integrado en el mismo proceso empaquetado del Recorder.
+    // Validar el comando aquí evita buscar scripts del repositorio en una instalación.
+    let settings = read_recorder_settings(&app)?;
+    recorder_command(&recorder_config_path(&app)?)?;
+    let mut guard = state.recorder.lock().await;
+    let running = match guard.as_mut() {
+        Some(child) => child
+            .try_wait()
+            .map_err(|_| "No se pudo validar el agente local de video")?
+            .is_none(),
+        None => false,
+    };
+    if !running {
+        *guard = None;
     }
-    let status = command
-        .status()
-        .map_err(|_| "Vigilay Desktop no pudo iniciar el agente local de video")?;
-    if !status.success() {
-        return Err("El agente local de video no confirmó su inicio".into());
-    }
-    Ok(json!({"managed": true}))
+    Ok(json!({
+        "managed": true,
+        "integrated": true,
+        "running": running,
+        "configured": settings.site_id.is_some() && !settings.cameras.is_empty()
+    }))
 }
 
 async fn request(
@@ -240,6 +213,7 @@ fn default_recorder_settings(app: &tauri::AppHandle) -> Result<RecorderSettings,
         model: "yolo11n.pt".into(),
         gateway_port: default_gateway_port(),
         gateway_token,
+        api_url: String::new(),
         cameras: Vec::new(),
     })
 }
@@ -289,6 +263,12 @@ fn validate_recorder_settings(mut value: RecorderSettings) -> Result<RecorderSet
     }
     if value.gateway_port < 1024 || value.gateway_token.len() < 32 {
         return Err("La credencial o el puerto del servicio local no son válidos".into());
+    }
+    if !value.api_url.is_empty() {
+        value.api_url = public_origin(&value.api_url)?;
+        if value.site_id.is_none() {
+            return Err("Selecciona la sede del agente de video".into());
+        }
     }
     let output = PathBuf::from(value.output_dir.trim());
     if output.as_os_str().is_empty() || !output.is_absolute() {
@@ -356,6 +336,10 @@ fn recorder_command(config: &Path) -> Result<Command, String> {
             if bundled.is_file() {
                 let mut command = Command::new(bundled);
                 command.arg("--config").arg(config);
+                let ffmpeg = parent.join("vigilay-ffmpeg.exe");
+                if ffmpeg.is_file() {
+                    command.env("VIGILAY_FFMPEG_PATH", ffmpeg);
+                }
                 return Ok(command);
             }
         }
@@ -875,7 +859,7 @@ pub async fn start_recorder(
     if site_id.len() != 36 {
         return Err("Selecciona la sede que almacenará estas grabaciones".into());
     }
-    let settings = validate_recorder_settings(read_recorder_settings(&app)?)?;
+    let mut settings = validate_recorder_settings(read_recorder_settings(&app)?)?;
     if settings.site_id.as_deref() != Some(site_id.as_str()) {
         return Err("Sincroniza las cámaras de la sede seleccionada antes de grabar".into());
     }
@@ -889,6 +873,8 @@ pub async fn start_recorder(
         .as_ref()
         .cloned()
         .ok_or("Primero inicia sesión")?;
+    settings.api_url = session.origin.clone();
+    let settings = write_recorder_settings(&app, settings)?;
     let mut guard = state.recorder.lock().await;
     if let Some(child) = guard.as_mut() {
         if child
@@ -1106,6 +1092,7 @@ mod tests {
             model: "model.pt".into(),
             gateway_port: default_gateway_port(),
             gateway_token: "x".repeat(64),
+            api_url: String::new(),
             cameras: vec![],
         };
         assert!(validate_recorder_settings(settings).is_ok());

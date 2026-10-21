@@ -1,6 +1,7 @@
 param(
     [string]$PythonPath = "",
     [string]$ModelPath = "",
+    [string]$FfmpegPath = "",
     [string]$CloudflaredPath = ""
 )
 
@@ -72,6 +73,34 @@ $sourceBinary = Join-Path $distPath "vigilay-recorder.exe"
 $targetBinary = Join-Path $binaryDirectory "vigilay-recorder-$targetTriple.exe"
 Copy-Item -LiteralPath $sourceBinary -Destination $targetBinary -Force
 Write-Host "Motor de grabación preparado: $targetBinary"
+
+if (-not $FfmpegPath) {
+    if ($env:FFMPEG_PATH -and (Test-Path -LiteralPath $env:FFMPEG_PATH -PathType Leaf)) {
+        $FfmpegPath = $env:FFMPEG_PATH
+    } else {
+        $installedFfmpeg = Get-Command ffmpeg -ErrorAction SilentlyContinue
+        if ($installedFfmpeg) { $FfmpegPath = $installedFfmpeg.Source }
+    }
+}
+if (-not $FfmpegPath) {
+    $environmentFile = Join-Path $projectRoot ".env"
+    if (Test-Path -LiteralPath $environmentFile -PathType Leaf) {
+        $ffmpegSetting = Get-Content -LiteralPath $environmentFile |
+            Where-Object { $_ -match '^FFMPEG_PATH=' } |
+            Select-Object -First 1
+        if ($ffmpegSetting) { $FfmpegPath = $ffmpegSetting.Substring('FFMPEG_PATH='.Length).Trim() }
+    }
+}
+if (-not $FfmpegPath -or -not (Test-Path -LiteralPath $FfmpegPath -PathType Leaf)) {
+    throw "No se encontró FFmpeg para el agente de live. Configura FFMPEG_PATH."
+}
+$ffmpegMuxers = & $FfmpegPath -hide_banner -muxers 2>&1 | Out-String
+if ($LASTEXITCODE -ne 0 -or $ffmpegMuxers -notmatch '(?m)^\s*E\s+whip\s') {
+    throw "El FFmpeg seleccionado no incluye el muxer WHIP requerido para video en vivo."
+}
+$ffmpegTarget = Join-Path $binaryDirectory "vigilay-ffmpeg-$targetTriple.exe"
+Copy-Item -LiteralPath $FfmpegPath -Destination $ffmpegTarget -Force
+Write-Host "FFmpeg WHIP preparado: $ffmpegTarget"
 
 $cloudflaredVersion = "2026.10.2"
 $cloudflaredSha256 = "12c7c887f8aaab779aef1dfa9b60673530a5adb88ecc55dd6df8f56e0b70f199"

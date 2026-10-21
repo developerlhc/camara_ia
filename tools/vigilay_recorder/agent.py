@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlsplit
 
 from tools.v380_motion_recorder.recorder import MotionRecorder, RecorderConfig
 from tools.vigilay_recorder.config import load_configuration, prune_recordings, recording_catalog
+from tools.vigilay_recorder.live_agent import SiteLiveAgent
 
 LOG = logging.getLogger("vigilay-recorder")
 
@@ -148,6 +149,7 @@ class RecorderAgent:
         self.config_path = config_path
         self.stop_event = threading.Event()
         self.threads: list[threading.Thread] = []
+        self.live_thread = None
         self.server = None
 
     def run(self) -> None:
@@ -163,6 +165,13 @@ class RecorderAgent:
         enabled = [camera for camera in config.cameras if camera.enabled]
         if not enabled:
             raise RuntimeError("Configura al menos una camara activa antes de grabar")
+        if config.site_id and config.api_url:
+            self.live_thread = threading.Thread(
+                target=SiteLiveAgent(config, self.stop_event).run,
+                name="vigilay-live-agent",
+                daemon=True,
+            )
+            self.live_thread.start()
         for camera in enabled:
             recorder_config = RecorderConfig(
                 source=camera.source,
@@ -189,6 +198,8 @@ class RecorderAgent:
                 raise RuntimeError("Todos los grabadores terminaron inesperadamente")
         for thread in self.threads:
             thread.join(timeout=15)
+        if self.live_thread:
+            self.live_thread.join(timeout=5)
         self.server.shutdown()
 
     def _record(self, config: RecorderConfig) -> None:

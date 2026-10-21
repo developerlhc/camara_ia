@@ -1,27 +1,71 @@
 """Authorized on-demand live-view endpoints."""
 
+import hmac
 import secrets
 from datetime import timedelta
 
+from cryptography.exceptions import InvalidTag
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field, SecretStr
 from sqlalchemy import select
 
 from vigilay.auth import Principal, audit, database, rate_limit, require
 from vigilay.config import settings
+from vigilay.db import system_session
 from vigilay.models import (
+    Camera,
     CameraStreamProvider,
     CameraStreamSession,
     IntegrationSetting,
+    RecorderConnection,
     ServiceHeartbeat,
     utcnow,
 )
 from vigilay.realtime_hub import notify_site
 from vigilay.routes import authorized_camera
 from vigilay.schemas import CloudflareIntegrationInput, LiveSessionInput
-from vigilay.security import encrypt_credentials, hash_token
+from vigilay.security import decrypt_credentials, encrypt_credentials, hash_token
 from vigilay.streaming import CloudflareStreamService, StreamProviderError
 
 router = APIRouter(prefix="/api/v1", tags=["Video en vivo"])
+
+
+class SiteAgentInput(BaseModel):
+    site_id: str = Field(min_length=36, max_length=36)
+    gateway_token: SecretStr = Field(min_length=32, max_length=256)
+
+
+class SiteAgentStatusInput(SiteAgentInput):
+    camera_id: str = Field(min_length=1, max_length=80)
+    status: str = Field(pattern="^(starting|live|error|stopped)$")
+
+
+def _authorize_site_agent(db, data: SiteAgentInput):
+    row = db.scalar(
+        select(RecorderConnection).where(RecorderConnection.site_id == data.site_id)
+    )
+    if row is None or not row.gateway_token_encrypted:
+        raise HTTPException(401, "Sede no autorizada")
+    try:
+        expected = decrypt_credentials(row.gateway_token_encrypted, row.tenant_id, row.site_id)[
+            "gateway_token"
+        ]
+    except (InvalidTag, KeyError, ValueError) as exc:
+        raise HTTPException(401, "Sede no autorizada") from exc
+    if not hmac.compare_digest(data.gateway_token.get_secret_value(), expected):
+        raise HTTPException(401, "Sede no autorizada")
+    return row
+
+
+def _touch_site_agent(db, site_id):
+    service_name = f"stream-agent:{site_id}"
+    heartbeat = db.get(ServiceHeartbeat, service_name)
+    if heartbeat is None:
+        heartbeat = ServiceHeartbeat(service_name=service_name, last_seen_at=utcnow())
+        db.add(heartbeat)
+    else:
+        heartbeat.last_seen_at = utcnow()
+    return heartbeat
 
 
 def _superadmin(actor):
@@ -109,6 +153,81 @@ def _safe_response(session, provider, *, viewer_key=None):
     return result
 
 
+@router.post("/agent/live/poll")
+def poll_site_live_agent(data: SiteAgentInput):
+    """Entrega sólo trabajos de la sede autenticada; la fuente RTSP permanece local."""
+    with system_session() as db:
+        connection = _authorize_site_agent(db, data)
+        _touch_site_agent(db, connection.site_id)
+        cutoff = utcnow() - timedelta(seconds=settings().stream_idle_timeout_seconds)
+        rows = db.execute(
+            select(CameraStreamSession, CameraStreamProvider)
+            .select_from(CameraStreamSession)
+            .join(Camera, Camera.id == CameraStreamSession.camera_id)
+            .join(CameraStreamProvider, CameraStreamProvider.camera_id == Camera.id)
+            .where(
+                Camera.site_id == connection.site_id,
+                Camera.enabled.is_(True),
+                CameraStreamProvider.enabled.is_(True),
+                CameraStreamSession.status.in_(["starting", "live"]),
+                CameraStreamSession.last_heartbeat_at >= cutoff,
+            )
+            .order_by(CameraStreamSession.started_at)
+        ).all()
+        streams = {}
+        for session, provider in rows:
+            if session.camera_id in streams:
+                continue
+            try:
+                publish_url = decrypt_credentials(
+                    provider.publish_url_encrypted, provider.tenant_id, provider.camera_id
+                )["publish_url"]
+            except (InvalidTag, KeyError, ValueError):
+                continue
+            streams[session.camera_id] = {
+                "camera_id": session.camera_id,
+                "publish_url": publish_url,
+            }
+        db.commit()
+        return {"site_id": connection.site_id, "streams": list(streams.values())}
+
+
+@router.post("/agent/live/status")
+def update_site_live_status(data: SiteAgentStatusInput):
+    with system_session() as db:
+        connection = _authorize_site_agent(db, data)
+        camera = db.scalar(
+            select(Camera).where(
+                Camera.id == data.camera_id, Camera.site_id == connection.site_id
+            )
+        )
+        if camera is None:
+            raise HTTPException(404, "Cámara no encontrada")
+        _touch_site_agent(db, connection.site_id)
+        sessions = list(
+            db.scalars(
+                select(CameraStreamSession).where(
+                    CameraStreamSession.camera_id == camera.id,
+                    CameraStreamSession.status.in_(["starting", "live"]),
+                )
+            )
+        )
+        for session in sessions:
+            session.status = data.status
+            if data.status in {"error", "stopped"}:
+                session.stopped_at = utcnow()
+                session.stop_reason = (
+                    "publisher_failed" if data.status == "error" else "agent_stopped"
+                )
+                session.sanitized_error = (
+                    "No se pudo iniciar la transmisión" if data.status == "error" else None
+                )
+            elif data.status == "live":
+                session.sanitized_error = None
+        db.commit()
+        return {"camera_id": camera.id, "status": data.status, "sessions": len(sessions)}
+
+
 @router.post("/cameras/{camera_id}/live/start")
 def start_live(
     camera_id: str,
@@ -120,7 +239,10 @@ def start_live(
     camera = authorized_camera(db, actor, camera_id)
     if not camera.enabled or camera.integration_type == "SIMULATOR":
         raise HTTPException(409, "Esta cámara no puede transmitir video")
-    heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+    heartbeat = db.get(ServiceHeartbeat, f"stream-agent:{camera.site_id}")
+    if heartbeat is None:
+        # Compatibilidad durante la migración desde el agente central anterior.
+        heartbeat = db.get(ServiceHeartbeat, "stream-agent")
     if heartbeat is None or heartbeat.last_seen_at < utcnow() - timedelta(seconds=30):
         raise HTTPException(
             503,

@@ -8,8 +8,15 @@ una sede Windows. Ninguna de las dos aplicaciones distribuye claves MySQL.
 `apps/mobile` es un proyecto Capacitor Android con una interfaz local empaquetada.
 No abre Vigilay Web en un visor: inicia sesión contra Vigilay API mediante HTTP
 nativo y presenta resumen, conteo de personas, cámaras, eventos y perfil con sus
-permisos existentes. Debe probarse en un teléfono físico porque las cookies de
-sesión se conservan en el almacén nativo de Android.
+permisos existentes. También permite abrir el live WebRTC de una cámara, consultar
+eventos y grabaciones por cámara/fecha/hora, reproducir los clips autenticados y
+descargarlos en `Documentos/Vigilay`. Al terminar un fragmento de grabación,
+reproduce automáticamente el siguiente del intervalo. Debe probarse en un teléfono
+físico porque las cookies de sesión se conservan en el almacén nativo de Android.
+
+El live requiere que el agente local de video y la integración de Cloudflare Stream
+estén activos. Los eventos y grabaciones requieren Vigilay Recorder y el túnel de la
+sede conectados; la APK muestra el error de la API si alguno no está disponible.
 
 ```powershell
 cd apps/mobile
@@ -26,6 +33,7 @@ detector. El motor propio:
 
 - consume RTSP/RTSPS y HTTP/MJPEG;
 - acepta la salida RTSP del puente V380;
+- ejecuta un único agente de live integrado, autenticado por sede y sin claves MySQL;
 - detecta personas con YOLO o movimiento con OpenCV;
 - sigue centroides y cuenta una persona una sola vez cuando cruza la línea central;
 - guarda MP4 y JSON por fecha/cámara;
@@ -34,7 +42,9 @@ detector. El motor propio:
 - publica un catálogo autenticado con HTTP Range.
 
 Pulsa **Iniciar grabación** después de registrar al menos una cámara. Desktop
-espera a que el motor responda antes de publicar la conexión. Al cerrar la ventana
+espera a que el motor y su agente de video integrado respondan antes de publicar la
+conexión. Una segunda apertura de Desktop enfoca la instancia existente para evitar
+duplicar el grabador o el agente. Al cerrar la ventana
 permanece en la bandeja; **Salir y detener grabación** finaliza motor y túnel.
 
 Para una sede que ya tiene cámaras en Vigilay Web, selecciona la empresa y la sede

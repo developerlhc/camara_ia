@@ -18,6 +18,9 @@ fn show_main_window(app: &tauri::AppHandle) {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            show_main_window(app);
+        }))
         .plugin(tauri_plugin_opener::init())
         .manage(deployment::Operations::default())
         .setup(|app| {

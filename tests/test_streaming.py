@@ -380,6 +380,76 @@ def test_live_start_reports_offline_stream_agent(clients, cameras):
     assert "agente local de video" in response.json()["detail"].lower()
 
 
+def test_site_agent_authenticates_polls_and_updates_live_session(monkeypatch, clients, cameras):
+    from vigilay import live_routes
+
+    camera_id = cameras["a"]["id"]
+    site_id = cameras["a"]["site_id"]
+    token = "site-agent-token-" + "x" * 40
+    connected = clients["a"].put(
+        "/api/v1/media/connection",
+        json={
+            "site_id": site_id,
+            "endpoint_url": "https://recorder.trycloudflare.com",
+            "gateway_token": token,
+            "status": "ONLINE",
+        },
+    )
+    assert connected.status_code == 200, connected.text
+    with system_session() as db:
+        camera = db.get(Camera, camera_id)
+        camera.integration_type = "RTSP"
+        db.commit()
+
+    class FakeService:
+        def __init__(self, db):
+            self.db = db
+
+        def get_or_create_live_input(self, camera):
+            provider = self.db.scalar(
+                select(CameraStreamProvider).where(CameraStreamProvider.camera_id == camera.id)
+            )
+            if provider is None:
+                provider = CameraStreamProvider(
+                    tenant_id=camera.tenant_id,
+                    camera_id=camera.id,
+                    provider="cloudflare",
+                    provider_live_input_uid=uuid4().hex,
+                    publish_url_encrypted=encrypt_credentials(
+                        {"publish_url": PUBLISH_URL}, camera.tenant_id, camera.id
+                    ),
+                    playback_url=PLAYBACK_URL,
+                )
+                self.db.add(provider)
+                self.db.flush()
+            return LiveInput(provider.provider_live_input_uid, PUBLISH_URL, PLAYBACK_URL)
+
+    monkeypatch.setattr(live_routes, "CloudflareStreamService", FakeService)
+    agent_body = {"site_id": site_id, "gateway_token": token}
+    assert clients["a"].post("/api/v1/agent/live/poll", json=agent_body).status_code == 200
+    started = clients["a"].post(f"/api/v1/cameras/{camera_id}/live/start")
+    assert started.status_code == 200, started.text
+    polled = clients["a"].post("/api/v1/agent/live/poll", json=agent_body)
+    assert polled.status_code == 200, polled.text
+    assert polled.json()["streams"] == [
+        {"camera_id": camera_id, "publish_url": PUBLISH_URL}
+    ]
+    bad = clients["a"].post(
+        "/api/v1/agent/live/poll", json={**agent_body, "gateway_token": "x" * 40}
+    )
+    assert bad.status_code == 401
+    status = clients["a"].post(
+        "/api/v1/agent/live/status",
+        json={**agent_body, "camera_id": camera_id, "status": "live"},
+    )
+    assert status.status_code == 200, status.text
+    state = clients["a"].get(
+        f"/api/v1/cameras/{camera_id}/live/status",
+        params={"session_id": started.json()["sessionId"]},
+    )
+    assert state.json()["status"] == "live"
+
+
 def test_real_camera_probe_is_processed_by_local_agent(clients, cameras):
     camera_id = cameras["a"]["id"]
     with system_session() as db:

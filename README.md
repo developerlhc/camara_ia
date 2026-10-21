@@ -5,7 +5,8 @@ Plataforma de videovigilancia multiempresa con administración central, agente l
 ## Aplicaciones Mobile y Desktop
 
 - **Vigilay Mobile** (`apps/mobile`): panel Android empaquetado, conectado directamente a
-  Vigilay API; no carga ni muestra la web remota dentro de la aplicación.
+  Vigilay API, con live WebRTC, eventos, grabaciones, filtros de fecha/hora y descarga
+  de clips; no carga ni muestra la web remota dentro de la aplicación.
 - **Vigilay Desktop** (`apps/desktop`): asistente Tauri/Rust para empresa, sede, cámaras,
   ruta de almacenamiento, retención y control de Vigilay Recorder.
 
