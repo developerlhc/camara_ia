@@ -40,7 +40,7 @@ jobs:
         with: {python-version: '3.11', cache: pip, cache-dependency-path: tools/vigilay_recorder/requirements-build.txt}
       - uses: dtolnay/rust-toolchain@stable
         with: {toolchain: '1.94.0', components: rustfmt}
-      - run: python -m pip install -r tools/vigilay_recorder/requirements-build.txt
+      - run: python -m pip install -r tools/vigilay_recorder/requirements-build.txt "pytest>=8.3,<10"
       - run: npm ci
         working-directory: apps/desktop
       - run: npm run build
