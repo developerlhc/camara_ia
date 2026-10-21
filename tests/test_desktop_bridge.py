@@ -71,9 +71,7 @@ def test_installer_controls_its_own_recorder_and_storage_path():
 def test_installer_bundles_cloudflared_for_recording_tunnel():
     bundle = (ROOT / "src-tauri/tauri.bundle.conf.json").read_text(encoding="utf-8")
     rust = (ROOT / "src-tauri/src/deployment.rs").read_text(encoding="utf-8")
-    build = (ROOT.parents[1] / "scripts/build-desktop-recorder.ps1").read_text(
-        encoding="utf-8"
-    )
+    build = (ROOT.parents[1] / "scripts/build-desktop-recorder.ps1").read_text(encoding="utf-8")
     assert '"binaries/cloudflared"' in bundle
     assert 'parent.join("cloudflared.exe")' in rust
     assert "cloudflared-windows-amd64.exe" in build
