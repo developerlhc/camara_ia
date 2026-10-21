@@ -80,6 +80,87 @@ class MotionDetector:
         return ready and percent >= self.config.min_area_percent, percent
 
 
+class PersonCrossingCounter:
+    """Sigue centroides y cuenta cada persona una vez al cruzar la linea central."""
+
+    def __init__(self, line_ratio: float = 0.5, hysteresis: float = 0.04, max_missing=12):
+        self.line_ratio = line_ratio
+        self.hysteresis = hysteresis
+        self.max_missing = max_missing
+        self.frame_index = 0
+        self.next_id = 1
+        self.tracks: dict[int, dict] = {}
+        self.persons_crossed = 0
+        self.crossings_down = 0
+        self.crossings_up = 0
+
+    def update(self, boxes: list[list[float]], frame_shape: tuple[int, ...]) -> None:
+        self.frame_index += 1
+        height, width = frame_shape[:2]
+        centers = [((box[0] + box[2]) / 2, (box[1] + box[3]) / 2) for box in boxes]
+        maximum_distance = max(width, height) * 0.18
+        candidates = []
+        for track_id, track in self.tracks.items():
+            for center_index, center in enumerate(centers):
+                distance = ((track["x"] - center[0]) ** 2 + (track["y"] - center[1]) ** 2) ** 0.5
+                if distance <= maximum_distance:
+                    candidates.append((distance, track_id, center_index))
+        matched_tracks, matched_centers = set(), set()
+        for _, track_id, center_index in sorted(candidates):
+            if track_id in matched_tracks or center_index in matched_centers:
+                continue
+            matched_tracks.add(track_id)
+            matched_centers.add(center_index)
+            self._move_track(track_id, centers[center_index], height)
+        for center_index, center in enumerate(centers):
+            if center_index in matched_centers:
+                continue
+            side = self._side(center[1], height)
+            self.tracks[self.next_id] = {
+                "x": center[0],
+                "y": center[1],
+                "side": side,
+                "last_seen": self.frame_index,
+                "counted": False,
+            }
+            self.next_id += 1
+        self.tracks = {
+            track_id: track
+            for track_id, track in self.tracks.items()
+            if self.frame_index - track["last_seen"] <= self.max_missing
+        }
+
+    def _side(self, y: float, height: int) -> int:
+        line = height * self.line_ratio
+        deadband = height * self.hysteresis
+        if y < line - deadband:
+            return -1
+        if y > line + deadband:
+            return 1
+        return 0
+
+    def _move_track(self, track_id: int, center: tuple[float, float], height: int) -> None:
+        track = self.tracks[track_id]
+        side = self._side(center[1], height)
+        previous_side = track["side"]
+        if side and previous_side and side != previous_side and not track["counted"]:
+            track["counted"] = True
+            self.persons_crossed += 1
+            if side > previous_side:
+                self.crossings_down += 1
+            else:
+                self.crossings_up += 1
+        if side:
+            track["side"] = side
+        track.update(x=center[0], y=center[1], last_seen=self.frame_index)
+
+    def reset_event_counts(self) -> None:
+        """Inicia el siguiente clip sin olvidar IDs que siguen en pantalla."""
+        self.persons_crossed = 0
+        self.crossings_down = 0
+        self.crossings_up = 0
+
+
 class YoloDetector:
     """Detecta personas con YOLO; su presencia activa la grabación."""
 
@@ -95,6 +176,7 @@ class YoloDetector:
         self.frame_index = 0
         self.last_result = False
         self.last_count = 0.0
+        self.crossings = PersonCrossingCounter()
 
     def detect(self, frame: np.ndarray) -> tuple[bool, float]:
         self.frame_index += 1
@@ -109,8 +191,21 @@ class YoloDetector:
         )
         boxes = results[0].boxes
         count = len(boxes) if boxes is not None else 0
+        coordinates = boxes.xyxy.cpu().tolist() if boxes is not None else []
+        self.crossings.update(coordinates, frame.shape)
         self.last_result, self.last_count = count > 0, float(count)
         return self.last_result, self.last_count
+
+    @property
+    def crossing_counts(self) -> dict[str, int]:
+        return {
+            "persons_crossed": self.crossings.persons_crossed,
+            "crossings_down": self.crossings.crossings_down,
+            "crossings_up": self.crossings.crossings_up,
+        }
+
+    def reset_event_counts(self) -> None:
+        self.crossings.reset_event_counts()
 
 
 class MotionRecorder:
@@ -274,6 +369,11 @@ class MotionRecorder:
                 "fps": self.config.fps,
                 "codec": codec,
                 "objects": int(self.peak_motion) if self.config.detector == "yolo" else 0,
+                **(
+                    self.detector.crossing_counts
+                    if self.config.detector == "yolo"
+                    else {"persons_crossed": 0, "crossings_down": 0, "crossings_up": 0}
+                ),
                 "peak_motion_percent": (
                     0 if self.config.detector == "yolo" else round(self.peak_motion, 3)
                 ),
@@ -290,6 +390,8 @@ class MotionRecorder:
         self.frames_written = 0
         self.motion_streak = 0
         self.peak_motion = 0.0
+        if self.config.detector == "yolo":
+            self.detector.reset_event_counts()
 
     @staticmethod
     def _publish_clip(partial_path: Path, final_path: Path) -> str:

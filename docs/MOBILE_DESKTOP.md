@@ -5,8 +5,11 @@ una sede Windows. Ninguna de las dos aplicaciones distribuye claves MySQL.
 
 ## Mobile
 
-`apps/mobile` es un proyecto Capacitor Android que reutiliza Vigilay Web y sus
-permisos. WebRTC y audio deben probarse en un teléfono físico.
+`apps/mobile` es un proyecto Capacitor Android con una interfaz local empaquetada.
+No abre Vigilay Web en un visor: inicia sesión contra Vigilay API mediante HTTP
+nativo y presenta resumen, conteo de personas, cámaras, eventos y perfil con sus
+permisos existentes. Debe probarse en un teléfono físico porque las cookies de
+sesión se conservan en el almacén nativo de Android.
 
 ```powershell
 cd apps/mobile
@@ -24,6 +27,7 @@ detector. El motor propio:
 - consume RTSP/RTSPS y HTTP/MJPEG;
 - acepta la salida RTSP del puente V380;
 - detecta personas con YOLO o movimiento con OpenCV;
+- sigue centroides y cuenta una persona una sola vez cuando cruza la línea central;
 - guarda MP4 y JSON por fecha/cámara;
 - reconecta streams y reinicia trabajadores interrumpidos;
 - elimina clips por retención y espacio reservado;
@@ -59,7 +63,8 @@ npm run desktop:build
 
 El script empaqueta OpenCV, YOLO y `yolo11n.pt` en un ejecutable auxiliar y Tauri
 lo incorpora a MSI/NSIS. El equipo destino no necesita Python. Debe contar con
-`cloudflared` o `CLOUDFLARED_PATH`; para una prueba local puede usarse
+el `cloudflared.exe` verificado se incluye en el instalador; `CLOUDFLARED_PATH`
+permite reemplazarlo explícitamente. Para una prueba local puede usarse
 `VIGILAY_RECORDER_LOCAL_ONLY=true`.
 
 ## Almacenamiento y límites

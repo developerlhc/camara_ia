@@ -119,6 +119,39 @@ def service_for_camera(db, camera):
     return LocalMediaService.for_site(db, camera.tenant_id, camera.site_id)
 
 
+def summarize_people(rows):
+    """Agrupa cruces confirmados; nunca interpreta presencia simultanea como visitas."""
+    cameras = {}
+    for row in rows:
+        camera_id = str(row.get("camera_id") or "")
+        if not camera_id:
+            continue
+        summary = cameras.setdefault(
+            camera_id,
+            {
+                "camera_id": camera_id,
+                "camera_name": str(row.get("camera_name") or camera_id),
+                "persons_crossed": 0,
+                "crossings_down": 0,
+                "crossings_up": 0,
+            },
+        )
+        for key in ("persons_crossed", "crossings_down", "crossings_up"):
+            try:
+                summary[key] += max(0, int(row.get(key) or 0))
+            except (TypeError, ValueError):
+                continue
+    ordered = sorted(
+        cameras.values(), key=lambda item: (-item["persons_crossed"], item["camera_name"])
+    )
+    return {
+        "persons_crossed": sum(item["persons_crossed"] for item in ordered),
+        "crossings_down": sum(item["crossings_down"] for item in ordered),
+        "crossings_up": sum(item["crossings_up"] for item in ordered),
+        "cameras": ordered,
+    }
+
+
 def media_response(service, recording_id, request, download, filename):
     stream = safe_call(
         lambda: service.stream_recording(
@@ -205,6 +238,41 @@ def events(
     if not result and errors:
         raise HTTPException(502, errors[0])
     return sorted(result, key=lambda row: row.get("start_time") or 0, reverse=True)[:limit]
+
+
+@router.get("/people-counts")
+def people_counts(
+    after: int = Query(..., ge=0),
+    before: int = Query(..., ge=1),
+    camera_id: str | None = None,
+    actor: Principal = Depends(require("cameras.read")),
+    db=Depends(database),
+):
+    if before <= after or before - after > 7776000:
+        raise HTTPException(422, "Selecciona un intervalo válido de hasta 90 días")
+    allowed = (
+        [authorized_camera(db, actor, camera_id)]
+        if camera_id
+        else list(db.scalars(camera_query(actor).where(Camera.integration_type != "SIMULATOR")))
+    )
+    by_site = {}
+    for camera in allowed:
+        by_site.setdefault((camera.tenant_id, camera.site_id), {})[camera.id] = camera
+    result, errors = [], []
+    for (tenant_id, site_id), cameras in by_site.items():
+        try:
+            service = LocalMediaService.for_site(db, tenant_id, site_id)
+            rows = service.events(after=after, before=before)
+        except MediaError as exc:
+            errors.append(str(exc))
+            continue
+        for row in rows:
+            camera = cameras.get(str(row.get("camera_id") or ""))
+            if camera is not None:
+                result.append({**row, "camera_id": camera.id, "camera_name": camera.name})
+    if not result and errors:
+        raise HTTPException(502, errors[0])
+    return {**summarize_people(result), "after": after, "before": before}
 
 
 @router.get("/recordings")

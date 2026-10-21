@@ -60,6 +60,10 @@ def handler_factory(config):
                             "has_clip": True,
                             "has_snapshot": bool(row.get("snapshot_id")),
                             "snapshot_id": row.get("snapshot_id"),
+                            "persons_visible_peak": row.get("objects", 0),
+                            "persons_crossed": row.get("persons_crossed", 0),
+                            "crossings_down": row.get("crossings_down", 0),
+                            "crossings_up": row.get("crossings_up", 0),
                         }
                         for row in rows
                     ]

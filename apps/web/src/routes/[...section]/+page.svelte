@@ -6,6 +6,8 @@
   import LiveTile from '$lib/LiveTile.svelte';
 
   type CameraPermissionRow = Row & { user_id: string; can_view: boolean; can_configure: boolean };
+  type PeopleCamera = { camera_id: string; camera_name: string; persons_crossed: number; crossings_down: number; crossings_up: number };
+  type PeopleSummary = { persons_crossed: number; crossings_down: number; crossings_up: number; cameras: PeopleCamera[] };
 
   const titles: Record<string, string> = { dashboard: 'Resumen general', 'admin/customers': 'Clientes', 'admin/sites': 'Sedes', 'admin/users': 'Usuarios', cameras: 'Cámaras', events: 'Eventos de IA', recordings: 'Grabaciones', 'admin/audit': 'Auditoría', 'admin/system': 'Estado del sistema', profile: 'Mi perfil' };
   const endpoints: Record<string, string> = { 'admin/customers': '/tenants', 'admin/sites': '/sites', 'admin/users': '/users', cameras: '/cameras', 'admin/audit': '/audit' };
@@ -36,6 +38,7 @@
   let liveCameraId = $state(''); let liveCameraName = $state('');
   let liveUrl = $state(''); let liveSessionId = $state(''); let liveViewerKey = $state('');
   let mediaEvents = $state<Row[]>([]); let recordings = $state<Row[]>([]);
+  let people = $state<PeopleSummary>({ persons_crossed: 0, crossings_down: 0, crossings_up: 0, cameras: [] });
   let recordingCameraId = $state(''); let mediaUrl = $state(''); let mediaTitle = $state(''); let mediaKind = $state('video');
   let recordingTenant = $state(''); let recordingSite = $state(''); let recordingPage = $state(1); let recordingPageSize = $state(10);
   let recordingAfter = $state(''); let recordingBefore = $state('');
@@ -55,6 +58,11 @@
   let filteredEvents = $derived(mediaEvents.filter(item => (!eventsTenant || item.tenant_id === eventsTenant) && (!eventsCameraId || item.camera_id === eventsCameraId)));
   let eventsPages = $derived(Math.max(1, Math.ceil(filteredEvents.length / eventsPageSize)));
   let pagedEvents = $derived(filteredEvents.slice((eventsPage - 1) * eventsPageSize, eventsPage * eventsPageSize));
+  let visiblePeopleCameras = $derived(people.cameras.filter(item => {
+    const camera = records.find(row => row.id === item.camera_id);
+    return (!eventsTenant || camera?.tenant_id === eventsTenant) && (!eventsCameraId || item.camera_id === eventsCameraId);
+  }));
+  let visiblePeopleTotal = $derived(visiblePeopleCameras.reduce((total, item) => total + item.persons_crossed, 0));
   const pad2 = (n: number) => String(n).padStart(2, '0');
   const toLocalInput = (date: Date) => `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
   function setEventsRange(daysAgoStart: number, daysAgoEnd: number) {
@@ -64,6 +72,13 @@
     void action(refresh, 'Eventos actualizados.');
   }
   function clearEventsRange() { eventsAfter = ''; eventsBefore = ''; void action(refresh, 'Eventos actualizados.'); }
+  function peopleCountPath(afterValue = eventsAfter, beforeValue = eventsBefore) {
+    const now = new Date();
+    const start = afterValue ? new Date(afterValue) : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const end = beforeValue ? new Date(beforeValue) : now;
+    const params = new URLSearchParams({ after: String(Math.floor(start.getTime() / 1000)), before: String(Math.floor(end.getTime() / 1000)) });
+    return `/media/people-counts?${params}`;
+  }
   function mediaFileName(item: Row, prefix: string) {
     const camera = String(item.camera_name || 'camara').replace(/[^a-zA-Z0-9-]+/g, '_');
     const label = String(item.label || '').replace(/[^a-zA-Z0-9-]+/g, '_');
@@ -211,11 +226,12 @@
       [metrics, records] = await Promise.all([api<Record<string, number>>('/dashboard'), api('/cameras')]);
       // An offline recording gateway must not block camera controls.
       void api<Row[]>('/media/events?limit=6').then(rows => { if (section === 'dashboard') mediaEvents = rows; }).catch(() => {});
+      void api<PeopleSummary>(peopleCountPath()).then(value => { if (section === 'dashboard') people = value; }).catch(() => {});
     } else if (section === 'events') {
       const eventsParams = new URLSearchParams({ limit: '200' });
       if (eventsAfter) eventsParams.set('after', String(Math.floor(new Date(eventsAfter).getTime() / 1000)));
       if (eventsBefore) eventsParams.set('before', String(Math.floor(new Date(eventsBefore).getTime() / 1000)));
-      [records, mediaEvents] = await Promise.all([api('/cameras'), api(`/media/events?${eventsParams}`)]);
+      [records, mediaEvents, people] = await Promise.all([api<Row[]>('/cameras'), api<Row[]>(`/media/events?${eventsParams}`), api<PeopleSummary>(peopleCountPath())]);
       eventsPage = 1;
     } else if (section === 'recordings') {
       records = await api('/cameras');
@@ -439,6 +455,7 @@
           {#each [['Clientes', 'tenants'], ['Sedes', 'sites'], ['Cámaras registradas', 'cameras'], ['Cámaras en línea', 'cameras_online']] as [label, key]}
             <article><span>{label}</span><strong>{metrics[key] ?? 0}</strong><small>{key === 'cameras_online' ? 'Incluye simuladores identificados' : 'Registros de tu espacio'}</small></article>
           {/each}
+          <article class="people-metric"><span>Personas que pasaron hoy</span><strong>{people.persons_crossed}</strong><small>Conteo por cruce confirmado con YOLO</small></article>
         </div>
         <section class="panel"><div class="panel-heading"><h2>Tus cámaras</h2><a href="/cameras">Ver todas →</a></div>
           {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>Tu centro de control comienza aquí</h3><p>Crea un cliente y una sede, luego registra tu primera cámara.</p>{#if can('tenants.manage')}<a class="button primary" href="/admin/customers">Crear primer cliente →</a>{/if}</div>
@@ -465,6 +482,7 @@
       {:else if section === 'events'}
         <section class="panel"><div class="panel-heading"><div><h2>Alertas y detecciones <span class="count">{filteredEvents.length}</span></h2><small>Resultados producidos por la IA local de Vigilay.</small></div><div class="list-filters">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={eventsTenant} onchange={() => { eventsCameraId = ''; eventsPage = 1; }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por cámara" bind:value={eventsCameraId} onchange={() => eventsPage = 1}><option value="">Todas las cámaras</option>{#each eventsCameras as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><button disabled={busy} onclick={() => action(refresh, 'Eventos actualizados.')}>Actualizar</button></div></div>
           <div class="panel-heading events-range"><div class="list-filters"><label class="range-label">Desde<input type="datetime-local" bind:value={eventsAfter} onchange={() => action(refresh, 'Eventos actualizados.')} /></label><label class="range-label">Hasta<input type="datetime-local" bind:value={eventsBefore} onchange={() => action(refresh, 'Eventos actualizados.')} /></label></div><div class="list-filters"><button disabled={busy} onclick={() => setEventsRange(0, 0)}>Hoy</button><button disabled={busy} onclick={() => setEventsRange(1, 1)}>Ayer</button><button disabled={busy} onclick={() => setEventsRange(7, 0)}>Últimos 7 días</button>{#if eventsAfter || eventsBefore}<button disabled={busy} onclick={clearEventsRange}>Quitar fechas</button>{/if}</div></div>
+          <div class="people-summary"><div><span>Personas que cruzaron</span><strong>{visiblePeopleTotal}</strong><small>Una persona se cuenta una sola vez por recorrido.</small></div>{#each visiblePeopleCameras as item}<article><span>{item.camera_name}</span><strong>{item.persons_crossed}</strong><small>↓ {item.crossings_down} · ↑ {item.crossings_up}</small></article>{/each}</div>
           {#if !mediaEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>No hay eventos disponibles</h3><p>{eventsAfter || eventsBefore ? 'No hay eventos en el rango de fechas seleccionado.' : 'Comprueba que Vigilay Recorder esté activo en la sede.'}</p></div>
           {:else if !filteredEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>Sin eventos con estos filtros</h3><p>Prueba con otra empresa o cámara.</p></div>
           {:else}<div class="event-grid">{#each pagedEvents as item}<article class="event-card">{#if item.thumbnail_url}<button class="event-image" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.thumbnail_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'image'; }}><img src={display(item.thumbnail_url)} alt="{eventLabel(item.label)} detectado en {display(item.camera_name)}" /></button>{:else}<div class="event-image empty-icon" aria-label="Evento sin miniatura">⚑</div>{/if}<div><span class="badge">{eventLabel(item.label)}{item.sub_label ? ` · ${display(item.sub_label)}` : ''}</span><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p><div class="card-actions">{#if item.clip_url}<button class="primary" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.clip_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'video'; }}>Ver clip</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'evento')} title="Descargar clip">⬇ Descargar</a>{/if}</div></div></article>{/each}</div>
@@ -582,6 +600,13 @@
 {/if}
 
 <style>
+  .metrics { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .people-metric { background: linear-gradient(135deg, #123c3a, #178979) !important; color: white; }
+  .people-metric small, .people-metric span { color: #d4fff4 !important; }
+  .people-summary { display: flex; gap: 12px; padding: 18px 24px; overflow-x: auto; border-top: 1px solid var(--line, #e3e8ec); background: #f6faf9; }
+  .people-summary > div, .people-summary article { min-width: 170px; padding: 14px 16px; border: 1px solid #dbe9e5; border-radius: 10px; background: white; }
+  .people-summary span, .people-summary small { display: block; color: var(--muted); font-size: 11px; }
+  .people-summary strong { display: block; margin: 5px 0; font-size: 25px; }
   .storage-note { padding: 12px 24px; color: var(--muted); font-size: 13px; }
   .list-filters { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
   .list-filters input, .list-filters select { width: auto; min-width: 150px; margin: 0; }

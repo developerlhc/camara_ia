@@ -6,7 +6,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-from tools.v380_motion_recorder.recorder import MotionDetector, MotionRecorder, RecorderConfig
+from tools.v380_motion_recorder.recorder import (
+    MotionDetector,
+    MotionRecorder,
+    PersonCrossingCounter,
+    RecorderConfig,
+)
 
 
 def config(tmp_path: Path, **changes):
@@ -41,6 +46,31 @@ def test_unique_path_does_not_overwrite_existing_clip(tmp_path):
 def test_prebuffer_has_bounded_size(tmp_path):
     recorder = MotionRecorder(config(tmp_path, fps=10, pre_roll=3))
     assert recorder.buffer.maxlen == 30
+
+
+def test_person_crossing_counter_counts_track_once_in_each_direction():
+    counter = PersonCrossingCounter(line_ratio=0.5, hysteresis=0.02)
+    shape = (100, 100, 3)
+    counter.update([[40, 10, 60, 30]], shape)
+    counter.update([[40, 25, 60, 45]], shape)
+    counter.update([[40, 40, 60, 60]], shape)  # deadband
+    counter.update([[40, 55, 60, 75]], shape)
+    counter.update([[40, 40, 60, 60]], shape)
+    counter.update([[40, 25, 60, 45]], shape)  # same track is not counted twice
+    assert counter.persons_crossed == 1
+    assert counter.crossings_down == 1
+    assert counter.crossings_up == 0
+
+
+def test_person_crossing_counter_keeps_separate_people():
+    counter = PersonCrossingCounter(line_ratio=0.5, hysteresis=0.01)
+    shape = (100, 200, 3)
+    counter.update([[10, 10, 30, 30], [150, 70, 170, 90]], shape)
+    counter.update([[10, 35, 30, 55], [150, 45, 170, 65]], shape)
+    counter.update([[10, 70, 30, 90], [150, 10, 170, 30]], shape)
+    assert counter.persons_crossed == 2
+    assert counter.crossings_down == 1
+    assert counter.crossings_up == 1
 
 
 def test_creates_playable_clip_and_metadata(tmp_path):

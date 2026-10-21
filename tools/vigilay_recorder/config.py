@@ -157,6 +157,9 @@ def recording_catalog(output_dir: Path, *, camera_id="", after=0, before=None) -
                     "end": ended,
                     "duration": round(max(0, ended - started), 1),
                     "objects": int(data.get("objects") or 0),
+                    "persons_crossed": int(data.get("persons_crossed") or 0),
+                    "crossings_down": int(data.get("crossings_down") or 0),
+                    "crossings_up": int(data.get("crossings_up") or 0),
                     "motion": round(float(data.get("peak_motion_percent") or 0), 3),
                     "size": video.stat().st_size,
                     "snapshot_id": snapshot.relative_to(root).as_posix()

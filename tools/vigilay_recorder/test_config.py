@@ -72,12 +72,18 @@ def test_catalog_and_retention_are_confined_to_output(tmp_path):
                 "started_at_epoch": 100,
                 "ended_at_epoch": 120,
                 "peak_motion_percent": 3,
+                "persons_crossed": 2,
+                "crossings_down": 1,
+                "crossings_up": 1,
             }
         ),
         encoding="utf-8",
     )
     item = recording_catalog(output, camera_id="cam-1", after=90, before=130)[0]
     assert item["size"] == 5
+    assert item["persons_crossed"] == 2
+    assert item["crossings_down"] == 1
+    assert item["crossings_up"] == 1
     assert item["snapshot_id"] == "2026-01-01/cam-1/10-00-00_movimiento.jpg"
     old = time.time() - 10 * 86400
     video.touch()
@@ -97,7 +103,16 @@ def test_local_api_requires_token_and_supports_ranges(tmp_path):
     video.write_bytes(b"0123456789")
     video.with_suffix(".jpg").write_bytes(b"jpeg-data")
     video.with_suffix(".json").write_text(
-        json.dumps({"camera_name": "Entrada", "started_at_epoch": 100, "ended_at_epoch": 110}),
+        json.dumps(
+            {
+                "camera_name": "Entrada",
+                "started_at_epoch": 100,
+                "ended_at_epoch": 110,
+                "persons_crossed": 2,
+                "crossings_down": 1,
+                "crossings_up": 1,
+            }
+        ),
         encoding="utf-8",
     )
     config_path = tmp_path / "recorder.json"
@@ -148,6 +163,20 @@ def test_local_api_requires_token_and_supports_ranges(tmp_path):
         assert response.status == 200
         assert response.getheader("Content-Type") == "image/jpeg"
         assert response.read() == b"jpeg-data"
+        connection.close()
+
+        connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+        connection.request(
+            "GET",
+            "/api/events?after=90&before=120",
+            headers={"Authorization": "Bearer test-token-" + "x" * 32},
+        )
+        response = connection.getresponse()
+        assert response.status == 200
+        event = json.loads(response.read())[0]
+        assert event["persons_crossed"] == 2
+        assert event["crossings_down"] == 1
+        assert event["crossings_up"] == 1
         connection.close()
     finally:
         server.shutdown()

@@ -4,7 +4,8 @@ Plataforma de videovigilancia multiempresa con administración central, agente l
 
 ## Aplicaciones Mobile y Desktop
 
-- **Vigilay Mobile** (`apps/mobile`): proyecto Capacitor Android que reutiliza Vigilay Web.
+- **Vigilay Mobile** (`apps/mobile`): panel Android empaquetado, conectado directamente a
+  Vigilay API; no carga ni muestra la web remota dentro de la aplicación.
 - **Vigilay Desktop** (`apps/desktop`): asistente Tauri/Rust para empresa, sede, cámaras,
   ruta de almacenamiento, retención y control de Vigilay Recorder.
 
@@ -66,6 +67,8 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Cuadrícula de cámaras con filtros empresa/sede, paginación y vivo automático en tarjetas visibles.
 - Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
 - Eventos de IA y grabaciones producidos por Vigilay Recorder y filtrados por empresa, sede y permisos de cámara.
+- Conteo YOLO de personas que cruzan la línea central de cada cámara, con totales por cámara
+  e intervalo en `GET /api/v1/media/people-counts` y visualización en web y Android.
 - Gateway autenticado por sede; sin dominio usa un Quick Tunnel saliente registrado por Desktop.
 - Vigilay Local permite seleccionar, crear o modificar su empresa y sede; valida que ambas existan y que la sede pertenezca a la empresa antes de cargar cámaras.
 - Recuperación de contraseña mediante token de un solo uso emitido por CLI; cambio de contraseña desde Mi perfil.

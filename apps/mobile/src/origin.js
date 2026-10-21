@@ -7,8 +7,3 @@ export function normalizeOrigin(value) {
   }
   return url.origin;
 }
-export const allowedPages = ['/cameras', '/recordings', '/events', '/dashboard'];
-export function pageUrl(origin, page) {
-  if (!allowedPages.includes(page)) throw new Error('Sección no permitida.');
-  return normalizeOrigin(origin) + page;
-}
