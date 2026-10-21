@@ -288,6 +288,57 @@ def test_credentials_encrypted_and_never_serialized(clients, cameras):
     assert invalid.status_code == 422 and uri not in invalid.text
 
 
+def test_admin_can_provision_existing_site_cameras_for_desktop(clients, cameras):
+    camera = cameras["a"]
+    uri = "rtsp://desktop:test-only@192.0.2.30:554/live"
+    created = clients["a"].post(
+        "/api/v1/cameras",
+        json={
+            "name": "Desktop existing",
+            "tenant_id": camera["tenant_id"],
+            "site_id": camera["site_id"],
+            "integration_type": "RTSP",
+            "rtsp_url": uri,
+        },
+    )
+    assert created.status_code == 201
+
+    response = clients["a"].post(f"/api/v1/sites/{camera['site_id']}/recorder-cameras", json={})
+    assert response.status_code == 200
+    assert response.json() == {
+        "site_id": camera["site_id"],
+        "cameras": [
+            {
+                "id": created.json()["id"],
+                "name": "Desktop existing",
+                "source": uri,
+                "fps": 10,
+                "enabled": True,
+            }
+        ],
+    }
+    assert (
+        clients["viewer"]
+        .post(f"/api/v1/sites/{camera['site_id']}/recorder-cameras", json={})
+        .status_code
+        == 403
+    )
+    assert (
+        clients["b"]
+        .post(f"/api/v1/sites/{camera['site_id']}/recorder-cameras", json={})
+        .status_code
+        == 404
+    )
+    with system_session() as db:
+        log = db.scalar(
+            select(AuditLog).where(
+                AuditLog.action == "RECORDER_CAMERAS_PROVISIONED",
+                AuditLog.resource_id == camera["site_id"],
+            )
+        )
+        assert log is not None and log.tenant_id == camera["tenant_id"]
+
+
 def test_encryption_bound_to_tenant_and_camera():
     encoded = encrypt_credentials({"password": "synthetic"}, "a", "camera")
     with pytest.raises(InvalidTag):

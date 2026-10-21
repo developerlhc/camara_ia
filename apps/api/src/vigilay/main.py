@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
-from vigilay import auth, frigate_routes, live_routes, realtime, routes
+from vigilay import auth, live_routes, media_routes, realtime, routes
 from vigilay.config import settings
 from vigilay.db import engine, system_session
 from vigilay.models import ServiceHeartbeat, utcnow
@@ -125,6 +125,6 @@ def create_app():
     app.include_router(auth.router)
     app.include_router(routes.router)
     app.include_router(live_routes.router)
-    app.include_router(frigate_routes.router)
+    app.include_router(media_routes.router)
     app.include_router(realtime.router)
     return app

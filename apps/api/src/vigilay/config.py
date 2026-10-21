@@ -27,11 +27,9 @@ class Settings(BaseSettings):
     cloudflare_stream_api_token: str = ""
     ffmpeg_path: str = "ffmpeg"
     v380_decoder_path: str = ".local/v380-bridge/V380Decoder.exe"
-    frigate_api_url: str = "http://frigate:5000"
-    frigate_restream_url: str = "rtsp://127.0.0.1:8554"
-    frigate_live_stream_suffix: str = ""
-    frigate_timeout_seconds: int = 10
-    frigate_gateway_port: int = 8788
+    recording_api_url: str = "http://127.0.0.1:8788"
+    recording_gateway_token: str = ""
+    recording_timeout_seconds: int = 10
     cloudflared_path: str = "cloudflared"
     stream_idle_timeout_seconds: int = 300
     stream_start_timeout_seconds: int = 15
@@ -92,10 +90,8 @@ class Settings(BaseSettings):
             raise ValueError("STREAM_IDLE_TIMEOUT_SECONDS debe estar entre 10 y 3600")
         if not 3 <= self.stream_start_timeout_seconds <= 60:
             raise ValueError("STREAM_START_TIMEOUT_SECONDS debe estar entre 3 y 60")
-        if not 2 <= self.frigate_timeout_seconds <= 60:
-            raise ValueError("FRIGATE_TIMEOUT_SECONDS debe estar entre 2 y 60")
-        if not 1024 <= self.frigate_gateway_port <= 65535:
-            raise ValueError("FRIGATE_GATEWAY_PORT debe ser un puerto no privilegiado")
+        if not 2 <= self.recording_timeout_seconds <= 60:
+            raise ValueError("RECORDING_TIMEOUT_SECONDS debe estar entre 2 y 60")
         if self.vigilay_realtime_url and not self.vigilay_realtime_url.startswith(
             ("ws://", "wss://")
         ):

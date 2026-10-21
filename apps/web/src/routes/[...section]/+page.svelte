@@ -35,9 +35,8 @@
   let liveOpen = $state(false); let liveStatus = $state('stopped');
   let liveCameraId = $state(''); let liveCameraName = $state('');
   let liveUrl = $state(''); let liveSessionId = $state(''); let liveViewerKey = $state('');
-  let frigateCameras = $state<Row[]>([]); let frigateName = $state('');
-  let frigateEvents = $state<Row[]>([]); let recordings = $state<Row[]>([]);
-  let frigateCameraId = $state(''); let mediaUrl = $state(''); let mediaTitle = $state(''); let mediaKind = $state('video');
+  let mediaEvents = $state<Row[]>([]); let recordings = $state<Row[]>([]);
+  let recordingCameraId = $state(''); let mediaUrl = $state(''); let mediaTitle = $state(''); let mediaKind = $state('video');
   let recordingTenant = $state(''); let recordingSite = $state(''); let recordingPage = $state(1); let recordingPageSize = $state(10);
   let recordingAfter = $state(''); let recordingBefore = $state('');
   let recordingsLoading = $state(false); let recordingsError = $state(''); let recordingsRequest = 0;
@@ -49,11 +48,11 @@
   let realtimeStopping = false;
   const commandWaiters = new Map<string, (command: Row) => void>();
   let filtered = $derived(records);
-  let recordingCameras = $derived(records.filter(row => row.frigate_camera_name && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite)));
+  let recordingCameras = $derived(records.filter(row => row.integration_type !== 'SIMULATOR' && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite)));
   let recordingPages = $derived(Math.max(1, Math.ceil(recordings.length / recordingPageSize)));
   let pagedRecordings = $derived(recordings.slice((recordingPage - 1) * recordingPageSize, recordingPage * recordingPageSize));
-  let eventsCameras = $derived(records.filter(row => row.frigate_camera_name && (!eventsTenant || row.tenant_id === eventsTenant)));
-  let filteredEvents = $derived(frigateEvents.filter(item => (!eventsTenant || item.tenant_id === eventsTenant) && (!eventsCameraId || item.camera_id === eventsCameraId)));
+  let eventsCameras = $derived(records.filter(row => row.integration_type !== 'SIMULATOR' && (!eventsTenant || row.tenant_id === eventsTenant)));
+  let filteredEvents = $derived(mediaEvents.filter(item => (!eventsTenant || item.tenant_id === eventsTenant) && (!eventsCameraId || item.camera_id === eventsCameraId)));
   let eventsPages = $derived(Math.max(1, Math.ceil(filteredEvents.length / eventsPageSize)));
   let pagedEvents = $derived(filteredEvents.slice((eventsPage - 1) * eventsPageSize, eventsPage * eventsPageSize));
   const pad2 = (n: number) => String(n).padStart(2, '0');
@@ -202,8 +201,6 @@
     error = '';
     if (cameraId) {
       camera = await api<Row>(`/cameras/${cameraId}`);
-      if (can('cameras.configure')) await loadFrigateCatalog(display(camera.site_id));
-      frigateName = display(camera.frigate_camera_name || '');
       capabilities = await api(`/cameras/${cameraId}/capabilities`);
       if (can('cameras.configure')) {
         settings = await api(`/cameras/${cameraId}/settings`);
@@ -213,19 +210,19 @@
     } else if (section === 'dashboard') {
       [metrics, records] = await Promise.all([api<Record<string, number>>('/dashboard'), api('/cameras')]);
       // An offline recording gateway must not block camera controls.
-      void api<Row[]>('/frigate/events?limit=6').then(rows => { if (section === 'dashboard') frigateEvents = rows; }).catch(() => {});
+      void api<Row[]>('/media/events?limit=6').then(rows => { if (section === 'dashboard') mediaEvents = rows; }).catch(() => {});
     } else if (section === 'events') {
       const eventsParams = new URLSearchParams({ limit: '200' });
       if (eventsAfter) eventsParams.set('after', String(Math.floor(new Date(eventsAfter).getTime() / 1000)));
       if (eventsBefore) eventsParams.set('before', String(Math.floor(new Date(eventsBefore).getTime() / 1000)));
-      [records, frigateEvents] = await Promise.all([api('/cameras'), api(`/frigate/events?${eventsParams}`)]);
+      [records, mediaEvents] = await Promise.all([api('/cameras'), api(`/media/events?${eventsParams}`)]);
       eventsPage = 1;
     } else if (section === 'recordings') {
       records = await api('/cameras');
       if (!recordingTenant && user?.tenant_id) recordingTenant = user.tenant_id;
-      const mapped = records.filter(row => row.frigate_camera_name && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite));
-      if (!frigateCameraId && mapped.length) frigateCameraId = display(mapped[0].id);
-      await loadFrigateRecordings();
+      const mapped = records.filter(row => row.integration_type !== 'SIMULATOR' && (!recordingTenant || row.tenant_id === recordingTenant) && (!recordingSite || row.site_id === recordingSite));
+      if (!recordingCameraId && mapped.length) recordingCameraId = display(mapped[0].id);
+      await loadRecordings();
     } else if (section === 'admin/system') {
       health = await api<Record<string, string>>('/system/health');
       if (user?.role === 'SUPER_ADMIN') cloudflare = await api('/admin/integrations/cloudflare');
@@ -266,15 +263,9 @@
     if (target) connectRealtime(target); else disconnectRealtime();
   });
 
-  async function loadFrigateCatalog(targetSite: string) {
-    frigateCameras = targetSite
-      ? await api<Row[]>(`/frigate/cameras?site_id=${encodeURIComponent(targetSite)}`).catch(() => [])
-      : [];
-  }
-
   async function action(work: () => Promise<unknown>, message: string) {
     busy = true; error = ''; notice = '';
-    try { await work(); notice = message; if (work !== refresh && work !== loadFrigateRecordings) await refresh(); }
+    try { await work(); notice = message; if (work !== refresh && work !== loadRecordings) await refresh(); }
     catch(e) { error = (e as Error).message; } finally { busy = false; }
   }
   async function probeCamera() {
@@ -324,11 +315,11 @@
     liveCameraId = ''; liveCameraName = '';
     if (cameraId) subscribeRealtime(); else { realtimeSocket?.close(); realtimeSocket = undefined; }
   }
-  async function loadFrigateRecordings() {
+  async function loadRecordings() {
     const requestId = ++recordingsRequest;
     recordings = []; recordingPage = 1; recordingsError = ''; mediaUrl = ''; mediaQueue = []; mediaIndex = -1;
     recordingsLoading = false;
-    if (!frigateCameraId) return;
+    if (!recordingCameraId) return;
     const before = Math.floor(new Date(recordingBefore).getTime() / 1000);
     const after = Math.floor(new Date(recordingAfter).getTime() / 1000);
     if (!Number.isFinite(after) || !Number.isFinite(before) || before <= after || before - after > 604800) {
@@ -336,16 +327,16 @@
     }
     recordingsLoading = true;
     try {
-      const rows = await api<Row[]>(`/frigate/recordings?camera_id=${encodeURIComponent(frigateCameraId)}&after=${after}&before=${before}`);
+      const rows = await api<Row[]>(`/media/recordings?camera_id=${encodeURIComponent(recordingCameraId)}&after=${after}&before=${before}`);
       if (requestId === recordingsRequest) recordings = rows;
     } catch (e) { if (requestId === recordingsRequest) recordingsError = (e as Error).message; }
     finally { if (requestId === recordingsRequest) recordingsLoading = false; }
   }
   function selectRecordingScope() {
     recordingPage = 1; recordings = [];
-    if (frigateCameraId && !recordingCameras.some(row => row.id === frigateCameraId)) frigateCameraId = '';
-    if (!frigateCameraId && recordingCameras.length) frigateCameraId = display(recordingCameras[0].id);
-    void loadFrigateRecordings();
+    if (recordingCameraId && !recordingCameras.some(row => row.id === recordingCameraId)) recordingCameraId = '';
+    if (!recordingCameraId && recordingCameras.length) recordingCameraId = display(recordingCameras[0].id);
+    void loadRecordings();
   }
   function openRecording(item: Row) {
     mediaQueue = [...recordings].sort((a, b) => Number(a.start) - Number(b.start)); mediaIndex = mediaQueue.findIndex(row => row.clip_url === item.clip_url);
@@ -373,15 +364,19 @@
     const seconds = Math.max(0, Number(value) || 0);
     return `${Math.floor(seconds / 60)} min ${Math.floor(seconds % 60)} s`;
   };
+  const downloadUrl = (value: unknown) => {
+    const url = display(value);
+    return `${url}${url.includes('?') ? '&' : '?'}download=true`;
+  };
   function openForm(row?: Row) {
     editing = row?.id || ''; name = display(row?.name || ''); address = display(row?.address || '');
     email = display(row?.email || ''); username = display(row?.username || ''); password = '';
     firstName = display(row?.first_name || ''); lastName = display(row?.last_name || '');
     role = display(row?.role || 'VIEWER'); status = display(row?.status || 'ACTIVE');
     tenantId = display(row?.tenant_id || user?.tenant_id || tenants[0]?.id || '');
-    siteId = ''; rtspUrl = ''; integration = 'RTSP'; cameraBrand = 'EZVIZ'; frigateCameras = [];
+    siteId = ''; rtspUrl = ''; integration = 'RTSP'; cameraBrand = 'EZVIZ';
     cameraModel = ''; cameraHost = ''; cameraUsername = ''; cameraPassword = '';
-    cameraDeviceId = ''; frigateName = ''; showForm = true;
+    cameraDeviceId = ''; showForm = true;
   }
   async function save(event: SubmitEvent) {
     event.preventDefault();
@@ -396,7 +391,7 @@
         data = editing ? { first_name: firstName, last_name: lastName, role, status } : { tenant_id: tenantId, email, username, password, first_name: firstName, last_name: lastName, role };
       } else if (section === 'cameras') data = {
         name, tenant_id: tenantId, site_id: siteId, integration_type: integration,
-        brand: cameraBrand, model: cameraModel, frigate_camera_name: frigateName || null,
+        brand: cameraBrand, model: cameraModel,
         ...(integration === 'RTSP' ? { rtsp_url: rtspUrl } : {}),
         ...(integration === 'V380' ? { host: cameraHost, port: 8800, username: cameraUsername, password: cameraPassword, device_id: cameraDeviceId } : {})
       };
@@ -449,7 +444,7 @@
           {#if !records.length}<div class="empty"><span class="empty-icon">▣</span><h3>Tu centro de control comienza aquí</h3><p>Crea un cliente y una sede, luego registra tu primera cámara.</p>{#if can('tenants.manage')}<a class="button primary" href="/admin/customers">Crear primer cliente →</a>{/if}</div>
           {:else}<div class="camera-grid">{#each records as item}<article class="camera-card"><div class="camera-preview"><span>▣</span><p>{item.status === 'ONLINE' ? 'Lista para transmitir' : stateLabel(item.status)}</p><button class="preview-live" disabled={item.status !== 'ONLINE' || item.integration_type === 'SIMULATOR'} onclick={() => openLive(display(item.id), display(item.name))}>▶ Ver en vivo</button></div><div class="camera-caption"><strong>{display(item.name)}</strong><span class="badge">{stateLabel(item.status)}</span><small>{nameOf(sites, item.site_id)}</small><a href="/cameras/{item.id}">Configuración y detalle →</a></div></article>{/each}</div>{/if}
         </section>
-        <section class="panel"><div class="panel-heading"><h2>Notificaciones recientes de Frigate <span class="count">{frigateEvents.length}</span></h2><a href="/events">Ver todos los eventos →</a></div>{#if !frigateEvents.length}<div class="empty"><p>No hay alertas de IA disponibles para tus cámaras.</p></div>{:else}<div class="dashboard-events">{#each frigateEvents as item}<a href="/events"><img src={display(item.thumbnail_url)} alt="" /><span><strong>{eventLabel(item.label)}</strong><small>{display(item.camera_name)} · {new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</small></span></a>{/each}</div>{/if}</section>
+        <section class="panel"><div class="panel-heading"><h2>Detecciones recientes <span class="count">{mediaEvents.length}</span></h2><a href="/events">Ver todos los eventos →</a></div>{#if !mediaEvents.length}<div class="empty"><p>No hay alertas de IA disponibles para tus cámaras.</p></div>{:else}<div class="dashboard-events">{#each mediaEvents as item}<a href="/events">{#if item.thumbnail_url}<img src={display(item.thumbnail_url)} alt="" />{/if}<span><strong>{eventLabel(item.label)}</strong><small>{display(item.camera_name)} · {new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</small></span></a>{/each}</div>{/if}</section>
       {:else if cameraId && camera}
         <div class="detail-title"><h2>{display(camera.name)}</h2><span class="badge">{stateLabel(camera.status)}</span><span class="badge">{camera.integration_type === 'SIMULATOR' ? 'Simulador' : 'RTSP'}</span>{#if camera.integration_type !== 'SIMULATOR'}<button class="primary live-button" disabled={busy} onclick={() => openLive()}>▶ Ver en vivo</button>{/if}</div>
         <p class="message">{camera.integration_type === 'SIMULATOR' ? 'Este dispositivo simula configuración y conectividad. No genera video ni detecciones de personas.' : 'La transmisión Cloudflare se inicia bajo demanda y se detiene cuando ya no quedan espectadores.'}</p>
@@ -464,33 +459,30 @@
           </section>
           <section class="panel"><div class="panel-heading"><h2>Historial de comandos</h2><small>Se actualiza en tiempo real</small></div><div class="table-wrap"><table><thead><tr><th>Comando</th><th>Estado</th><th>Fecha</th><th>Resultado</th></tr></thead><tbody>{#each commands as c}<tr><td>{c.command === 'PROBE' ? 'Probar conexión' : 'Aplicar configuración'}</td><td>{stateLabel(c.status)}</td><td>{new Date(display(c.created_at)).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</td><td>{display(c.error)}</td></tr>{/each}</tbody></table></div></section>
         {/if}
-        {#if can('cameras.manage')}<section class="panel"><div class="panel-heading"><div><h2>Frigate: grabación e IA</h2><small>El alias debe existir en el Frigate de esta sede.</small></div></div><form class="settings-form" onsubmit={(e) => {e.preventDefault(); void action(() => api(`/frigate/cameras/${cameraId}`, 'PUT', {frigate_camera_name: frigateName}), 'Cámara vinculada con Frigate.');}}>
-          <label>Cámara en Frigate<select bind:value={frigateName} required><option value="">Selecciona una cámara</option>{#each frigateCameras as item}<option value={item.name}>{display(item.name)}</option>{/each}</select></label><button class="primary" disabled={busy || !frigateName}>Vincular</button>
-        </form></section>{/if}
         {#if can('cameras.manage')}<section class="panel"><div class="panel-heading"><div><h2>Acceso de usuarios <span class="count">{cameraPermissions.length}</span></h2><small>Una cámara puede asignarse a todos los operadores y observadores necesarios.</small></div></div>
           {#if !cameraPermissions.length}<div class="empty"><p>No hay operadores u observadores activos en esta empresa.</p></div>{:else}<div class="table-wrap"><table><thead><tr><th>Usuario</th><th>Ver cámara</th><th>Controlar/configurar</th><th>Acción</th></tr></thead><tbody>{#each cameraPermissions as permission}<tr><td><strong>{display(permission.first_name)} {display(permission.last_name)}</strong><small>{display(permission.email)}</small></td><td><label class="check"><input type="checkbox" bind:checked={permission.can_view} /> Permitido</label></td><td><label class="check"><input type="checkbox" bind:checked={permission.can_configure} onchange={() => { if (permission.can_configure) permission.can_view = true; }} /> Permitido</label></td><td><button disabled={busy} onclick={() => saveCameraPermission(permission)}>Guardar</button></td></tr>{/each}</tbody></table></div>{/if}
         </section>{/if}
       {:else if section === 'events'}
-        <section class="panel"><div class="panel-heading"><div><h2>Alertas y detecciones <span class="count">{filteredEvents.length}</span></h2><small>Resultados reales producidos por la IA de Frigate.</small></div><div class="list-filters">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={eventsTenant} onchange={() => { eventsCameraId = ''; eventsPage = 1; }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por cámara" bind:value={eventsCameraId} onchange={() => eventsPage = 1}><option value="">Todas las cámaras</option>{#each eventsCameras as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><button disabled={busy} onclick={() => action(refresh, 'Eventos actualizados.')}>Actualizar</button></div></div>
+        <section class="panel"><div class="panel-heading"><div><h2>Alertas y detecciones <span class="count">{filteredEvents.length}</span></h2><small>Resultados producidos por la IA local de Vigilay.</small></div><div class="list-filters">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={eventsTenant} onchange={() => { eventsCameraId = ''; eventsPage = 1; }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por cámara" bind:value={eventsCameraId} onchange={() => eventsPage = 1}><option value="">Todas las cámaras</option>{#each eventsCameras as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><button disabled={busy} onclick={() => action(refresh, 'Eventos actualizados.')}>Actualizar</button></div></div>
           <div class="panel-heading events-range"><div class="list-filters"><label class="range-label">Desde<input type="datetime-local" bind:value={eventsAfter} onchange={() => action(refresh, 'Eventos actualizados.')} /></label><label class="range-label">Hasta<input type="datetime-local" bind:value={eventsBefore} onchange={() => action(refresh, 'Eventos actualizados.')} /></label></div><div class="list-filters"><button disabled={busy} onclick={() => setEventsRange(0, 0)}>Hoy</button><button disabled={busy} onclick={() => setEventsRange(1, 1)}>Ayer</button><button disabled={busy} onclick={() => setEventsRange(7, 0)}>Últimos 7 días</button>{#if eventsAfter || eventsBefore}<button disabled={busy} onclick={clearEventsRange}>Quitar fechas</button>{/if}</div></div>
-          {#if !frigateEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>No hay eventos disponibles</h3><p>{eventsAfter || eventsBefore ? 'No hay eventos en el rango de fechas seleccionado.' : 'Vincula cada cámara con su alias de Frigate desde Configuración y detalle.'}</p></div>
+          {#if !mediaEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>No hay eventos disponibles</h3><p>{eventsAfter || eventsBefore ? 'No hay eventos en el rango de fechas seleccionado.' : 'Comprueba que Vigilay Recorder esté activo en la sede.'}</p></div>
           {:else if !filteredEvents.length}<div class="empty"><span class="empty-icon">⚑</span><h3>Sin eventos con estos filtros</h3><p>Prueba con otra empresa o cámara.</p></div>
-          {:else}<div class="event-grid">{#each pagedEvents as item}<article class="event-card"><button class="event-image" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.thumbnail_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'image'; }}><img src={display(item.thumbnail_url)} alt="{eventLabel(item.label)} detectado en {display(item.camera_name)}" /></button><div><span class="badge">{eventLabel(item.label)}{item.sub_label ? ` · ${display(item.sub_label)}` : ''}</span><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p><div class="card-actions">{#if item.clip_url}<button class="primary" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.clip_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'video'; }}>Ver clip</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'evento')} title="Descargar clip">⬇ Descargar</a>{/if}</div></div></article>{/each}</div>
+          {:else}<div class="event-grid">{#each pagedEvents as item}<article class="event-card">{#if item.thumbnail_url}<button class="event-image" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.thumbnail_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'image'; }}><img src={display(item.thumbnail_url)} alt="{eventLabel(item.label)} detectado en {display(item.camera_name)}" /></button>{:else}<div class="event-image empty-icon" aria-label="Evento sin miniatura">⚑</div>{/if}<div><span class="badge">{eventLabel(item.label)}{item.sub_label ? ` · ${display(item.sub_label)}` : ''}</span><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start_time) * 1000).toLocaleString('es-PE', {timeZone: 'America/Lima'})}</p><div class="card-actions">{#if item.clip_url}<button class="primary" onclick={() => { mediaIndex = -1; mediaQueue = []; mediaUrl = display(item.clip_url); mediaTitle = `${eventLabel(item.label)} · ${display(item.camera_name)}`; mediaKind = 'video'; }}>Ver clip</button><a class="button" href={display(item.clip_url)} download={mediaFileName(item, 'evento')} title="Descargar clip">⬇ Descargar</a>{/if}</div></div></article>{/each}</div>
           <div class="pagination"><span>{filteredEvents.length ? `${(eventsPage - 1) * eventsPageSize + 1}–${Math.min(eventsPage * eventsPageSize, filteredEvents.length)} de ${filteredEvents.length}` : '0 eventos'}</span><div><label>Por página <select bind:value={eventsPageSize} onchange={() => eventsPage = 1}><option value={6}>6</option><option value={12}>12</option><option value={24}>24</option></select></label><button disabled={eventsPage <= 1} onclick={() => eventsPage -= 1}>← Anterior</button><span>Página {eventsPage} de {eventsPages}</span><button disabled={eventsPage >= eventsPages} onclick={() => eventsPage += 1}>Siguiente →</button></div></div>{/if}
         </section>
       {:else if section === 'recordings'}
-        <section class="panel"><div class="panel-heading"><div><h2>Grabaciones de Frigate <span class="count">{recordings.length}</span></h2><small>Video conservado y procesado por Frigate en la sede. Al terminar un fragmento continúa el siguiente de la lista.</small></div><div class="recording-filter">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={recordingTenant} onchange={() => { recordingSite = ''; frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por sede" bind:value={recordingSite} onchange={() => { frigateCameraId = ''; selectRecordingScope(); }}><option value="">Todas las sedes</option>{#each sites.filter(item => !recordingTenant || item.tenant_id === recordingTenant) as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><select aria-label="Seleccionar cámara" bind:value={frigateCameraId} onchange={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}><option value="">Selecciona una cámara</option>{#each recordingCameras as item}<option value={item.id}>{display(item.name)} · {nameOf(sites, item.site_id)}</option>{/each}</select><button disabled={busy || !frigateCameraId} onclick={() => action(loadFrigateRecordings, 'Grabaciones actualizadas.')}>Actualizar</button></div></div>
-          <form class="panel-heading events-range" onsubmit={(event) => { event.preventDefault(); void loadFrigateRecordings(); }}>
+        <section class="panel"><div class="panel-heading"><div><h2>Grabaciones de Vigilay <span class="count">{recordings.length}</span></h2><small>Video conservado y procesado por Vigilay Recorder en la sede. Al terminar un fragmento continúa el siguiente de la lista.</small></div><div class="recording-filter">{#if !user?.tenant_id}<select aria-label="Filtrar por empresa" bind:value={recordingTenant} onchange={() => { recordingSite = ''; recordingCameraId = ''; selectRecordingScope(); }}><option value="">Todas las empresas</option>{#each tenants as item}<option value={item.id}>{display(item.name)}</option>{/each}</select>{/if}<select aria-label="Filtrar por sede" bind:value={recordingSite} onchange={() => { recordingCameraId = ''; selectRecordingScope(); }}><option value="">Todas las sedes</option>{#each sites.filter(item => !recordingTenant || item.tenant_id === recordingTenant) as item}<option value={item.id}>{display(item.name)}</option>{/each}</select><select aria-label="Seleccionar cámara" bind:value={recordingCameraId} onchange={() => action(loadRecordings, 'Grabaciones actualizadas.')}><option value="">Selecciona una cámara</option>{#each recordingCameras as item}<option value={item.id}>{display(item.name)} · {nameOf(sites, item.site_id)}</option>{/each}</select><button disabled={busy || !recordingCameraId} onclick={() => action(loadRecordings, 'Grabaciones actualizadas.')}>Actualizar</button></div></div>
+          <form class="panel-heading events-range" onsubmit={(event) => { event.preventDefault(); void loadRecordings(); }}>
             <label class="range-label">Desde (fecha y hora local)<input type="datetime-local" bind:value={recordingAfter} required /></label>
             <label class="range-label">Hasta (fecha y hora local)<input type="datetime-local" bind:value={recordingBefore} required /></label>
-            <button class="primary" disabled={recordingsLoading || !frigateCameraId}>Aplicar intervalo</button>
+            <button class="primary" disabled={recordingsLoading || !recordingCameraId}>Aplicar intervalo</button>
             <small>Zona horaria: {Intl.DateTimeFormat().resolvedOptions().timeZone}. Máximo 7 días.</small>
           </form>
-          <p class="storage-note">Origen: disco de Frigate en la sede. La memoria SD interna de la cámara aún no está integrada: necesita un adaptador de reproducción compatible con su modelo; RTSP solo permite el vivo. No se borran ni formatean tarjetas.</p>
+          <p class="storage-note">Origen: carpeta configurada en Vigilay Desktop. La memoria SD interna de la cámara no se modifica ni se formatea.</p>
           {#if recordingsLoading}<div class="empty" role="status">Consultando grabaciones de la sede…</div>
-          {:else if recordingsError}<div class="empty" role="alert"><h3>No se pudo consultar Frigate</h3><p>{recordingsError}</p><button onclick={() => loadFrigateRecordings()}>Reintentar</button></div>
-          {:else if !recordings.length}<div class="empty"><span class="empty-icon">◉</span><h3>{frigateCameraId ? 'No hay grabaciones en el intervalo seleccionado' : 'Selecciona una cámara vinculada a Frigate'}</h3><p>Comprueba el intervalo, la vinculación y que Frigate tenga la grabación habilitada.</p></div>
-          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE')}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><div class="card-actions"><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button><a class="button" href={`${display(item.clip_url)}?download=true`} download={mediaFileName(item, 'grabacion')} title="Descargar grabación">⬇ Descargar</a></div></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
+          {:else if recordingsError}<div class="empty" role="alert"><h3>No se pudo consultar Vigilay Recorder</h3><p>{recordingsError}</p><button onclick={() => loadRecordings()}>Reintentar</button></div>
+          {:else if !recordings.length}<div class="empty"><span class="empty-icon">◉</span><h3>{recordingCameraId ? 'No hay grabaciones en el intervalo seleccionado' : 'Selecciona una cámara'}</h3><p>Comprueba el intervalo y que Vigilay Recorder esté activo en la sede.</p></div>
+          {:else}<div class="recording-list">{#each pagedRecordings as item}<article><div><strong>{display(item.camera_name)}</strong><p>{new Date(Number(item.start) * 1000).toLocaleString('es-PE')}</p></div><span>{durationLabel(item.duration)}</span><span>{display(item.objects)} objetos · {display(item.motion)} movimientos</span><div class="card-actions"><button class="primary" onclick={() => openRecording(item)}>Reproducir continuo</button><a class="button" href={downloadUrl(item.clip_url)} download={mediaFileName(item, 'grabacion')} title="Descargar grabación">⬇ Descargar</a></div></article>{/each}</div><div class="pagination"><span>Página {recordingPage} de {recordingPages}</span><div><label>Por página <select bind:value={recordingPageSize} onchange={() => recordingPage = 1}><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option></select></label><button disabled={recordingPage <= 1} onclick={() => recordingPage -= 1}>← Anterior</button><button disabled={recordingPage >= recordingPages} onclick={() => recordingPage += 1}>Siguiente →</button></div></div>{/if}
         </section>
       {:else if section === 'admin/system'}
         <section class="panel"><div class="panel-heading"><h2>Servicios</h2><button onclick={() => action(refresh, 'Estado actualizado.')} disabled={busy}>Actualizar</button></div>{#each Object.entries(health) as [service, value]}<div class="setting-row"><strong>{service === 'media' ? 'Video en vivo' : service.toUpperCase()}</strong><span class="badge">{value === 'ok' ? 'Operativo' : value === 'offline' ? 'Sin conexión' : 'Pendiente de integración'}</span></div>{/each}</section>
@@ -558,10 +550,9 @@
       {#if editing && (section === 'admin/customers' || section === 'admin/users')}<label>Estado<select bind:value={status}><option value="ACTIVE">Activo</option><option value={section === 'admin/users' ? 'DISABLED' : 'SUSPENDED'}>{section === 'admin/users' ? 'Deshabilitado' : 'Suspendido'}</option></select></label>{/if}
       {#if section === 'admin/sites'}<label>Dirección<input bind:value={address} maxlength="300" /></label>{/if}
       {#if section === 'cameras'}
-        <label>Sede<select bind:value={siteId} required onchange={() => loadFrigateCatalog(siteId)}><option value="">Selecciona una sede</option>{#each sites.filter(s => s.tenant_id === tenantId) as s}<option value={s.id}>{display(s.name)}</option>{/each}</select></label>
+        <label>Sede<select bind:value={siteId} required><option value="">Selecciona una sede</option>{#each sites.filter(s => s.tenant_id === tenantId) as s}<option value={s.id}>{display(s.name)}</option>{/each}</select></label>
         <div class="form-grid"><label>Marca<select bind:value={cameraBrand} onchange={() => integration = cameraBrand === 'V380' ? 'V380' : 'RTSP'}><option value="EZVIZ">EZVIZ</option><option value="IMOU">Imou</option><option value="V380">V380 Pro</option><option value="GENERIC">RTSP genérica</option></select></label><label>Modelo<input bind:value={cameraModel} maxlength="120" placeholder="Modelo exacto" /></label></div>
         <label>Método de integración<select bind:value={integration}><option value="RTSP">RTSP</option><option value="V380">Puente local V380</option><option value="SIMULATOR">Simulador de desarrollo</option></select></label>
-        <label>Cámara de Frigate (opcional)<select bind:value={frigateName}><option value="">Vincular después</option>{#each frigateCameras as item}<option value={item.name}>{display(item.name)}</option>{/each}</select></label>
         {#if integration === 'RTSP'}<label>URL RTSP<input type="password" bind:value={rtspUrl} required autocomplete="off" placeholder="rtsp://usuario:clave@direccion/ruta" /></label><p class="muted">La URL y sus credenciales se guardarán cifradas en MySQL.</p>{:else if integration === 'SIMULATOR'}<p class="muted">Permite probar comandos y configuración sin conectar una cámara física.</p>{/if}
         {#if integration === 'V380'}<div class="form-grid"><label>Dirección IP<input bind:value={cameraHost} required placeholder="192.168.1.100" /></label><label>ID del dispositivo<input bind:value={cameraDeviceId} required maxlength="32" /></label><label>Usuario<input bind:value={cameraUsername} required maxlength="160" /></label><label>Contraseña<input type="password" bind:value={cameraPassword} required autocomplete="off" /></label></div><p class="muted">En varios modelos V380 el usuario coincide con el ID. La contraseña se cifra antes de almacenarse en MySQL.</p>{/if}
       {/if}
@@ -585,7 +576,7 @@
 
 {#if mediaUrl}
   <dialog class="live-modal" aria-labelledby="media-title" use:mountDialog onclose={() => mediaUrl = ''}>
-    <div class="panel-heading"><div><h2 id="media-title">{mediaTitle}</h2><span class="live-state">Contenido servido por Frigate a través de Vigilay</span></div><button class="text-button" onclick={() => mediaUrl = ''} aria-label="Cerrar contenido">✕</button></div>
+    <div class="panel-heading"><div><h2 id="media-title">{mediaTitle}</h2><span class="live-state">Contenido servido por Vigilay Recorder</span></div><button class="text-button" onclick={() => mediaUrl = ''} aria-label="Cerrar contenido">✕</button></div>
     <div class="media-stage">{#if mediaKind === 'image'}<img src={mediaUrl} alt={mediaTitle} />{:else}<video src={mediaUrl} controls autoplay playsinline onended={advanceRecording}><track kind="captions" /></video>{/if}</div>
   </dialog>
 {/if}

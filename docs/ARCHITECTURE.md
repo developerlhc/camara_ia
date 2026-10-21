@@ -28,11 +28,11 @@ flowchart LR
   Camera[Cámara] --> Agent[Agente local]
   Agent --> Cloudflare[Cloudflare Stream Live]
   Cloudflare -->|WHEP autorizado| Browser[Navegador]
-  Camera --> Frigate[Frigate: IA, eventos y grabaciones]
-  Frigate -->|API privada por Vigilay| Browser
+  Camera --> Recorder[Vigilay Recorder: IA, eventos y grabaciones]
+  Recorder -->|API privada por Vigilay| Browser
 ```
 
-La web nunca recibe URLs RTSP, credenciales de cámara ni el endpoint privado de Frigate. El API autoriza cada cámara y actúa como proxy para eventos y grabaciones. El agente local abre las conexiones LAN, publica el vivo en Cloudflare y ejecuta PTZ; Vigilay Local fija y valida la empresa, la sede y la asignación a Frigate de esa instalación.
+La web nunca recibe URLs RTSP, credenciales de cámara ni el endpoint privado del grabador. El API autoriza cada cámara y actúa como proxy para eventos y grabaciones. El agente local abre las conexiones LAN, publica el vivo en Cloudflare y ejecuta PTZ; Desktop configura la sede, el almacenamiento y Vigilay Recorder.
 
 ## Referencias técnicas
 

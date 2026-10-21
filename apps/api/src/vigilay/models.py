@@ -202,7 +202,7 @@ class Camera(TenantScoped, Identity, Base):
     integration_type: Mapped[str] = mapped_column(String(32))
     brand: Mapped[str] = mapped_column(String(32), default="GENERIC")
     model: Mapped[str] = mapped_column(String(120), default="")
-    frigate_camera_name: Mapped[str | None] = mapped_column(String(80))
+    legacy_camera_alias: Mapped[str | None] = mapped_column("frigate_camera_name", String(80))
     target_fps: Mapped[int] = mapped_column(Integer, default=10)
     grayscale: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[str] = mapped_column(String(20), default="UNVERIFIED")
@@ -211,8 +211,8 @@ class Camera(TenantScoped, Identity, Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
 
-class FrigateConnection(TenantScoped, Identity, Base):
-    """Ephemeral, authenticated route from cloud to one site's local Frigate."""
+class RecorderConnection(TenantScoped, Identity, Base):
+    """Ruta autenticada y efímera hacia Vigilay Recorder en una sede."""
 
     __tablename__ = "frigate_connections"
     __table_args__ = (

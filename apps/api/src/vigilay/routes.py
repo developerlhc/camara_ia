@@ -13,7 +13,6 @@ from vigilay.auth import (
     revoke_user_sessions,
 )
 from vigilay.config import settings
-from vigilay.frigate import FrigateError, FrigateService
 from vigilay.models import (
     AuditLog,
     Camera,
@@ -40,7 +39,7 @@ from vigilay.schemas import (
     UserInput,
     UserUpdate,
 )
-from vigilay.security import encrypt_credentials, hasher
+from vigilay.security import decrypt_credentials, encrypt_credentials, hasher
 
 router = APIRouter(prefix="/api/v1", tags=["Administración"])
 
@@ -102,7 +101,6 @@ def camera_dict(row):
         "integration_type": row.integration_type,
         "brand": row.brand,
         "model": row.model,
-        "frigate_camera_name": row.frigate_camera_name,
         "target_fps": row.target_fps,
         "grayscale": row.grayscale,
         "status": row.status,
@@ -488,7 +486,7 @@ def create_camera(
     if data.integration_type == "SIMULATOR" and not settings().enable_simulator:
         raise HTTPException(400, "El simulador está deshabilitado en este entorno")
     uri = data.rtsp_url.get_secret_value() if data.rtsp_url else ""
-    if data.integration_type == "RTSP":
+    if data.integration_type == "RTSP" or (data.integration_type == "V380" and uri):
         try:
             parsed = urlsplit(uri)
             valid = parsed.scheme in {"rtsp", "rtsps"} and parsed.hostname and parsed.port != 0
@@ -499,23 +497,13 @@ def create_camera(
     if data.integration_type == "V380":
         if data.brand != "V380":
             raise HTTPException(422, "La integración V380 requiere la marca V380")
-        if not all((data.host, data.port, data.username, data.password, data.device_id)):
-            raise HTTPException(422, "Completa IP, puerto, ID, usuario y contraseña V380")
-    if data.frigate_camera_name:
-        try:
-            frigate_names = FrigateService.for_site(db, data.tenant_id, data.site_id).camera_names()
-        except FrigateError as exc:
-            raise HTTPException(502, str(exc)) from exc
-        if data.frigate_camera_name not in frigate_names:
-            raise HTTPException(404, "La cámara indicada no existe en Frigate")
-        assigned = db.scalar(
-            select(Camera).where(
-                Camera.site_id == data.site_id,
-                Camera.frigate_camera_name == data.frigate_camera_name,
+        if not uri and not all(
+            (data.host, data.port, data.username, data.password, data.device_id)
+        ):
+            raise HTTPException(
+                422,
+                "Introduce la fuente RTSP del puente V380 o completa IP, puerto, ID, usuario y contraseña",
             )
-        )
-        if assigned is not None:
-            raise HTTPException(409, "Esa cámara de Frigate ya está asignada en esta sede")
     row = Camera(
         tenant_id=data.tenant_id,
         site_id=data.site_id,
@@ -523,7 +511,6 @@ def create_camera(
         integration_type=data.integration_type,
         brand=data.brand,
         model=data.model,
-        frigate_camera_name=data.frigate_camera_name,
         target_fps=data.target_fps,
         grayscale=data.grayscale,
     )
@@ -553,6 +540,70 @@ def create_camera(
     audit(db, actor, "CAMERA_CREATED", "camera", row.id, row.tenant_id)
     db.commit()
     return camera_dict(row)
+
+
+@router.post("/sites/{site_id}/recorder-cameras")
+def provision_recorder_cameras(
+    site_id: str,
+    actor: Principal = Depends(require("cameras.manage")),
+    db=Depends(database),
+):
+    """Entrega al instalador Desktop las fuentes de una sede sin exponerlas al navegador."""
+
+    site = found(db, Site, site_id)
+    authorize_tenant(actor, site.tenant_id)
+    rows = db.execute(
+        select(Camera, CameraCredential)
+        .outerjoin(CameraCredential, CameraCredential.camera_id == Camera.id)
+        .where(
+            Camera.site_id == site.id,
+            Camera.enabled.is_(True),
+            Camera.integration_type != "SIMULATOR",
+        )
+        .order_by(Camera.name)
+    ).all()
+    cameras = []
+    missing = []
+    for camera, credential in rows:
+        if credential is None:
+            missing.append(camera.name)
+            continue
+        secret = decrypt_credentials(credential.secret_encrypted, camera.tenant_id, camera.id)
+        source = secret.get("rtsp_url", "")
+        if not source and camera.integration_type == "V380":
+            source = f"rtsp://127.0.0.1:{int(secret.get('rtsp_port', 8556))}/live"
+        try:
+            parsed = urlsplit(source)
+            valid = parsed.scheme in {"rtsp", "rtsps", "http", "https"} and parsed.hostname
+        except (TypeError, ValueError):
+            valid = False
+        if not valid:
+            missing.append(camera.name)
+            continue
+        cameras.append(
+            {
+                "id": camera.id,
+                "name": camera.name,
+                "source": source,
+                "fps": camera.target_fps,
+                "enabled": True,
+            }
+        )
+    if missing:
+        raise HTTPException(
+            409,
+            "Falta una fuente de grabación válida para: " + ", ".join(missing),
+        )
+    audit(
+        db,
+        actor,
+        "RECORDER_CAMERAS_PROVISIONED",
+        "site",
+        site.id,
+        site.tenant_id,
+    )
+    db.commit()
+    return {"site_id": site.id, "cameras": cameras}
 
 
 @router.put("/cameras/{camera_id}/permissions")

@@ -14,7 +14,7 @@ from vigilay.db import system_session, tenant_session
 from vigilay.models import (
     CameraStreamSession,
     DeviceCommand,
-    FrigateConnection,
+    RecorderConnection,
     Site,
     Tenant,
     utcnow,
@@ -195,9 +195,9 @@ def _authenticate_agent(payload: dict) -> tuple[str, str]:
         tenant = db.get(Tenant, tenant_id)
         site = db.get(Site, site_id)
         connection = db.scalar(
-            select(FrigateConnection).where(
-                FrigateConnection.tenant_id == tenant_id,
-                FrigateConnection.site_id == site_id,
+            select(RecorderConnection).where(
+                RecorderConnection.tenant_id == tenant_id,
+                RecorderConnection.site_id == site_id,
             )
         )
         if (

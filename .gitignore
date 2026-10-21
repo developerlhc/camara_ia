@@ -20,6 +20,7 @@ dist/
 *.pt
 reportes/*.csv
 visitas/*
+grabaciones_v380/
 rostros_conocidos/*
 !rostros_conocidos/.gitkeep
 .local/
@@ -29,4 +30,5 @@ target/
 *.jks
 *.keystore
 apps/desktop/src-tauri/gen/schemas/
+apps/desktop/src-tauri/binaries/*.exe
 apps/mobile/android/.idea/

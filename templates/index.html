@@ -290,9 +290,9 @@
         <p id="notificationState" class="panel-subtitle">Revisando avisos de WhatsApp…</p>
         <div id="recognizedPeople" class="names"></div>
       </section>
-      <section id="frigatePanel" class="card panel" hidden>
-        <h2>IA centralizada en Frigate</h2>
-        <p class="panel-subtitle">Vigilay Local administra la identidad del cliente, la sede y las conexiones. Los eventos, detecciones, grabaciones y notificaciones se consultan en Vigilay Web.</p>
+      <section id="recorderPanel" class="card panel" hidden>
+        <h2>Vigilay Recorder</h2>
+        <p class="panel-subtitle">La detección, los eventos y las grabaciones se configuran en Vigilay Desktop. Este panel local conserva la vista y el control de cámaras heredados.</p>
       </section>
     </aside>
   </main>
@@ -306,7 +306,6 @@
         <label class="field">Marca<select id="cameraBrand" name="brand"><option value="EZVIZ">EZVIZ</option><option value="IMOU">Imou</option><option value="V380">V380 Pro</option><option value="GENERIC">RTSP genérica</option></select></label>
         <label class="field">Modelo<input id="cameraModel" name="model" placeholder="Modelo de la cámara"></label>
         <label class="field">Alias<input id="cameraName" name="name" required placeholder="Ej. Entrada principal"></label>
-        <label class="field">Asignación Frigate<select id="cameraFrigateName" name="frigate_camera_name"><option value="">Sin asignar</option></select></label>
         <label class="field">Fotogramas por segundo: <output id="cameraFpsValue">10 FPS</output><input id="cameraTargetFps" name="target_fps" type="range" min="1" max="30" value="10" step="1"></label>
         <label class="check-field"><input id="cameraGrayscale" name="grayscale" type="checkbox"> Mostrar esta cámara en blanco y negro</label>
         <label class="field">Dirección IP<input id="cameraHost" name="host" inputmode="decimal" required></label>
@@ -353,7 +352,6 @@
     const scopeModal = $("#scopeModal");
     const scopeForm = $("#scopeForm");
     let scopeCatalog = { configured: null, tenants: [], sites: [] };
-    let frigateAliases = [];
     const ptzButtons = [...document.querySelectorAll("[data-action]")];
     let ptzCapabilities = { pan_tilt: false, zoom: false };
     let activeCameraId = null;
@@ -405,18 +403,6 @@
     }
 
     function closeScopeModal() { scopeModal.classList.remove("visible"); }
-
-    async function loadFrigateCameras() {
-      const response = await fetch("/api/frigate/cameras");
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "No se pudo consultar Frigate");
-      frigateAliases = data;
-      const select = $("#cameraFrigateName");
-      const selected = select.value;
-      select.replaceChildren(new Option("Sin asignar", ""));
-      frigateAliases.forEach((item) => select.add(new Option(item.name, item.name)));
-      select.value = selected;
-    }
 
     async function loadLocalScope(openWhenMissing = false) {
       const response = await fetch("/api/local-scope");
@@ -485,10 +471,10 @@
       try {
         const response = await fetch("/api/status");
         const status = await response.json();
-        const usesFrigate = status.ai_engine === "frigate";
-        $("#localAiMetrics").hidden = usesFrigate;
-        $("#localAiPanel").hidden = usesFrigate;
-        $("#frigatePanel").hidden = !usesFrigate;
+        const usesLocalAi = status.ai_engine === "local";
+        $("#localAiMetrics").hidden = !usesLocalAi;
+        $("#localAiPanel").hidden = !usesLocalAi;
+        $("#recorderPanel").hidden = usesLocalAi;
         $("#personCount").textContent = status.person_count;
         $("#faceCount").textContent = status.face_count;
         $("#activeCameraName").textContent = status.active_camera_name || "Cámara";
@@ -520,7 +506,7 @@
           not_configured: "WhatsApp todavía no está configurado.",
         };
         $("#notificationState").textContent = notificationMessages[status.last_notification_status] || "Revisando avisos de WhatsApp…";
-        if (!usesFrigate && status.last_notification_status === "not_configured") {
+        if (usesLocalAi && status.last_notification_status === "not_configured") {
           cameraNotice.classList.add("visible");
           cameraNotice.textContent = "WhatsApp pendiente: configura NOTIFY_PHONE para enviar avisos al detectar una persona.";
         }
@@ -641,7 +627,6 @@
       $("#cameraUsername").value = camera.username ?? $("#cameraUsername").value;
       $("#cameraPath").value = camera.path || $("#cameraPath").value;
       $("#cameraDeviceId").value = camera.device_id || "";
-      $("#cameraFrigateName").value = camera.frigate_camera_name || "";
       $("#cameraPassword").value = "";
       $("#cameraPassword").required = !editing;
       $("#cameraPassword").placeholder = editing ? "Déjala vacía para conservarla" : "";
@@ -896,7 +881,7 @@
       // para que el navegador no deje la pestaña en estado de carga permanente.
       setTimeout(() => {
         videoFeed.src = `/video_feed?t=${Date.now()}`;
-        Promise.all([refreshStatus(), loadCameras(), loadLocalScope(true), loadFrigateCameras()])
+        Promise.all([refreshStatus(), loadCameras(), loadLocalScope(true)])
           .then(discoverCameras)
           .catch((error) => showToast(error.message, true));
         setInterval(refreshStatus, 1500);

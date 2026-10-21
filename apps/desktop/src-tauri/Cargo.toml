@@ -1,6 +1,6 @@
 [package]
 name = "vigilay-desktop"
-version = "0.1.0"
+version = "0.2.3"
 description = "Asistente técnico local de Vigilay"
 edition = "2021"
 rust-version = "1.85"
@@ -9,14 +9,15 @@ rust-version = "1.85"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 url = "2"
-base64 = "0.22"
-uuid = { version = "1", features = ["v4"] }
-tokio = { version = "1", features = ["process", "time", "io-util", "sync"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "cookies", "rustls-tls"] }
+tokio = { version = "1", features = ["sync", "process", "io-util", "time"] }
+rfd = "0.15"
+rand = "0.9"
 
 [profile.release]
 opt-level = "s"

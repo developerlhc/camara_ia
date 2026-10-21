@@ -1,60 +1,54 @@
-# Vigilay — configuración
+# Variables de entorno
 
-`.env.example` es el catálogo inicial; `.env` es privado de la instalación y está excluido de Git. API y CLI locales lo cargan desde el directorio de trabajo. Compose convierte la dirección local de MySQL a su nombre interno de servicio. La web usa un proxy del mismo origen para evitar exponer credenciales o requerir tokens en almacenamiento del navegador.
+La plantilla canónica es `.env.example`. Los secretos deben ser distintos por
+instalación y nunca se versionan.
 
-| Variable | Propósito |
+## Plataforma central
+
+| Variable | Uso |
 | --- | --- |
-| DATABASE_URL | Conexión SQLAlchemy `mysql+pymysql`, esquema UTF8MB4. |
-| BDMYSQL | Cadena ADO.NET (`Server=...;Database=...;Uid=...;Pwd=...`) aceptada como alternativa y con prioridad sobre `DATABASE_URL`. |
-| DATABASE_POOL_SIZE | Conexiones persistentes máximas por proceso; usar `2` en hosting con límite de 20 conexiones. |
-| DATABASE_MAX_OVERFLOW | Conexiones adicionales temporales por proceso; usar `0` en el hosting compartido actual. |
-| CAMERA_STORAGE | `mysql` hace que el visor cargue todas las cámaras desde MySQL. |
-| LOCAL_AI_ENABLED | Debe permanecer `false` normalmente: Frigate realiza toda la IA. Sólo habilita el YOLO heredado para pruebas aisladas. |
-| START_STREAM_AGENT_WITH_LOCAL | Inicia el agente de vivo dentro de Vigilay Local. Mantener `false` si se usa el agente dedicado recomendado. |
-| MYSQL_DATABASE / MYSQL_USER / MYSQL_PASSWORD | Base y usuario de aplicación en Compose. |
-| MYSQL_ROOT_PASSWORD | Inicialización/administración de MySQL; no se inyecta en la API. |
-| SESSION_SECRET | Clave aleatoria de al menos 32 caracteres para CSRF. |
-| INTERNAL_PROXY_SECRET | Secreto del despliegue central, compartido sólo entre `vigilay-web` y `api` dentro del pod. No se instala en Vigilay Local. |
-| CREDENTIAL_ENCRYPTION_KEY | Clave AES de 32 bytes codificada en base64. No rotar sin migrar credenciales. |
-| WEB_ORIGIN | Origen exacto permitido, inicialmente `http://localhost:3000`. |
-| SESSION_COOKIE_SECURE | `true` para HTTPS/producción. |
-| SESSION_TTL_SECONDS | Vida de sesión, inicialmente 28800. |
-| ENABLE_SIMULATOR | Activa únicamente el adaptador de desarrollo. |
-| API_INTERNAL_URL | Dirección privada de API que usa el servidor web. |
-| VIGILAY_API_URL | API alcanzable desde Vigilay Local, normalmente `http://localhost:8000`; se usa para validar aliases Frigate sin entregar el secreto al navegador. |
-| VIGILAY_REALTIME_URL | WebSocket público saliente usado por el agente de cada sede, por ejemplo `wss://mc-xxxx.bunny.run/api/v1/agent/realtime`. Si queda vacío, se deriva de `VIGILAY_API_URL`. |
-| ORIGIN | Origen público que usa adapter-node. |
-| TEST_DATABASE_URL | Esquema separado cuyo nombre termina en `_test`. |
-| VIGILAY_E2E_EMAIL / VIGILAY_E2E_PASSWORD | Cuenta de desarrollo para pruebas de navegador. |
-| PLAYWRIGHT_CHANNEL | Opcional: `msedge` para usar Edge instalado. |
-| CLOUDFLARE_ACCOUNT_ID | Alternativa de despliegue a la configuración desde Administración → Sistema. |
-| CLOUDFLARE_STREAM_API_TOKEN | Alternativa de despliegue; si se registra desde la web, se almacena cifrado en MySQL. |
-| FFMPEG_PATH | Ruta configurable de FFmpeg en el equipo del agente. |
-| V380_DECODER_PATH | Ruta local de V380Decoder en el equipo del agente. |
-| FRIGATE_API_URL | API interna de Frigate; debe ser accesible sólo desde el API de Vigilay, nunca desde Internet ni desde el navegador. |
-| FRIGATE_RESTREAM_URL | RTSP base de go2rtc para el agente local. Por defecto `rtsp://127.0.0.1:8554`; el agente lo prefiere cuando existe el alias vinculado y vuelve al RTSP de la cámara si no existe. |
-| FRIGATE_LIVE_STREAM_SUFFIX | Sufijo opcional del alias para live, por ejemplo `_live`. Crear y verificar primero los aliases en go2rtc. No modifica el alias de grabación. El agente vuelve al alias principal si no encuentra el alternativo; el visor Local requiere que exista. |
-| VIGILAY_LOCAL_PREFER_RESTREAM | `true` para consumir go2rtc en el visor Local y compartir conexiones con Frigate. Requiere que Frigate sea alcanzable desde el equipo o contenedor. |
-| V380_LOCAL_TRANSPORT | `rtsp` por defecto; `mjpeg` permite usar el puente HTTP de la V380 sólo en el visor Local. No modifica el WebRTC remoto ni las grabaciones. |
-| FRIGATE_TIMEOUT_SECONDS | Tiempo máximo de consulta a Frigate. |
-| FRIGATE_GATEWAY_PORT | Puerto loopback del proxy autenticado local; valor normal `8788`. |
-| CLOUDFLARED_PATH | Ejecutable de Cloudflare Tunnel; el contenedor local ya lo incorpora. |
-| STREAM_IDLE_TIMEOUT_SECONDS | Gracia sin espectadores antes de detener FFmpeg. Se recomiendan `300` segundos para que reaperturas cercanas sean instantáneas; sin espectadores Cloudflare no factura minutos entregados y la grabación remota está desactivada. |
-| STREAM_START_TIMEOUT_SECONDS | Espera máxima de confirmación al abrir el visor. |
-| STREAM_LIVE_HEIGHT | Altura máxima del vivo WHIP (240–720, por defecto 720); ancho limitado a 1280 sin ampliar fuentes pequeñas. No modifica grabaciones Frigate. |
-| STREAM_LIVE_FPS | FPS de salida del vivo (5–30, por defecto 15). Un fotograma clave por segundo. |
-| STREAM_LIVE_BITRATE_KBPS | Tope de bitrate del video en vivo (256–4000, por defecto 2000). Considerar la subida de todas las cámaras publicadas simultáneamente. |
-| STREAM_ENCODER_THREADS | Hilos de decodificación/codificación por publicador (1–8, por defecto 2). No es un límite total de CPU del proceso. |
+| `APP_ENV` | `development` o `production`. Producción exige HTTPS. |
+| `WEB_ORIGIN` | Origen exacto permitido para cookies y CSRF. |
+| `DATABASE_URL` / `BDMYSQL` | Conexión MySQL; `BDMYSQL` admite la cadena del proveedor. |
+| `DATABASE_POOL_SIZE` | Conexiones por proceso, entre 1 y 10. |
+| `SESSION_SECRET` | Secreto aleatorio de al menos 32 caracteres. |
+| `CREDENTIAL_ENCRYPTION_KEY` | Clave AES de 32 bytes codificada en base64. |
+| `INTERNAL_PROXY_SECRET` | Autenticación privada entre Web y API. |
+| `SESSION_COOKIE_SECURE` | Debe ser `true` en producción. |
+| `ENABLE_SIMULATOR` | Habilita únicamente cámaras de demostración. |
 
-Generación manual de claves:
+## Video en vivo
 
-```powershell
-python -c "import secrets; print(secrets.token_hex(32))"
-python -c "import base64,secrets; print(base64.b64encode(secrets.token_bytes(32)).decode())"
-```
+| Variable | Uso |
+| --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` / `CLOUDFLARE_STREAM_API_TOKEN` | Credenciales globales del vivo WebRTC; se configuran juntas. |
+| `FFMPEG_PATH` | Ejecutable FFmpeg del agente de vivo. |
+| `VIGILAY_REALTIME_URL` | WebSocket público que usa el agente de la sede. |
+| `STREAM_IDLE_TIMEOUT_SECONDS` | Tiempo sin espectadores antes de cerrar FFmpeg. |
+| `STREAM_START_TIMEOUT_SECONDS` | Máximo de inicio de una publicación. |
+| `STREAM_LIVE_HEIGHT`, `STREAM_LIVE_FPS`, `STREAM_LIVE_BITRATE_KBPS` | Perfil exclusivo del vivo; no modifica los clips locales. |
 
-Usar claves independientes. Guardar SESSION_SECRET, INTERNAL_PROXY_SECRET, CREDENTIAL_ENCRYPTION_KEY y contraseñas MySQL en el gestor de secretos del entorno de despliegue. Nunca usar prefijos PUBLIC_ para secretos.
+## Vigilay Recorder
 
-La autenticación del gateway de Frigate no se configura manualmente: Vigilay Local genera un token aleatorio diferente para cada sede, lo conserva cifrado en `frigate_connections` y lo reutiliza al reconectar. Cambiar `INTERNAL_PROXY_SECRET` del pod central no desconecta los gateways de clientes.
+`RECORDING_API_URL`, `RECORDING_GATEWAY_TOKEN` y
+`RECORDING_TIMEOUT_SECONDS` sirven para desarrollo cuando API y grabador están
+en el mismo equipo. En una sede real, Desktop genera un token aleatorio, abre un
+túnel saliente y registra la conexión de forma automática.
 
-Las credenciales EZVIZ, Imou, V380 y RTSP genéricas se guardan cifradas con AES-GCM en `camera_credentials`. Para importar una instalación antigua se ejecuta `migrar-camaras-mysql.ps1`: comprueba la conexión, aplica Alembic, importa las cámaras y solo después retira de `.env` las URLs, usuarios y contraseñas individuales. No se requiere Docker para este flujo.
+La ruta, retención, reserva de disco, detector, confianza y cámaras no son
+variables de entorno. Desktop las guarda en su directorio privado de aplicación
+como `recorder.json` y comprueba escritura antes de iniciar.
+
+Variables opcionales de Desktop:
+
+| Variable | Uso |
+| --- | --- |
+| `CLOUDFLARED_PATH` | Ruta alternativa de `cloudflared`. |
+| `VIGILAY_RECORDER_EXECUTABLE` | Motor externo para desarrollo o diagnóstico. El instalador normal ya lo incluye. |
+| `VIGILAY_RECORDER_LOCAL_ONLY=true` | Omite el túnel; sólo sirve si API alcanza `127.0.0.1:8788`. |
+
+## Vigilay Local heredado
+
+`VIGILAY_LOCAL_PORT`, `VIGILAY_LOCAL_API_URL`, `VIGILAY_LOCAL_LAN_CIDR`,
+`V380_EXTERNAL_BRIDGE_HOST` y `V380_LOCAL_TRANSPORT` pertenecen al panel local
+heredado. No sustituyen Vigilay Desktop ni Vigilay Recorder.

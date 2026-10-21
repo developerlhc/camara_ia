@@ -1,6 +1,7 @@
 """Authorized on-demand live-view endpoints."""
 
 import secrets
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
@@ -11,6 +12,7 @@ from vigilay.models import (
     CameraStreamProvider,
     CameraStreamSession,
     IntegrationSetting,
+    ServiceHeartbeat,
     utcnow,
 )
 from vigilay.realtime_hub import notify_site
@@ -118,6 +120,12 @@ def start_live(
     camera = authorized_camera(db, actor, camera_id)
     if not camera.enabled or camera.integration_type == "SIMULATOR":
         raise HTTPException(409, "Esta cámara no puede transmitir video")
+    heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+    if heartbeat is None or heartbeat.last_seen_at < utcnow() - timedelta(seconds=30):
+        raise HTTPException(
+            503,
+            "El agente local de video está apagado. Inícialo en el equipo de la sede.",
+        )
     try:
         live_input = CloudflareStreamService(db).get_or_create_live_input(camera)
     except StreamProviderError as exc:

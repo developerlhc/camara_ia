@@ -1,9 +1,20 @@
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$agentRunning = Get-CimInstance Win32_Process -ErrorAction Stop |
-    Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'vigilay\.stream_agent' } |
-    Select-Object -First 1
-if ($agentRunning) { return }
+$lockName = 'Local\VigilayStreamAgent-' + [Convert]::ToBase64String(
+    [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+        [Text.Encoding]::UTF8.GetBytes($projectRoot.ToLowerInvariant())
+    )
+).Replace('/', '_').Replace('+', '-').Substring(0, 16)
+$probeMutex = New-Object System.Threading.Mutex($false, $lockName)
+$canStart = $false
+try {
+    try { $canStart = $probeMutex.WaitOne(0) }
+    catch [System.Threading.AbandonedMutexException] { $canStart = $true }
+    if (-not $canStart) { return }
+} finally {
+    if ($canStart) { $probeMutex.ReleaseMutex() }
+    $probeMutex.Dispose()
+}
 $logDirectory = Join-Path $projectRoot '.local'
 New-Item -ItemType Directory -Force -Path $logDirectory | Out-Null
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss-fff'

@@ -4,7 +4,7 @@ async function mockApi(page: Page, delayedStart = false) {
   const starts: string[] = [], stops: string[] = [], queries: URL[] = [];
   const companies = [{id: 'a', name: 'Cenfelec'}, {id: 'b', name: 'Otra empresa'}];
   const sites = [{id: 'sa', tenant_id: 'a', name: 'Sede principal'}, {id: 'sb', tenant_id: 'b', name: 'Otra sede'}];
-  const cameras = ['1', '2', '3', '4'].map(id => ({id, name: `Cámara ${id}`, tenant_id: 'a', site_id: 'sa', integration_type: 'RTSP', enabled: true, status: 'ONLINE', frigate_camera_name: `cam${id}`}));
+  const cameras = ['1', '2', '3', '4'].map(id => ({id, name: `Cámara ${id}`, tenant_id: 'a', site_id: 'sa', integration_type: 'RTSP', enabled: true, status: 'ONLINE'}));
   await page.route('**/api/v1/**', async route => {
     const url = new URL(route.request().url()); queries.push(url);
     const path = url.pathname.replace('/api/v1', '');
@@ -21,9 +21,9 @@ async function mockApi(page: Page, delayedStart = false) {
       data = {sessionId: path, viewerKey: 'fake', playbackUrl: 'https://whep.example/play', status: 'starting'};
     } else if (path.endsWith('/live/stop')) { stops.push(path); data = {status: 'stopped'}; }
     else if (path.endsWith('/live/heartbeat')) data = {status: 'live'};
-    else if (path === '/frigate/recordings') data = [
-      {start: 200, end: 210, duration: 10, camera_name: 'Cámara 1', clip_url: '/api/v1/frigate/newer.mp4'},
-      {start: 100, end: 110, duration: 10, camera_name: 'Cámara 1', clip_url: '/api/v1/frigate/older.mp4'},
+    else if (path === '/media/recordings') data = [
+      {start: 200, end: 210, duration: 10, camera_name: 'Cámara 1', clip_url: '/api/v1/media/newer.mp4'},
+      {start: 100, end: 110, duration: 10, camera_name: 'Cámara 1', clip_url: '/api/v1/media/older.mp4'},
     ];
     await route.fulfill({json: data});
   });
@@ -92,7 +92,7 @@ test('recording dates, download link and forward continuous playback', async ({p
 
 test('unreachable recording storage is an error, not an empty collection', async ({page}) => {
   await mockApi(page);
-  await page.route('**/api/v1/frigate/recordings?**', route => route.fulfill({status: 502, json: {detail: 'Enlace desconectado'}}));
+  await page.route('**/api/v1/media/recordings?**', route => route.fulfill({status: 502, json: {detail: 'Enlace desconectado'}}));
   await page.goto('/recordings');
   await expect(page.getByRole('alert')).toContainText('Enlace desconectado');
   await expect(page.getByText('No hay grabaciones en el intervalo seleccionado')).toHaveCount(0);

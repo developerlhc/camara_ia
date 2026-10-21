@@ -1,19 +1,23 @@
-# Vigilay — datos y migraciones
+# Modelo de datos
 
-MySQL 8.4, InnoDB, UTF8MB4. La API almacena fechas UTC y las serializa con sufijo Z; la interfaz muestra America/Lima. Identificadores UUID representados como VARCHAR(36). Un cliente puede tener varias sedes, usuarios y cámaras.
+MySQL conserva identidad, permisos, cámaras, credenciales cifradas, sesiones,
+auditoría, comandos y coordinación del vivo. Los archivos MP4 y sus metadatos
+JSON permanecen en la carpeta configurada en cada sede.
 
-Migraciones:
+Entidades principales:
 
-- `0001`: identidad, administración, auditoría y dominio inicial de cámaras.
-- `0002`: cuatro roles, catálogo de permisos y asignaciones iniciales.
-- `0003`: referencias compuestas entre usuario/cámara y tenant, más CHECK del ámbito de roles.
+- `tenants`, `sites`, `users`, roles y permisos;
+- `cameras`, `camera_credentials`, capacidades y configuración;
+- `camera_stream_sessions` y proveedores del vivo;
+- conexiones autenticadas de Vigilay Recorder por sede;
+- auditoría, sesiones, intentos de acceso y heartbeats de servicios.
 
-Tablas actuales: tenants, sites, users, roles, permissions, role_permissions, user_roles, sessions, password_reset_tokens, login_attempts, rate_limit_buckets, service_heartbeats, simulator_states, audit_logs, cameras, camera_credentials, user_camera_permissions, camera_capabilities, camera_settings, device_commands, notification_channels, camera_stream_providers, camera_stream_sessions y global_integration_settings. Alembic mantiene su tabla de versión. Los eventos y medios permanecen en Frigate y se consultan mediante su API; no se duplican en MySQL.
+Por compatibilidad con instalaciones existentes, la tabla física de conexiones
+y una columna histórica de cámara conservan sus nombres originales de migración.
+El código activo las expone como `RecorderConnection` y no usa alias externos ni
+ninguna API de terceros. Renombrarlas en MySQL exige una migración posterior y no
+aporta una mejora funcional, por eso esta entrega evita una operación destructiva.
 
-Cada User tiene inicialmente un único rol. El ámbito de la asignación debe coincidir con su tenant; solo SUPER_ADMIN puede tener tenant nulo. OPERATOR y VIEWER requieren permisos específicos de cámara. Los administradores del cliente acceden a sus cámaras. TenantScoped aplica filtros automáticos y verifica escrituras. SQL directo y cambios masivos se rechazan en sesiones de clientes.
-
-Los valores deseados y reportados son JSON porque cada ajuste puede tener tipos distintos. Las relaciones entre recursos son claves foráneas, no documentos JSON. La URL RTSP se cifra como credencial; no existe un endpoint público para descifrarla.
-
-La cola inicial usa filas MySQL, bloqueo de cámara al encolar y `FOR UPDATE SKIP LOCKED` en el worker. Una transacción procesa un comando de simulador; la operación es idempotente. Si el worker muere antes del commit, MySQL revierte y permite reintentar. Para comandos de hardware de larga duración se implementarán leases, timeouts, identidad del agente y estados intermedios en la fase 3.
-
-`alembic upgrade head` aplica cambios; `alembic check` comprueba diferencias entre modelos y migraciones. No usar `create_all()` en el arranque de producción. La revisión RBAC no tiene downgrade destructivo: los cambios de política se realizan con una migración explícita.
+Los eventos se derivan de los JSON contiguos a cada clip. La API consulta el
+catálogo autenticado de la sede, aplica empresa/sede/permisos de cámara y transmite
+el MP4 con soporte `Range`; no duplica video en MySQL.

@@ -104,35 +104,6 @@ def load_notification_config():
         return fallback
 
 
-def load_frigate_camera_names():
-    """Consulta aliases por el canal privado local; el navegador nunca recibe la clave."""
-    from camera_store import get_local_frigate_gateway_token, local_scope_catalog
-
-    api_url = os.getenv("VIGILAY_API_URL", "http://127.0.0.1:8000").rstrip("/")
-    configured = local_scope_catalog().get("configured")
-    if not configured:
-        raise RuntimeError("Configura primero la empresa y la sede de Vigilay Local.")
-    command = request.Request(
-        f"{api_url}/api/v1/frigate/internal/cameras?site_id={quote(configured['site_id'])}",
-        headers={"Authorization": f"Bearer {get_local_frigate_gateway_token()}"},
-    )
-    try:
-        with request.urlopen(command, timeout=10) as response:
-            result = json.loads(response.read().decode("utf-8"))
-    except (OSError, URLError, json.JSONDecodeError) as error:
-        raise RuntimeError("Vigilay API no pudo consultar las cámaras de Frigate.") from error
-    return sorted(
-        str(item.get("name", "")) for item in result if isinstance(item, dict) and item.get("name")
-    )
-
-
-def validate_frigate_camera_name(value):
-    name = str(value or "").strip()
-    if name and name not in load_frigate_camera_names():
-        raise ValueError("La cámara seleccionada no existe en Frigate.")
-    return name or None
-
-
 def _camera_config(camera_id, name, rtsp_url, brand="Cámara IP", onvif_port=80):
     parsed = urlsplit(rtsp_url)
     return {
@@ -505,8 +476,7 @@ class CameraAnalytics:
             if preferred_camera_id in self.cameras
             else next(iter(self.cameras), None)
         )
-        # Frigate is the production source of detections, recordings and events.
-        # The legacy model remains opt-in only for isolated/offline experiments.
+        # El modelo heredado queda opt-in; Vigilay Recorder realiza la IA y grabación normal.
         self.model = None
         if LOCAL_AI_ENABLED:
             from ultralytics import YOLO
@@ -522,7 +492,7 @@ class CameraAnalytics:
         self.latest_frame_version = 0
         self.notification_config = load_notification_config()
         self.status = {
-            "ai_engine": "local" if LOCAL_AI_ENABLED else "frigate",
+            "ai_engine": "local" if LOCAL_AI_ENABLED else "vigilay-recorder",
             "person_count": 0,
             "face_count": 0,
             "recognized_people": [],
@@ -744,8 +714,8 @@ class CameraAnalytics:
             from camera_store import get_runtime_camera
 
             stored = get_runtime_camera(camera_id)
-            # A failed Frigate restream does not prove the bridge failed.
-            # Do not tear down a healthy producer used by other viewers.
+            # Un fallo del consumidor RTSP no demuestra que el puente haya caído.
+            # No se reinicia un productor sano que podría tener otros consumidores.
             with request.urlopen(
                 f"http://127.0.0.1:{int(stored.get('http_port', 8081))}/snapshot", timeout=3
             ) as response:
@@ -1287,7 +1257,6 @@ class CameraAnalytics:
             "host": stored.get("host", ""),
             "username": stored.get("username", ""),
             "connection_mode": stored["integration_type"].lower(),
-            "frigate_camera_name": stored.get("frigate_camera_name", ""),
         }
         if stored["integration_type"] == "V380":
             result["device_id"] = stored.get("device_id", "")
@@ -1314,9 +1283,6 @@ class CameraAnalytics:
         if not 1 <= target_fps <= 30:
             raise ValueError("Selecciona entre 1 y 30 FPS.")
         grayscale = bool(payload.get("grayscale", False))
-        frigate_camera_name = validate_frigate_camera_name(
-            payload.get("frigate_camera_name", stored.get("frigate_camera_name"))
-        )
         if not name:
             raise ValueError("Escribe un alias para la cámara.")
         password = str(payload.get("password", ""))
@@ -1352,7 +1318,6 @@ class CameraAnalytics:
                 name=name,
                 model=model,
                 secret=secret,
-                frigate_camera_name=frigate_camera_name,
                 target_fps=target_fps,
                 grayscale=grayscale,
             )
@@ -1361,7 +1326,6 @@ class CameraAnalytics:
                 camera["model"] = updated["model"]
                 camera["target_fps"] = updated["target_fps"]
                 camera["grayscale"] = updated["grayscale"]
-                camera["frigate_camera_name"] = updated.get("frigate_camera_name")
                 self.cameras[camera_id] = preview_source(camera)
         else:
             host = str(payload.get("host", stored.get("host", ""))).strip()
@@ -1411,7 +1375,6 @@ class CameraAnalytics:
                 name=name,
                 model=model,
                 secret=secret,
-                frigate_camera_name=frigate_camera_name,
                 target_fps=target_fps,
                 grayscale=grayscale,
             )
@@ -1496,7 +1459,6 @@ class CameraAnalytics:
         grayscale=False,
         onvif_port=80,
         rtsp_url=None,
-        frigate_camera_name=None,
     ):
         if rtsp_url is None:
             path = path.strip()
@@ -1540,7 +1502,6 @@ class CameraAnalytics:
                 model=model,
                 integration_type="RTSP",
                 secret={"rtsp_url": rtsp_url, "onvif_port": onvif_port},
-                frigate_camera_name=frigate_camera_name,
                 target_fps=target_fps,
                 grayscale=grayscale,
             )
@@ -1570,7 +1531,6 @@ class CameraAnalytics:
         device_id,
         username,
         password,
-        frigate_camera_name=None,
         target_fps=10,
         grayscale=False,
     ):
@@ -1595,7 +1555,6 @@ class CameraAnalytics:
             "brand": "V380",
             "model": model,
             "integration_type": "V380",
-            "frigate_camera_name": frigate_camera_name,
             **secret,
         }
         candidate = _start_v380_bridge(candidate, 3 + offset)
@@ -1621,7 +1580,6 @@ class CameraAnalytics:
             model=model,
             integration_type="V380",
             secret=secret,
-            frigate_camera_name=frigate_camera_name,
             target_fps=target_fps,
             grayscale=grayscale,
         )
@@ -2139,14 +2097,6 @@ def api_camera_configuration(camera_id):
         return jsonify({"error": "La cámara no está configurada."}), 404
 
 
-@app.get("/api/frigate/cameras")
-def api_frigate_cameras():
-    try:
-        return jsonify([{"name": name} for name in load_frigate_camera_names()])
-    except RuntimeError as error:
-        return jsonify({"error": str(error)}), 502
-
-
 @app.put("/api/cameras/<camera_id>")
 def api_update_camera(camera_id):
     try:
@@ -2209,7 +2159,6 @@ def api_configure_camera():
     if connection_mode != "onvif" and brand != "V380" and (not password or not path):
         return jsonify({"error": "Completa contraseña y ruta RTSP."}), 400
     try:
-        frigate_camera_name = validate_frigate_camera_name(payload.get("frigate_camera_name"))
         if brand == "V380":
             device_id = str(payload.get("device_id", "")).strip()
             if not password or not device_id:
@@ -2221,7 +2170,6 @@ def api_configure_camera():
                 device_id=device_id,
                 username=username,
                 password=password,
-                frigate_camera_name=frigate_camera_name,
                 target_fps=target_fps,
                 grayscale=grayscale,
             )
@@ -2245,7 +2193,6 @@ def api_configure_camera():
             grayscale,
             onvif_port,
             rtsp_url,
-            frigate_camera_name,
         )
         analytics.select_camera(camera["id"])
     except ConnectionError as error:

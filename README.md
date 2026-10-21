@@ -1,12 +1,12 @@
 # Vigilay
 
-Plataforma de videovigilancia multiempresa con administración central, agente local, video en vivo y consulta protegida de eventos y grabaciones de Frigate.
+Plataforma de videovigilancia multiempresa con administración central, agente local, video en vivo y consulta protegida de eventos y grabaciones generadas por Vigilay.
 
 ## Aplicaciones Mobile y Desktop
 
 - **Vigilay Mobile** (`apps/mobile`): proyecto Capacitor Android que reutiliza Vigilay Web.
 - **Vigilay Desktop** (`apps/desktop`): asistente Tauri/Rust para empresa, sede, cámaras,
-  exportación/instalación de Frigate y contraseña de administrador.
+  ruta de almacenamiento, retención y control de Vigilay Recorder.
 
 Consulta [requisitos, instalación, seguridad y límites](docs/MOBILE_DESKTOP.md).
 
@@ -40,7 +40,7 @@ docker compose --profile local up -d --build vigilay-local
 Abre http://localhost:5000. No ejecutes simultáneamente el panel Python de
 `iniciar.ps1` en ese puerto; para probar ambos, configura `VIGILAY_LOCAL_PORT=5002`.
 La empresa/sede persisten en `.local/vigilay-local.json` y se validan contra MySQL.
-El agente de streaming, Frigate y el puente V380 Windows siguen siendo servicios
+El agente de streaming, Vigilay Recorder y el puente V380 Windows siguen siendo servicios
 separados. Consulta [instalación, red y límites de Docker Local](docs/VIGILAY_LOCAL_DOCKER.md).
 
 GitHub Actions verifica y publica tres imágenes GHCR: `vigilay-api`, `vigilay-web`
@@ -65,8 +65,8 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 - Dashboard con datos reales de la base, auditoría y estado de API/MySQL/worker/agente.
 - Cuadrícula de cámaras con filtros empresa/sede, paginación y vivo automático en tarjetas visibles.
 - Video en vivo bajo demanda mediante el agente local y Cloudflare Stream WebRTC.
-- Eventos de IA y grabaciones obtenidos de Frigate y filtrados por empresa, sede y permisos de cámara.
-- Gateway Frigate autenticado por sede; sin dominio usa un Quick Tunnel saliente que se registra automáticamente.
+- Eventos de IA y grabaciones producidos por Vigilay Recorder y filtrados por empresa, sede y permisos de cámara.
+- Gateway autenticado por sede; sin dominio usa un Quick Tunnel saliente registrado por Desktop.
 - Vigilay Local permite seleccionar, crear o modificar su empresa y sede; valida que ambas existan y que la sede pertenezca a la empresa antes de cargar cámaras.
 - Recuperación de contraseña mediante token de un solo uso emitido por CLI; cambio de contraseña desde Mi perfil.
 - Contenedores web/API/worker, migraciones y volúmenes persistentes; checks y publicación GHCR preparados.
@@ -76,12 +76,12 @@ docker compose exec api vigilay create-superadmin --email admin@example.com --us
 1. Entra como administrador.
 2. Crea un cliente en Clientes.
 3. Crea una sede y un usuario de ese cliente.
-4. En Cámaras, registra la conexión RTSP/V380 y, si la cámara ya existe en Frigate, selecciona su alias Frigate.
+4. En Desktop, registra la conexión RTSP o la salida RTSP del puente V380.
 5. Pulsa **Probar conexión**; una conexión real correcta queda verificada/en línea.
 6. En Cámaras, selecciona empresa/sede: las tarjetas visibles inician el vivo automáticamente; puedes ampliar una cámara.
-7. Consulta **Eventos de IA** y **Grabaciones**. Estas vistas nunca leen Cloudflare: el API obtiene los datos y medios de Frigate y sólo entrega cámaras autorizadas.
+7. Consulta **Eventos de IA** y **Grabaciones**. El API obtiene los datos del grabador de la sede y sólo entrega cámaras autorizadas.
 
-Cloudflare Stream se usa exclusivamente para el video en vivo. Frigate sigue siendo el motor y almacén de detecciones, eventos y grabaciones. Cloudflare Tunnel sólo crea el canal privado entre la sede y Vigilay Cloud; no almacena esos medios. Una cámara puede funcionar en vivo y, aun así, no aparecer en Eventos/Grabaciones hasta que exista en Frigate, su alias se vincule y `frigate-gateway` esté conectado.
+Cloudflare Stream se usa exclusivamente para el video en vivo. Vigilay Recorder detecta personas y conserva los clips en la carpeta elegida en Desktop. Cloudflare Tunnel sólo crea el canal autenticado entre la sede y Vigilay Cloud; no almacena esos medios.
 
 ## Desarrollo y pruebas
 
@@ -138,7 +138,7 @@ También funciona Chromium instalado con `npx playwright install chromium`, omit
 - [Despliegue de Vigilay Web en Magic Containers](docs/MAGIC_CONTAINERS.md)
 - [Prototipo original](docs/LEGACY.md)
 
-`camara-ia.py`, `templates/` e `iniciar.ps1` forman **Vigilay Local**: administran la identidad de la instalación, las conexiones de cámara y la vista LAN. La identidad queda en `.local/vigilay-local.json`; contiene identificadores, no credenciales. El YOLO local queda desactivado por defecto (`LOCAL_AI_ENABLED=false`) porque la IA normal pertenece a Frigate.
+`camara-ia.py`, `templates/` e `iniciar.ps1` forman la interfaz histórica de **Vigilay Local**. Para instalaciones nuevas, Vigilay Desktop administra cámaras, almacenamiento y el proceso de detección/grabación.
 
-En `http://localhost:5000`, **Configurar empresa y sede** permite crear, seleccionar y modificar la identidad de esa instalación. **Agregar/Editar cámara** permite asignar uno de los aliases que existen realmente en Frigate; la lista se valida mediante el canal privado de Vigilay API.
+En `http://localhost:5000`, **Configurar empresa y sede** mantiene instalaciones antiguas. El flujo recomendado para instalaciones nuevas está en Vigilay Desktop.
 # camara_ia

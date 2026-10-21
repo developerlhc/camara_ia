@@ -2,6 +2,7 @@ import io
 import subprocess
 import threading
 import time
+from datetime import timedelta
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -16,6 +17,8 @@ from vigilay.models import (
     CameraStreamProvider,
     DeviceCommand,
     IntegrationSetting,
+    ServiceHeartbeat,
+    utcnow,
 )
 from vigilay.security import decrypt_credentials, encrypt_credentials
 from vigilay.stream_agent import (
@@ -231,46 +234,7 @@ def test_v380_bridge_respects_selected_transport(monkeypatch, tmp_path, mode):
     assert "test-only" not in arguments
 
 
-def test_resolver_prefers_available_frigate_restream(monkeypatch):
-    from vigilay import stream_agent
-
-    monkeypatch.setattr(stream_agent, "_rtsp_stream_available", lambda url: True)
-    camera = SimpleNamespace(
-        id="camera",
-        name="V380",
-        brand="V380",
-        model="x",
-        integration_type="V380",
-        frigate_camera_name="calle",
-    )
-
-    source = CameraStreamResolver(restream_base_url="rtsp://127.0.0.1:8554").resolve(camera, {})
-
-    assert source == "rtsp://127.0.0.1:8554/calle"
-
-
-@pytest.mark.parametrize("live_available", [True, False])
-def test_resolver_uses_low_resolution_live_alias_with_main_fallback(monkeypatch, live_available):
-    from vigilay import stream_agent
-
-    monkeypatch.setattr(
-        stream_agent,
-        "settings",
-        lambda: SimpleNamespace(
-            frigate_live_stream_suffix="_live", frigate_restream_url="rtsp://127.0.0.1:8554"
-        ),
-    )
-    monkeypatch.setattr(
-        stream_agent,
-        "_rtsp_stream_available",
-        lambda url: live_available or not url.endswith("_live"),
-    )
-    camera = SimpleNamespace(id="a", frigate_camera_name="imou")
-    source = CameraStreamResolver().resolve(camera, {})
-    assert source == "rtsp://127.0.0.1:8554/imou" + ("_live" if live_available else "")
-
-
-def test_resolver_falls_back_when_frigate_restream_is_missing(monkeypatch):
+def test_resolver_uses_direct_camera_source(monkeypatch):
     from vigilay import stream_agent
 
     monkeypatch.setattr(stream_agent, "_rtsp_stream_available", lambda url: False)
@@ -280,13 +244,10 @@ def test_resolver_falls_back_when_frigate_restream_is_missing(monkeypatch):
         brand="Imou",
         model="x",
         integration_type="RTSP",
-        frigate_camera_name="imou",
     )
     monkeypatch.setattr(stream_agent, "_port_open", lambda *args, **kwargs: True)
 
-    source = CameraStreamResolver(restream_base_url="rtsp://127.0.0.1:8554").resolve(
-        camera, {"rtsp_url": "rtsp://camera.local/live"}
-    )
+    source = CameraStreamResolver().resolve(camera, {"rtsp_url": "rtsp://camera.local/live"})
 
     assert source == "rtsp://camera.local/live"
 
@@ -358,6 +319,11 @@ def test_live_start_never_returns_publish_url(monkeypatch, clients, cameras):
     with system_session() as db:
         camera = db.get(Camera, camera_id)
         camera.integration_type = "RTSP"
+        heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+        if heartbeat is None:
+            db.add(ServiceHeartbeat(service_name="stream-agent", last_seen_at=utcnow()))
+        else:
+            heartbeat.last_seen_at = utcnow()
         db.commit()
 
     class FakeService:
@@ -396,6 +362,22 @@ def test_live_start_never_returns_publish_url(monkeypatch, clients, cameras):
     )
     assert stopped.status_code == 200
     assert stopped.json()["status"] == "stopped"
+
+
+def test_live_start_reports_offline_stream_agent(clients, cameras):
+    camera_id = cameras["a"]["id"]
+    with system_session() as db:
+        camera = db.get(Camera, camera_id)
+        camera.integration_type = "RTSP"
+        heartbeat = db.get(ServiceHeartbeat, "stream-agent")
+        if heartbeat is None:
+            heartbeat = ServiceHeartbeat(service_name="stream-agent")
+            db.add(heartbeat)
+        heartbeat.last_seen_at = utcnow() - timedelta(minutes=2)
+        db.commit()
+    response = clients["a"].post(f"/api/v1/cameras/{camera_id}/live/start")
+    assert response.status_code == 503
+    assert "agente local de video" in response.json()["detail"].lower()
 
 
 def test_real_camera_probe_is_processed_by_local_agent(clients, cameras):

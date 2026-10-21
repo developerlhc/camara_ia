@@ -17,7 +17,6 @@ from vigilay.db import system_session  # noqa: E402
 from vigilay.models import (  # noqa: E402
     Camera,
     CameraCredential,
-    FrigateConnection,
     NotificationChannel,
     Site,
     Tenant,
@@ -86,23 +85,6 @@ def get_local_scope(db, *, required=True):
     return None, None
 
 
-def get_local_frigate_gateway_token():
-    """Return only this installation's credential for local-to-cloud calls."""
-    with system_session() as db:
-        tenant, site = get_local_scope(db)
-        connection = db.scalar(
-            select(FrigateConnection).where(
-                FrigateConnection.tenant_id == tenant.id,
-                FrigateConnection.site_id == site.id,
-            )
-        )
-        if connection is None or not connection.gateway_token_encrypted:
-            raise RuntimeError("Inicia frigate-gateway para provisionar esta sede.")
-        return decrypt_credentials(
-            connection.gateway_token_encrypted, tenant.id, site.id
-        )["gateway_token"]
-
-
 def local_scope_catalog():
     with system_session() as db:
         identity = _read_local_identity()
@@ -123,9 +105,7 @@ def local_scope_catalog():
                 configured = None
         return {
             "configured": configured,
-            "tenants": [
-                {"id": row.id, "name": row.name, "status": row.status} for row in tenants
-            ],
+            "tenants": [{"id": row.id, "name": row.name, "status": row.status} for row in tenants],
             "sites": [
                 {"id": row.id, "tenant_id": row.tenant_id, "name": row.name, "address": row.address}
                 for row in sites
@@ -133,7 +113,9 @@ def local_scope_catalog():
         }
 
 
-def configure_local_scope(*, tenant_id=None, tenant_name="", site_id=None, site_name="", address=""):
+def configure_local_scope(
+    *, tenant_id=None, tenant_name="", site_id=None, site_name="", address=""
+):
     tenant_name = tenant_name.strip()
     site_name = site_name.strip()
     with system_session() as db:
@@ -236,7 +218,6 @@ def _runtime_camera(camera, secret):
         "target_fps": camera.target_fps,
         "grayscale": camera.grayscale,
         "integration_type": camera.integration_type,
-        "frigate_camera_name": camera.frigate_camera_name or "",
     }
     if camera.integration_type == "V380":
         result.update(secret)
@@ -256,19 +237,6 @@ def _runtime_camera(camera, secret):
     return result
 
 
-def _validate_frigate_assignment(db, site_id, frigate_camera_name, *, camera_id=None):
-    if not frigate_camera_name:
-        return
-    statement = select(Camera.id).where(
-        Camera.site_id == site_id,
-        Camera.frigate_camera_name == frigate_camera_name,
-    )
-    if camera_id:
-        statement = statement.where(Camera.id != camera_id)
-    if db.scalar(statement):
-        raise ValueError("Esa cámara de Frigate ya está asignada en esta sede.")
-
-
 def list_runtime_cameras():
     with system_session() as db:
         tenant, site = get_local_scope(db, required=False)
@@ -286,22 +254,24 @@ def list_runtime_cameras():
                 .order_by(Camera.created_at, Camera.name)
             )
         )
-        credentials = {
-            row.camera_id: row
-            for row in db.scalars(
-                select(CameraCredential).where(
-                    CameraCredential.camera_id.in_([camera.id for camera in rows])
+        credentials = (
+            {
+                row.camera_id: row
+                for row in db.scalars(
+                    select(CameraCredential).where(
+                        CameraCredential.camera_id.in_([camera.id for camera in rows])
+                    )
                 )
-            )
-        } if rows else {}
+            }
+            if rows
+            else {}
+        )
         result = []
         for camera in rows:
             credential = credentials.get(camera.id)
             if credential is None:
                 continue
-            secret = decrypt_credentials(
-                credential.secret_encrypted, camera.tenant_id, camera.id
-            )
+            secret = decrypt_credentials(credential.secret_encrypted, camera.tenant_id, camera.id)
             result.append(_runtime_camera(camera, secret))
         return result
 
@@ -313,13 +283,11 @@ def save_camera(
     model,
     integration_type,
     secret,
-    frigate_camera_name=None,
     target_fps=10,
     grayscale=False,
 ):
     with system_session() as db:
         tenant, site = get_local_scope(db)
-        _validate_frigate_assignment(db, site.id, frigate_camera_name)
         row = Camera(
             tenant_id=tenant.id,
             site_id=site.id,
@@ -329,7 +297,6 @@ def save_camera(
             target_fps=target_fps,
             grayscale=grayscale,
             integration_type=integration_type,
-            frigate_camera_name=frigate_camera_name or None,
         )
         db.add(row)
         db.flush()
@@ -358,9 +325,7 @@ def get_runtime_camera(camera_id):
         )
         if credential is None:
             raise RuntimeError("La cámara no tiene credenciales almacenadas.")
-        secret = decrypt_credentials(
-            credential.secret_encrypted, row.tenant_id, row.id
-        )
+        secret = decrypt_credentials(credential.secret_encrypted, row.tenant_id, row.id)
         return _runtime_camera(row, secret)
 
 
@@ -429,7 +394,6 @@ def update_camera(
     name,
     model,
     secret=None,
-    frigate_camera_name=None,
     target_fps=None,
     grayscale=None,
 ):
@@ -440,12 +404,8 @@ def update_camera(
         tenant, site = get_local_scope(db)
         if row.tenant_id != tenant.id or row.site_id != site.id:
             raise KeyError(camera_id)
-        _validate_frigate_assignment(
-            db, site.id, frigate_camera_name, camera_id=camera_id
-        )
         row.name = name
         row.model = model
-        row.frigate_camera_name = frigate_camera_name or None
         if target_fps is not None:
             row.target_fps = target_fps
         if grayscale is not None:
@@ -456,17 +416,13 @@ def update_camera(
             )
             if credential is None:
                 raise RuntimeError("La cámara no tiene credenciales almacenadas.")
-            credential.secret_encrypted = encrypt_credentials(
-                secret, row.tenant_id, row.id
-            )
+            credential.secret_encrypted = encrypt_credentials(secret, row.tenant_id, row.id)
         db.commit()
         if secret is None:
             credential = db.scalar(
                 select(CameraCredential).where(CameraCredential.camera_id == camera_id)
             )
-            secret = decrypt_credentials(
-                credential.secret_encrypted, row.tenant_id, row.id
-            )
+            secret = decrypt_credentials(credential.secret_encrypted, row.tenant_id, row.id)
         return _runtime_camera(row, secret)
 
 
@@ -498,10 +454,16 @@ def migrate_environment_cameras(values):
                 candidates.append(
                     (
                         values.get(f"CAMERA_{index}_NAME", f"Cámara {index}"),
-                        values.get(f"CAMERA_{index}_BRAND", "GENERIC").split("/")[0].strip().upper(),
+                        values.get(f"CAMERA_{index}_BRAND", "GENERIC")
+                        .split("/")[0]
+                        .strip()
+                        .upper(),
                         values.get(f"CAMERA_{index}_MODEL", ""),
                         "RTSP",
-                        {"rtsp_url": uri, "onvif_port": int(values.get(f"CAMERA_{index}_ONVIF_PORT", 80))},
+                        {
+                            "rtsp_url": uri,
+                            "onvif_port": int(values.get(f"CAMERA_{index}_ONVIF_PORT", 80)),
+                        },
                     )
                 )
         if values.get("V380_ENABLED") == "1" and values.get("V380_PASSWORD"):
@@ -555,8 +517,5 @@ def rtsp_secret(host, username, password, path, onvif_port=80):
     path = path.strip()
     if not path.startswith("/"):
         path = "/" + path
-    uri = (
-        f"rtsp://{quote(username, safe='')}:{quote(password, safe='')}"
-        f"@{host}:554{path}"
-    )
+    uri = f"rtsp://{quote(username, safe='')}:{quote(password, safe='')}@{host}:554{path}"
     return {"rtsp_url": uri, "onvif_port": int(onvif_port)}

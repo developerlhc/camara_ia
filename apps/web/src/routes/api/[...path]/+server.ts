@@ -22,7 +22,7 @@ const proxy: RequestHandler = async ({ request, params, url, getClientAddress })
       headers,
       body: ['GET', 'HEAD'].includes(request.method) ? undefined : await request.text(),
       redirect: 'manual',
-      signal: AbortSignal.timeout(params.path.includes('/frigate/') ? 3600000 : 30000)
+      signal: AbortSignal.timeout(params.path.includes('/media/') ? 3600000 : 30000)
     });
     const responseHeaders = new Headers(upstream.headers);
     if (responseHeaders.has('content-encoding')) {

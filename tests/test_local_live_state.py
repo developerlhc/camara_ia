@@ -100,7 +100,7 @@ def test_primary_read_does_not_wait_for_fourteen_extra_frames(classes):
     assert analytics._read_latest_frame(capture) == (True, b"frame")
 
 
-def test_edit_without_frigate_field_preserves_mapping_and_cloud_source(classes, monkeypatch):
+def test_edit_preserves_v380_cloud_source(classes, monkeypatch):
     monkeypatch.setenv("CAMERA_STORAGE", "mysql")
     stored = dict(
         id="a",
@@ -113,7 +113,6 @@ def test_edit_without_frigate_field_preserves_mapping_and_cloud_source(classes, 
         password="test-only",
         device_id="test",
         source="cloud",
-        frigate_camera_name="calle",
         port=8800,
         rtsp_port=8556,
         http_port=8081,
@@ -134,7 +133,6 @@ def test_edit_without_frigate_field_preserves_mapping_and_cloud_source(classes, 
     )
     classes.update(
         ipaddress=ipaddress,
-        validate_frigate_camera_name=lambda name: name,
         preview_source=lambda camera: dict(camera),
     )
     analytics = classes["CameraAnalytics"].__new__(classes["CameraAnalytics"])
@@ -142,6 +140,5 @@ def test_edit_without_frigate_field_preserves_mapping_and_cloud_source(classes, 
     analytics.cameras = {"a": dict(stored)}
     analytics.active_camera_id = "other"
     analytics.update_camera_configuration("a", {"name": "V380", "target_fps": 8})
-    assert updates[0]["frigate_camera_name"] == "calle"
     assert updates[0]["secret"]["source"] == "cloud"
     assert updates[0]["secret"]["rtsp_port"] == 8556

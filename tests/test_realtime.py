@@ -1,6 +1,6 @@
 from starlette.websockets import WebSocketDisconnect
 from vigilay.db import system_session
-from vigilay.models import FrigateConnection
+from vigilay.models import RecorderConnection
 from vigilay.realtime_hub import notify_site
 from vigilay.security import encrypt_credentials
 
@@ -38,7 +38,7 @@ def test_site_agent_receives_outbound_wake_signal(clients, cameras):
     camera = cameras["a"]
     token = "site-agent-test-token"
     with system_session() as db:
-        connection = FrigateConnection(
+        connection = RecorderConnection(
             tenant_id=camera["tenant_id"],
             site_id=camera["site_id"],
             gateway_token_encrypted=encrypt_credentials(

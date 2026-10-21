@@ -74,9 +74,6 @@ class CameraInput(Input):
     integration_type: Literal["RTSP", "V380", "SIMULATOR"]
     brand: Literal["EZVIZ", "IMOU", "V380", "GENERIC"] = "GENERIC"
     model: str = Field(default="", max_length=120)
-    frigate_camera_name: str | None = Field(
-        default=None, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$"
-    )
     target_fps: int = Field(default=10, ge=1, le=30, strict=True)
     grayscale: bool = False
     rtsp_url: SecretStr | None = Field(default=None, max_length=2048)
@@ -121,7 +118,3 @@ class LiveSessionInput(Input):
 class CloudflareIntegrationInput(Input):
     account_id: str = Field(min_length=1, max_length=64)
     api_token: SecretStr = Field(min_length=20, max_length=256)
-
-
-class FrigateCameraInput(Input):
-    frigate_camera_name: str = Field(min_length=1, max_length=80, pattern=r"^[a-zA-Z0-9_-]+$")

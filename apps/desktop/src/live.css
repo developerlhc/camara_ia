@@ -1,0 +1,43 @@
+.camera-list {
+  list-style: none;
+  padding: 0;
+}
+
+.camera-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid #e2eaed;
+}
+
+.camera-list li:last-child {
+  border-bottom: 0;
+}
+
+.camera-list span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.camera-list small {
+  line-height: 1.2;
+}
+
+.live-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+#live-video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  background: #000;
+  border-radius: 8px;
+}
