@@ -1041,7 +1041,7 @@ pub async fn recorder_status(
         *guard = None;
     }
     Ok(
-        json!({"running": running, "output_dir": settings.output_dir, "camera_count": settings.cameras.len()}),
+        json!({"running": running, "site_id": settings.site_id, "output_dir": settings.output_dir, "camera_count": settings.cameras.len()}),
     )
 }
 

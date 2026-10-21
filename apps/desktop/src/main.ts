@@ -142,6 +142,38 @@ async function loadRecorder() {
   return state;
 }
 
+async function ensureLocalVideoAgent(siteId: string) {
+  let state = await invoke<RecorderState>('recorder_status');
+  if (state.running) {
+    if (state.site_id !== siteId) throw new Error('El agente local está activo para otra sede.');
+    await ensureVideoAgent();
+    return state;
+  }
+  if (state.site_id !== siteId || state.camera_count === 0) {
+    await invoke('sync_recording_cameras', { siteId });
+  }
+  await invoke('start_recorder', { siteId });
+  state = await loadRecorder();
+  await ensureVideoAgent();
+  return state;
+}
+
+async function requestLiveWhenAgentIsReady(cameraId: string) {
+  const deadline = Date.now() + 20_000;
+  let lastError: unknown = new Error('El agente local de video no respondió');
+  while (Date.now() < deadline) {
+    try {
+      return await invoke<LiveResult>('start_live', { cameraId });
+    } catch (error) {
+      lastError = error;
+      if (!String(error).toLowerCase().includes('agente local de video')) throw error;
+      liveState('Esperando al agente local de video…');
+      await pause(1_000);
+    }
+  }
+  throw lastError;
+}
+
 function liveState(message: string, running = false) {
   const badge = byId('live-status');
   badge.textContent = message;
@@ -250,9 +282,13 @@ async function openLive(camera: Row) {
   byId('live-section').hidden = false;
   byId('live-title').textContent = camera.name;
   byId('live-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  liveState('Solicitando transmisión…');
+  liveState('Iniciando agente local de video…');
   try {
-    const result = await invoke<LiveResult>('start_live', { cameraId: camera.id });
+    const siteId = camera.site_id || selected().site_id;
+    if (!siteId) throw new Error('Selecciona la sede de la cámara.');
+    await ensureLocalVideoAgent(siteId);
+    liveState('Solicitando transmisión…');
+    const result = await requestLiveWhenAgentIsReady(camera.id);
     const live: ActiveLive = { ...result, cameraId: camera.id, resource: '' };
     activeLive = live;
     await waitForPublisher(live);
@@ -381,6 +417,7 @@ byId('sync-recording-cameras').onclick = () => void operation('Sincronizar acces
   const scope = selected();
   if (!scope.site_id) throw new Error('Selecciona una empresa y una sede.');
   const result = await invoke('sync_recording_cameras', { siteId: scope.site_id });
+  await invoke('start_recorder', { siteId: scope.site_id });
   await Promise.all([loadCameras(), loadRecorder()]);
   return result;
 }).catch(() => {});

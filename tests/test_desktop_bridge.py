@@ -56,6 +56,18 @@ def test_desktop_uses_the_integrated_video_agent_without_repository_scripts():
     assert "api_url" in rust
 
 
+def test_desktop_starts_the_local_agent_before_requesting_live_video():
+    typescript = (ROOT / "src/main.ts").read_text(encoding="utf-8")
+    rust = (ROOT / "src-tauri/src/deployment.rs").read_text(encoding="utf-8")
+    open_live = typescript.split("async function openLive", 1)[1].split(
+        "async function loadCameras", 1
+    )[0]
+    assert open_live.index("ensureLocalVideoAgent") < open_live.index("requestLiveWhenAgentIsReady")
+    assert "await invoke('start_recorder', { siteId })" in typescript
+    assert "await invoke('sync_recording_cameras', { siteId })" in typescript
+    assert '"site_id": settings.site_id' in rust
+
+
 def test_desktop_is_single_instance_and_bundles_whip_ffmpeg():
     main = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
     cargo = (ROOT / "src-tauri/Cargo.toml").read_text(encoding="utf-8")
