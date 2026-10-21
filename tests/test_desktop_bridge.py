@@ -60,9 +60,7 @@ def test_desktop_is_single_instance_and_bundles_whip_ffmpeg():
     main = (ROOT / "src-tauri/src/main.rs").read_text(encoding="utf-8")
     cargo = (ROOT / "src-tauri/Cargo.toml").read_text(encoding="utf-8")
     bundle = (ROOT / "src-tauri/tauri.bundle.conf.json").read_text(encoding="utf-8")
-    build = (ROOT.parents[1] / "scripts/build-desktop-recorder.ps1").read_text(
-        encoding="utf-8"
-    )
+    build = (ROOT.parents[1] / "scripts/build-desktop-recorder.ps1").read_text(encoding="utf-8")
     assert "tauri_plugin_single_instance::init" in main
     assert "tauri-plugin-single-instance" in cargo
     assert '"binaries/vigilay-ffmpeg"' in bundle

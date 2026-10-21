@@ -431,9 +431,7 @@ def test_site_agent_authenticates_polls_and_updates_live_session(monkeypatch, cl
     assert started.status_code == 200, started.text
     polled = clients["a"].post("/api/v1/agent/live/poll", json=agent_body)
     assert polled.status_code == 200, polled.text
-    assert polled.json()["streams"] == [
-        {"camera_id": camera_id, "publish_url": PUBLISH_URL}
-    ]
+    assert polled.json()["streams"] == [{"camera_id": camera_id, "publish_url": PUBLISH_URL}]
     bad = clients["a"].post(
         "/api/v1/agent/live/poll", json={**agent_body, "gateway_token": "x" * 40}
     )

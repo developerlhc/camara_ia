@@ -41,9 +41,7 @@ class SiteAgentStatusInput(SiteAgentInput):
 
 
 def _authorize_site_agent(db, data: SiteAgentInput):
-    row = db.scalar(
-        select(RecorderConnection).where(RecorderConnection.site_id == data.site_id)
-    )
+    row = db.scalar(select(RecorderConnection).where(RecorderConnection.site_id == data.site_id))
     if row is None or not row.gateway_token_encrypted:
         raise HTTPException(401, "Sede no autorizada")
     try:
@@ -197,9 +195,7 @@ def update_site_live_status(data: SiteAgentStatusInput):
     with system_session() as db:
         connection = _authorize_site_agent(db, data)
         camera = db.scalar(
-            select(Camera).where(
-                Camera.id == data.camera_id, Camera.site_id == connection.site_id
-            )
+            select(Camera).where(Camera.id == data.camera_id, Camera.site_id == connection.site_id)
         )
         if camera is None:
             raise HTTPException(404, "Cámara no encontrada")

@@ -93,9 +93,7 @@ class SiteLiveAgent:
     def _start(self, camera_id, publish_url):
         camera = self.cameras.get(camera_id)
         if camera is None:
-            self._post(
-                "/agent/live/status", {"camera_id": camera_id, "status": "error"}
-            )
+            self._post("/agent/live/status", {"camera_id": camera_id, "status": "error"})
             self.retry_after[camera_id] = time.monotonic() + 15
             return
         command = [
@@ -193,14 +191,14 @@ class SiteLiveAgent:
             publisher = self.publishers[camera_id]
             if publisher.process.poll() is not None:
                 self.publishers.pop(camera_id, None)
-                self._post(
-                    "/agent/live/status", {"camera_id": camera_id, "status": "error"}
-                )
+                self._post("/agent/live/status", {"camera_id": camera_id, "status": "error"})
                 self.retry_after[camera_id] = time.monotonic() + 5
             elif publisher.ready.is_set():
                 self._report(camera_id, "live")
         for camera_id, publish_url in jobs.items():
-            if camera_id in self.publishers or time.monotonic() < self.retry_after.get(camera_id, 0):
+            if camera_id in self.publishers or time.monotonic() < self.retry_after.get(
+                camera_id, 0
+            ):
                 continue
             self._start(camera_id, publish_url)
 
