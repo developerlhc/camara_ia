@@ -52,7 +52,7 @@ jobs:
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
         working-directory: apps/desktop
       - run: python -m pytest tools/vigilay_recorder/test_config.py tools/v380_motion_recorder/test_recorder.py -q
-      - run: npm run desktop:build -- --bundles nsis,msi
+      - run: npm run desktop:build
         working-directory: apps/desktop
       - uses: actions/upload-artifact@v7
         with:

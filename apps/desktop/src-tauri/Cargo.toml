@@ -1,6 +1,6 @@
 [package]
 name = "vigilay-desktop"
-version = "0.2.3"
+version = "0.2.4"
 description = "Asistente técnico local de Vigilay"
 edition = "2021"
 rust-version = "1.85"

@@ -434,7 +434,15 @@ fn tunnel_url(line: &str) -> Option<String> {
 }
 
 async fn start_tunnel(port: u16) -> Result<(Child, String), String> {
-    let executable = env::var("CLOUDFLARED_PATH").unwrap_or_else(|_| "cloudflared".into());
+    let executable = env::var_os("CLOUDFLARED_PATH")
+        .map(PathBuf::from)
+        .or_else(|| {
+            env::current_exe()
+                .ok()
+                .and_then(|path| path.parent().map(|parent| parent.join("cloudflared.exe")))
+                .filter(|path| path.is_file())
+        })
+        .unwrap_or_else(|| PathBuf::from("cloudflared"));
     let mut command = Command::new(executable);
     command
         .args([
@@ -450,7 +458,7 @@ async fn start_tunnel(port: u16) -> Result<(Child, String), String> {
     #[cfg(windows)]
     command.creation_flags(0x08000000);
     let mut child = command.spawn().map_err(|_| {
-        "No se encontró cloudflared. Instálalo o configura CLOUDFLARED_PATH para publicar la sede"
+        "No se encontró el componente de túnel incluido. Reinstala Vigilay Desktop o configura CLOUDFLARED_PATH"
     })?;
     let stderr = child
         .stderr

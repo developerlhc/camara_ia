@@ -1,6 +1,7 @@
 param(
     [string]$PythonPath = "",
-    [string]$ModelPath = ""
+    [string]$ModelPath = "",
+    [string]$CloudflaredPath = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -71,3 +72,33 @@ $sourceBinary = Join-Path $distPath "vigilay-recorder.exe"
 $targetBinary = Join-Path $binaryDirectory "vigilay-recorder-$targetTriple.exe"
 Copy-Item -LiteralPath $sourceBinary -Destination $targetBinary -Force
 Write-Host "Motor de grabación preparado: $targetBinary"
+
+$cloudflaredVersion = "2026.10.2"
+$cloudflaredSha256 = "12c7c887f8aaab779aef1dfa9b60673530a5adb88ecc55dd6df8f56e0b70f199"
+if (-not $CloudflaredPath) {
+    $installedCloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue
+    if ($installedCloudflared) {
+        $CloudflaredPath = $installedCloudflared.Source
+    } else {
+        $cloudflaredDirectory = Join-Path $projectRoot ".local\cloudflared\$cloudflaredVersion"
+        $CloudflaredPath = Join-Path $cloudflaredDirectory "cloudflared.exe"
+        if (-not (Test-Path -LiteralPath $CloudflaredPath -PathType Leaf)) {
+            New-Item -ItemType Directory -Force -Path $cloudflaredDirectory | Out-Null
+            $download = "$CloudflaredPath.download"
+            Invoke-WebRequest `
+                -Uri "https://github.com/cloudflare/cloudflared/releases/download/$cloudflaredVersion/cloudflared-windows-amd64.exe" `
+                -OutFile $download
+            Move-Item -LiteralPath $download -Destination $CloudflaredPath -Force
+        }
+    }
+}
+if (-not (Test-Path -LiteralPath $CloudflaredPath -PathType Leaf)) {
+    throw "No se encontró cloudflared en $CloudflaredPath."
+}
+$actualCloudflaredHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $CloudflaredPath).Hash.ToLowerInvariant()
+if ($actualCloudflaredHash -ne $cloudflaredSha256) {
+    throw "La suma SHA-256 de cloudflared no coincide con la versión oficial $cloudflaredVersion."
+}
+$cloudflaredTarget = Join-Path $binaryDirectory "cloudflared-$targetTriple.exe"
+Copy-Item -LiteralPath $CloudflaredPath -Destination $cloudflaredTarget -Force
+Write-Host "Cloudflare Tunnel preparado: $cloudflaredTarget"

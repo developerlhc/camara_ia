@@ -12,7 +12,7 @@ type Row = {
 };
 type User = { id: string; tenant_id?: string | null; role: string; first_name?: string };
 type LoginResult = { connected: boolean; user: User };
-type LiveResult = { playbackUrl: string; sessionId: string; viewerKey: string; status: string };
+type LiveResult = { playbackUrl: string; sessionId: string; viewerKey: string; status: string; error?: string };
 type RecorderState = { running?: boolean; site_id?: string | null; output_dir: string; retention_days?: number; min_free_gb?: number; detector?: string; confidence?: number; camera_count: number };
 type ActiveLive = LiveResult & { cameraId: string; peer?: RTCPeerConnection; resource: string; heartbeat?: number };
 
@@ -158,6 +158,27 @@ function cleanupPeer(live: ActiveLive) {
 
 const pause = (milliseconds: number) => new Promise(resolve => window.setTimeout(resolve, milliseconds));
 
+async function waitForPublisher(live: ActiveLive) {
+  const deadline = Date.now() + 60_000;
+  while (activeLive === live && Date.now() < deadline) {
+    const state = await invoke<LiveResult>('heartbeat_live', {
+      cameraId: live.cameraId,
+      sessionId: live.sessionId,
+      viewerKey: live.viewerKey,
+    });
+    live.status = state.status;
+    live.playbackUrl = state.playbackUrl || live.playbackUrl;
+    if (state.status === 'live') return;
+    if (['error', 'stopped'].includes(state.status)) {
+      throw new Error(state.error || 'La transmisión no pudo iniciarse');
+    }
+    liveState('Preparando y convirtiendo el video…');
+    await pause(1_000);
+  }
+  if (activeLive !== live) throw new Error('La transmisión fue cancelada');
+  throw new Error('La cámara tardó demasiado en iniciar');
+}
+
 async function connectWhep(live: ActiveLive) {
   const delays = [0, 400, 800, 1600, 3200, 5000, 5000, 5000];
   let lastError: unknown = new Error('No llegó video');
@@ -229,6 +250,7 @@ async function openLive(camera: Row) {
     const result = await invoke<LiveResult>('start_live', { cameraId: camera.id });
     const live: ActiveLive = { ...result, cameraId: camera.id, resource: '' };
     activeLive = live;
+    await waitForPublisher(live);
     live.heartbeat = window.setInterval(() => {
       if (activeLive !== live) return;
       void invoke<LiveResult>('heartbeat_live', {
