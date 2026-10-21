@@ -75,7 +75,8 @@ def test_installer_bundles_cloudflared_for_recording_tunnel():
     assert '"binaries/cloudflared"' in bundle
     assert 'parent.join("cloudflared.exe")' in rust
     assert "cloudflared-windows-amd64.exe" in build
-    assert "Get-FileHash -Algorithm SHA256" in build
+    assert "System.Security.Cryptography.SHA256" in build
+    assert "ComputeHash($cloudflaredStream)" in build
 
 
 def test_password_is_not_persisted():

@@ -95,7 +95,16 @@ if (-not $CloudflaredPath) {
 if (-not (Test-Path -LiteralPath $CloudflaredPath -PathType Leaf)) {
     throw "No se encontró cloudflared en $CloudflaredPath."
 }
-$actualCloudflaredHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $CloudflaredPath).Hash.ToLowerInvariant()
+$sha256 = [System.Security.Cryptography.SHA256]::Create()
+$cloudflaredStream = [System.IO.File]::OpenRead($CloudflaredPath)
+try {
+    $actualCloudflaredHash = ([System.BitConverter]::ToString(
+        $sha256.ComputeHash($cloudflaredStream)
+    )).Replace("-", "").ToLowerInvariant()
+} finally {
+    $cloudflaredStream.Dispose()
+    $sha256.Dispose()
+}
 if ($actualCloudflaredHash -ne $cloudflaredSha256) {
     throw "La suma SHA-256 de cloudflared no coincide con la versión oficial $cloudflaredVersion."
 }
