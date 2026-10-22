@@ -33,7 +33,7 @@ if (-not (Test-Path -LiteralPath $ModelPath -PathType Leaf)) {
     throw "No se pudo preparar el modelo YOLO en $ModelPath. Indícalo con -ModelPath."
 }
 
-& $PythonPath -c "import PyInstaller, cv2, imageio_ffmpeg, ultralytics"
+& $PythonPath -c "import PyInstaller, certifi, cv2, imageio_ffmpeg, ultralytics"
 if ($LASTEXITCODE -ne 0) {
     throw "Faltan dependencias. Ejecuta: & '$PythonPath' -m pip install -r tools/vigilay_recorder/requirements-build.txt"
 }
@@ -53,6 +53,7 @@ New-Item -ItemType Directory -Force -Path $distPath, $workPath, $specPath | Out-
     --paths $projectRoot `
     --add-data "$ModelPath;." `
     --collect-all imageio_ffmpeg `
+    --collect-all certifi `
     --collect-all ultralytics `
     --distpath $distPath `
     --workpath $workPath `

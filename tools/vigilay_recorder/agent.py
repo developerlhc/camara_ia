@@ -6,6 +6,7 @@ import argparse
 import hmac
 import json
 import logging
+import os
 import signal
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -19,7 +20,7 @@ from tools.vigilay_recorder.live_agent import SiteLiveAgent
 LOG = logging.getLogger("vigilay-recorder")
 
 
-def handler_factory(config):
+def handler_factory(config, stop_event=None):
     root = config.output_dir.resolve()
 
     class RecordingHandler(BaseHTTPRequestHandler):
@@ -72,6 +73,17 @@ def handler_factory(config):
             if parsed.path == "/api/recordings/file":
                 return self._file(query.get("id", [""])[0])
             return self._json(404, {"detail": "Not found"})
+
+        def do_POST(self):  # noqa: N802
+            if config.gateway_token:
+                expected = f"Bearer {config.gateway_token}"
+                if not hmac.compare_digest(self.headers.get("Authorization", ""), expected):
+                    return self._json(401, {"detail": "Unauthorized"})
+            if urlsplit(self.path).path != "/api/shutdown" or stop_event is None:
+                return self._json(404, {"detail": "Not found"})
+            # Responder antes de iniciar el apagado evita cortar la conexión HTTP.
+            self._json(202, {"stopping": True})
+            stop_event.set()
 
         def _file(self, recording_id):
             try:
@@ -157,7 +169,7 @@ class RecorderAgent:
         config.output_dir.mkdir(parents=True, exist_ok=True)
         prune_recordings(config.output_dir, config.retention_days, config.min_free_gb)
         self.server = ThreadingHTTPServer(
-            ("127.0.0.1", config.gateway_port), handler_factory(config)
+            ("127.0.0.1", config.gateway_port), handler_factory(config, self.stop_event)
         )
         threading.Thread(
             target=self.server.serve_forever, name="recording-api", daemon=True
@@ -201,6 +213,7 @@ class RecorderAgent:
         if self.live_thread:
             self.live_thread.join(timeout=5)
         self.server.shutdown()
+        self.server.server_close()
 
     def _record(self, config: RecorderConfig) -> None:
         while not self.stop_event.is_set():
@@ -212,12 +225,62 @@ class RecorderAgent:
                 self.stop_event.wait(5)
 
 
+class InstanceLock:
+    """Bloqueo del SO que impide dos Recorder para la misma configuración."""
+
+    def __init__(self, config_path: Path):
+        self.path = config_path.with_suffix(".lock")
+        self.file = None
+
+    def acquire(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.file = self.path.open("a+b")
+        self.file.seek(0)
+        if self.file.tell() == 0 and self.path.stat().st_size == 0:
+            self.file.write(b"0")
+            self.file.flush()
+        self.file.seek(0)
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(self.file.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self.file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (OSError, BlockingIOError) as exc:
+            self.file.close()
+            self.file = None
+            raise RuntimeError("Vigilay Recorder ya está activo") from exc
+
+    def release(self) -> None:
+        if self.file is None:
+            return
+        try:
+            self.file.seek(0)
+            if os.name == "nt":
+                import msvcrt
+
+                msvcrt.locking(self.file.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self.file.fileno(), fcntl.LOCK_UN)
+        finally:
+            self.file.close()
+            self.file = None
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Agente local de grabacion Vigilay")
     parser.add_argument("--config", type=Path, required=True)
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    agent = RecorderAgent(args.config.resolve())
+    config_path = args.config.resolve()
+    instance_lock = InstanceLock(config_path)
+    instance_lock.acquire()
+    agent = RecorderAgent(config_path)
 
     def stop(*_):
         agent.stop_event.set()
@@ -225,7 +288,10 @@ def main() -> None:
     for name in ("SIGINT", "SIGTERM"):
         if hasattr(signal, name):
             signal.signal(getattr(signal, name), stop)
-    agent.run()
+    try:
+        agent.run()
+    finally:
+        instance_lock.release()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.vigilay_recorder.agent import handler_factory
+from tools.vigilay_recorder.agent import InstanceLock, handler_factory
 from tools.vigilay_recorder.config import (
     RecorderConfigurationError,
     load_configuration,
@@ -122,7 +122,8 @@ def test_local_api_requires_token_and_supports_ranges(tmp_path):
         [{"id": "cam-1", "name": "Entrada", "source": "rtsp://camera/live"}],
     )
     config = load_configuration(config_path)
-    server = ThreadingHTTPServer(("127.0.0.1", 0), handler_factory(config))
+    stop_event = threading.Event()
+    server = ThreadingHTTPServer(("127.0.0.1", 0), handler_factory(config, stop_event))
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -178,6 +179,36 @@ def test_local_api_requires_token_and_supports_ranges(tmp_path):
         assert event["crossings_down"] == 1
         assert event["crossings_up"] == 1
         connection.close()
+
+        connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+        connection.request("POST", "/api/shutdown")
+        assert connection.getresponse().status == 401
+        connection.close()
+
+        connection = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+        connection.request(
+            "POST",
+            "/api/shutdown",
+            headers={"Authorization": "Bearer test-token-" + "x" * 32},
+        )
+        response = connection.getresponse()
+        assert response.status == 202
+        assert json.loads(response.read()) == {"stopping": True}
+        assert stop_event.wait(1)
+        connection.close()
     finally:
         server.shutdown()
         server.server_close()
+
+
+def test_recorder_allows_only_one_instance_per_configuration(tmp_path):
+    first = InstanceLock(tmp_path / "recorder.json")
+    second = InstanceLock(tmp_path / "recorder.json")
+    first.acquire()
+    try:
+        with pytest.raises(RuntimeError, match="ya está activo"):
+            second.acquire()
+    finally:
+        first.release()
+    second.acquire()
+    second.release()

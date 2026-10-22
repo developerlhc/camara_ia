@@ -400,6 +400,51 @@ async fn wait_for_recorder(child: &mut Child, port: u16, token: &str) -> Result<
     }
 }
 
+async fn stop_orphaned_recorder(port: u16, token: &str) -> Result<(), String> {
+    let endpoint = format!("http://127.0.0.1:{port}/api/cameras");
+    let shutdown = format!("http://127.0.0.1:{port}/api/shutdown");
+    let client = Client::builder()
+        .timeout(std::time::Duration::from_secs(2))
+        .build()
+        .map_err(|_| "No se pudo preparar la comprobación del grabador")?;
+    let response = match client.get(&endpoint).bearer_auth(token).send().await {
+        Ok(response) => response,
+        Err(_) => return Ok(()),
+    };
+    if !response.status().is_success() {
+        return Err(
+            "El puerto local del grabador está ocupado por otro proceso. Cierra las instancias anteriores de Vigilay Recorder"
+                .into(),
+        );
+    }
+    let response = client
+        .post(shutdown)
+        .bearer_auth(token)
+        .send()
+        .await
+        .map_err(|_| "No se pudo detener la instancia anterior de Vigilay Recorder")?;
+    if !response.status().is_success() {
+        return Err(
+            "Hay una versión anterior de Vigilay Recorder activa. Ciérrala una vez desde el Administrador de tareas"
+                .into(),
+        );
+    }
+    let deadline = Instant::now() + Duration::from_secs(20);
+    while Instant::now() < deadline {
+        sleep(Duration::from_millis(250)).await;
+        if client
+            .get(&endpoint)
+            .bearer_auth(token)
+            .send()
+            .await
+            .is_err()
+        {
+            return Ok(());
+        }
+    }
+    Err("La instancia anterior de Vigilay Recorder no terminó a tiempo".into())
+}
+
 fn tunnel_url(line: &str) -> Option<String> {
     let start = line.find("https://")?;
     let candidate = line[start..]
@@ -898,12 +943,19 @@ pub async fn start_recorder(
         let _ = tunnel.kill().await;
     }
     *state.tunnel.lock().await = None;
+    stop_orphaned_recorder(settings.gateway_port, &settings.gateway_token).await?;
     let mut guard = state.recorder.lock().await;
     let mut command = recorder_command(&recorder_config_path(&app)?)?;
+    let log_path = recorder_config_path(&app)?.with_file_name("recorder.log");
+    let log = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(&log_path)
+        .map_err(|_| "No se pudo preparar el registro de Vigilay Recorder")?;
     command
         .stdin(Stdio::null())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(Stdio::from(log))
         .kill_on_drop(true);
     #[cfg(windows)]
     command.creation_flags(0x08000000);

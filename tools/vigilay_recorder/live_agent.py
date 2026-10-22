@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import shutil
+import ssl
 import subprocess
 import sys
 import threading
@@ -13,6 +14,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from urllib import error, request
+
+import certifi
 
 LOG = logging.getLogger("vigilay-recorder.live")
 
@@ -49,6 +52,10 @@ class SiteLiveAgent:
         self.cameras = {camera.id: camera for camera in config.cameras if camera.enabled}
         self.publishers: dict[str, Publisher] = {}
         self.retry_after: dict[str, float] = {}
+        # Python embebido por PyInstaller no siempre encuentra el almacén de
+        # certificados de Windows. Usar el CA bundle incluido evita que el
+        # heartbeat HTTPS falle silenciosamente sólo en la aplicación instalada.
+        self.ssl_context = ssl.create_default_context(cafile=certifi.where())
 
     def _post(self, path, payload):
         body = json.dumps(
@@ -64,7 +71,7 @@ class SiteLiveAgent:
             headers={"Content-Type": "application/json", "User-Agent": "Vigilay-Recorder/0.3"},
             method="POST",
         )
-        with request.urlopen(call, timeout=8) as response:
+        with request.urlopen(call, timeout=8, context=self.ssl_context) as response:
             return json.loads(response.read().decode("utf-8"))
 
     def _report(self, camera_id, status):
@@ -214,8 +221,8 @@ class SiteLiveAgent:
                 subprocess.SubprocessError,
                 error.URLError,
                 json.JSONDecodeError,
-            ):
-                LOG.warning("No se pudo sincronizar el agente de live; se reintentará")
+            ) as exc:
+                LOG.warning("No se pudo sincronizar el agente de live; se reintentará: %s", exc)
             self.stop_event.wait(self.poll_seconds)
         for camera_id in list(self.publishers):
             self._stop(camera_id)
