@@ -64,6 +64,8 @@ def test_integrated_live_agent_starts_once_reports_ready_and_stops(monkeypatch):
     assert len(commands) == 1
     assert statuses == ["starting", "live"]
     assert "rtsp://camera/live" in commands[0]
+    buffer_option = commands[0].index("-ts_buffer_size")
+    assert commands[0][buffer_option + 1] == "16777216"
 
     jobs.clear()
     agent.reconcile()

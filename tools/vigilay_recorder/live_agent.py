@@ -148,6 +148,8 @@ class SiteLiveAgent:
             "48000",
             "-ac",
             "2",
+            "-ts_buffer_size",
+            "16777216",
             "-f",
             "whip",
             publish_url,
