@@ -1,7 +1,7 @@
 flask>=3.0.0
 opencv-python>=5.0.0.93,<6
 ultralytics>=8.3.0
-numpy>=1.26.0
+numpy>=2.5.3
 python-dotenv>=1.0.0
 onvif-zeep>=0.2.12
 imageio-ffmpeg>=0.6.0
